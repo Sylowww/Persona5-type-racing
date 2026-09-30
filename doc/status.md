@@ -9,11 +9,13 @@ Last updated: 2026-09-30.
 - Bilingual live race page (`/fr/race`, `/en/race`): race timer, objective, placement badge, race track lanes, typing arena with per-character feedback, WPM, streak and accuracy. Typing logic lives in `lib/typing.ts`.
 - Bilingual race results page (`/fr/race/results`, `/en/race/results`): result banner, podium, speed chart, precision stats, slow keys, keyboard heatmap, back-to-lobby and rematch links. Ranking and heatmap logic lives in `lib/results.ts`.
 
-- Database foundation: migration runner, `users` / `oauth_accounts` / `sessions` schema, password hashing, session tokens, account validation and data-access functions (`lib/users.ts`). Not yet used by any page.
+- Database foundation: migration runner, `users` / `oauth_accounts` / `sessions` schema, password hashing, session tokens, account validation and data-access functions (`lib/users.ts`). Used by email/password auth.
+
+- Email/password sign up (`/fr/sign-up`, `/en/sign-up`), sign in (`/…/sign-in`), sign out, session cookie and current-user lookup. The header shows the signed-in username or Sign in / Join links.
 
 ## Mocked / not wired
 
-- All player, leaderboard and server data comes from `src/mocks/player.ts`.
+- All player stats, leaderboard and server data comes from `src/mocks/player.ts` (the header uses the real signed-in user).
 - Lobby data comes from `src/mocks/lobby.ts`; there is one fixed lobby, no `/lobby/[code]` route yet.
 - Lobby buttons (add bot, settings, chat, leave, invite observer, start) do nothing; start is disabled until everyone is ready (`canStartRace` in `lib/lobby.ts`).
 - Nav items, mode cards, "Start a race" and "Join with code" do nothing yet (no pages, matchmaking or lobbies).
@@ -26,9 +28,11 @@ Last updated: 2026-09-30.
 
 ## Not started
 
-Real-time race sync, lobbies, sign-in/sign-up pages, session cookies, OAuth flows (GitHub, Discord), bots, stats persistence, heatmaps.
+Real-time race sync, lobbies, guest sessions (no page creates a guest yet), OAuth flows (GitHub, Discord), bots, stats persistence, heatmaps.
 
 ## Undecided
+
+- Auth extras: password reset, email verification, rate limiting of sign-in attempts, redirect back to the previous page after sign-in.
 
 - Light mode design.
 - Final behavior of bonuses and catch-up mechanics.

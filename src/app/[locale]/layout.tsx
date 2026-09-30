@@ -7,7 +7,8 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { iconNames } from "@/components/ui/icon";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale, locales } from "@/i18n/locales";
-import { mockPlayer, mockServerStatus } from "@/mocks/player";
+import { getCurrentUser } from "@/lib/auth/session";
+import { mockServerStatus } from "@/mocks/player";
 import "../globals.css";
 
 const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton" });
@@ -39,7 +40,7 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const dictionary = await getDictionary(locale);
+  const [dictionary, user] = await Promise.all([getDictionary(locale), getCurrentUser()]);
 
   return (
     <html lang={locale} className={`${anton.variable} ${chivo.variable} ${spaceGrotesk.variable}`}>
@@ -47,7 +48,7 @@ export default async function LocaleLayout({
         <link rel="stylesheet" href={iconFontUrl} />
       </head>
       <body className="relative min-h-screen overflow-x-hidden bg-surface-container-lowest font-body text-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
-        <SiteHeader locale={locale} dictionary={dictionary.header} player={mockPlayer} server={mockServerStatus} />
+        <SiteHeader locale={locale} dictionary={dictionary.header} user={user} server={mockServerStatus} />
         {children}
         <SiteFooter dictionary={dictionary.footer} />
       </body>

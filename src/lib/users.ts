@@ -30,11 +30,15 @@ function toUser(row: UserRow): User {
   };
 }
 
-function isUniqueViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "23505";
+/** Name of the violated unique index, or null for any other error. */
+function uniqueViolation(error: unknown): string | null {
+  if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "23505") return null;
+  return "constraint" in error && typeof error.constraint === "string" ? error.constraint : "";
 }
 
-export type CreateAccountResult = { ok: true; user: User } | { ok: false; error: "taken" };
+export type CreateAccountResult =
+  | { ok: true; user: User }
+  | { ok: false; error: "usernameTaken" | "emailTaken" };
 
 export async function createGuest(): Promise<User> {
   const { rows } = await getPool().query<UserRow>(
@@ -73,8 +77,9 @@ export async function createAccount(input: {
     );
     return { ok: true, user: toUser(inserted.rows[0]) };
   } catch (error) {
-    if (isUniqueViolation(error)) return { ok: false, error: "taken" };
-    throw error;
+    const constraint = uniqueViolation(error);
+    if (constraint === null) throw error;
+    return { ok: false, error: constraint === "users_email_key" ? "emailTaken" : "usernameTaken" };
   }
 }
 

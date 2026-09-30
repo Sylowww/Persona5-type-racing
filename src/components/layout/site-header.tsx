@@ -1,19 +1,21 @@
+import { AccountMenu } from "@/components/layout/account-menu";
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { SiteNav } from "@/components/layout/site-nav";
 import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import type { PlayerProfile, ServerStatus } from "@/types/player";
+import type { ServerStatus } from "@/types/player";
+import type { User } from "@/types/user";
 
 type SiteHeaderProps = {
   locale: Locale;
   dictionary: Dictionary["header"];
-  player: PlayerProfile;
+  user: User | null;
   server: ServerStatus;
 };
 
-export function SiteHeader({ locale, dictionary, player, server }: SiteHeaderProps) {
+export function SiteHeader({ locale, dictionary, user, server }: SiteHeaderProps) {
   const onlineCount = new Intl.NumberFormat(locale).format(server.onlineCount);
 
   return (
@@ -47,24 +49,7 @@ export function SiteHeader({ locale, dictionary, player, server }: SiteHeaderPro
             <Icon name="volume_up" size={20} />
           </button>
 
-          <div className="flex items-center gap-2 bg-surface-container px-2 py-1">
-            <div className="flex size-8 items-center justify-center rounded-full bg-primary">
-              <Icon name="person" size={18} className="text-on-primary" />
-            </div>
-            <div className="hidden flex-col sm:flex">
-              <div className="flex items-center gap-1">
-                <span className="font-hud text-label-hud font-black uppercase text-secondary-fixed">
-                  {formatMessage(dictionary.level, { level: player.level })}
-                </span>
-                <span className="max-w-[90px] truncate font-body text-body-md font-bold text-secondary">
-                  {player.name}
-                </span>
-              </div>
-              <span className="font-hud text-[11px] font-black leading-none tracking-widest text-primary-container">
-                {formatMessage(dictionary.wpm, { wpm: player.recordWpm })}
-              </span>
-            </div>
-          </div>
+          <AccountMenu locale={locale} dictionary={dictionary.account} user={user} />
         </div>
       </div>
     </header>

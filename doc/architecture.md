@@ -11,11 +11,14 @@ src/
     [locale]/lobby/page.tsx Lobby page
     [locale]/race/page.tsx  Live race page
     [locale]/race/results/page.tsx  Race results page
+    [locale]/sign-in/page.tsx       Email/password sign in
+    [locale]/sign-up/page.tsx       Account creation
   components/
     layout/                 Site-wide chrome (header, footer, wordmark)
     ui/                     Generic, reusable primitives (Icon)
   features/<feature>/
     components/             Components used only by that feature (e.g. features/home)
+    actions.ts              Server Functions for that feature (e.g. features/auth)
   i18n/                     Locales, dictionaries, message formatting
   lib/                      Framework-free logic (pure functions, db access)
   mocks/                    Placeholder data until the server provides it
@@ -50,3 +53,12 @@ tests/
 - Tables: `users` (guests and registered accounts, `kind` column), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored).
 - `lib/users.ts` is the server-only data access for accounts and sessions. Pure auth helpers (scrypt password hashing, session tokens, input validation) live in `lib/auth/` and are unit tested.
 - The server will be authoritative for race state, scores and rankings; UI values in `mocks/` are placeholders only.
+
+## Authentication
+
+- `features/auth/actions.ts`: `signUp`, `signIn`, `signOut` Server Functions used by the forms (`useActionState`). They return error codes, translated by the UI from `auth.errors`.
+- `lib/auth/forms.ts`: pure parsing/validation of the submitted forms (unit tested).
+- `lib/auth/session.ts` (server-only): `getCurrentUser()` (cached per request), `startSession()`, `endSession()`. Cookie `session`: HttpOnly, `SameSite=Lax`, `Secure` in production, 30 days. Only the token hash is stored.
+- Signing up while holding a guest session upgrades that guest row, keeping its history.
+- The locale layout reads the current user for the header, so every page renders dynamically. Pages without a session cookie never query the database.
+- To protect a page or action, call `getCurrentUser()` on the server and check `kind`. Never trust client-sent user ids.

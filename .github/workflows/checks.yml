@@ -7,6 +7,19 @@ on:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: typing_race
+          POSTGRES_PASSWORD: typing_race
+          POSTGRES_DB: typing_race
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://typing_race:typing_race@localhost:5432/typing_race
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,6 +30,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run db:migrate
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
