@@ -85,10 +85,34 @@ export type KeyStat = {
 
 export type RaceResult = {
   youId: string;
+  /** When the race ended, server epoch milliseconds. */
+  endedAt: number;
   durationMs: number;
   keystrokes: number;
   mistakes: number;
   racers: readonly ResultRacer[];
   speedSamples: readonly SpeedSample[];
   keyStats: readonly KeyStat[];
+};
+
+/** One finished race in a player's history. */
+export type RaceRecord = {
+  /** When the race ended, epoch milliseconds. */
+  endedAt: number;
+  /** 1-based final place. */
+  place: number;
+  racerCount: number;
+  wpm: number;
+  /** From 0 to 1. */
+  accuracy: number;
+  /** Race time in ms; null if the player did not finish. */
+  finishMs: number | null;
+};
+
+export type PlayerStats = {
+  races: number;
+  bestWpm: number;
+  averageWpm: number;
+  /** Average accuracy over the races, from 0 to 1. */
+  accuracy: number;
 };

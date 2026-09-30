@@ -39,6 +39,8 @@ export type LobbyStoreOptions = {
   random?: () => number;
   /** How often timers run and typing progress is broadcast; null disables the timer (tests call `tick`). */
   tickMs?: number | null;
+  /** Called once per finished race with each player's results (bots excluded), e.g. to save them. */
+  onRaceFinished?: (code: string, results: RaceResult[]) => void;
 };
 
 export type LobbyStore = ReturnType<typeof createLobbyStore>;
@@ -83,6 +85,15 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     if (immediate) broadcast(code);
     else pending.add(code);
     syncTimer();
+    if (previous?.phase !== "finished" && next.phase === "finished") reportFinish(code, next);
+  }
+
+  function reportFinish(code: string, state: LobbyState) {
+    if (!options.onRaceFinished) return;
+    const results = (state.race?.racers ?? [])
+      .filter((racer) => racer.bot === null)
+      .flatMap((racer) => resultFor(state, racer.id) ?? []);
+    options.onRaceFinished(code, results);
   }
 
   /** Runs one engine step between two time-based advances. */

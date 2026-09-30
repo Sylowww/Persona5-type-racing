@@ -90,6 +90,7 @@ export type Race = {
 type ResultDetails = Pick<RaceResult, "durationMs" | "keystrokes" | "mistakes" | "speedSamples" | "keyStats">;
 
 export type StoredResult = {
+  endedAt: number;
   /** Ranked, first place first. */
   racers: ResultRacer[];
   details: Record<string, ResultDetails>;
@@ -442,7 +443,7 @@ function finishRace(state: LobbyState, now: number): LobbyState {
     ...state,
     phase: "finished",
     race: { ...race, endedAt },
-    result: { racers: rankRacers(racers), details },
+    result: { endedAt, racers: rankRacers(racers), details },
     members: state.members.map((member) => ({ ...member, isReady: member.bot !== null })),
   };
 }
@@ -544,7 +545,7 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
 export function resultFor(state: LobbyState, userId: string): RaceResult | null {
   const details = state.result?.details[userId];
   if (!state.result || !details) return null;
-  return { youId: userId, racers: state.result.racers, ...details };
+  return { youId: userId, endedAt: state.result.endedAt, racers: state.result.racers, ...details };
 }
 
 /** Validates an input batch received from a client; null when malformed. */

@@ -98,6 +98,26 @@ describe("lobby store", () => {
     expect(store.result(code, "bob")?.racers.map((racer) => racer.id)).toEqual(["ann", "bob"]);
   });
 
+  it("reports each player's results once when a race finishes", () => {
+    const finished: { code: string; ids: string[] }[] = [];
+    store = createLobbyStore({
+      now: () => clock,
+      randomInt: (max) => max - 1,
+      tickMs: null,
+      onRaceFinished: (code, results) => finished.push({ code, ids: results.map((result) => result.youId) }),
+    });
+    const code = store.create(ann, "en");
+    listen(code, "ann");
+    expect(store.addBot(code, "ann", "rookie")).toBeNull();
+    store.setReady(code, "ann", true);
+    expect(store.start(code, "ann")).toBeNull();
+
+    clock += 3 * 60_000 + 5_000;
+    store.tick();
+    store.tick();
+    expect(finished).toEqual([{ code, ids: ["ann"] }]);
+  });
+
   it("keeps a player through a short disconnect and frees the seat after the grace period", () => {
     const { code, bobStream } = readyLobby();
     bobStream.unsubscribe();
