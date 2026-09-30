@@ -33,7 +33,7 @@ Keep TypeScript strict. Avoid `any`.
 * Real-time multiplayer typing races.
 * Public, unlisted and private lobbies.
 * Guest users and registered accounts.
-* GitHub and Discord OAuth.
+* Google, GitHub and Discord OAuth.
 * Customizable typing texts and race settings.
 * Different error-handling modes.
 * Human-like bots with multiple difficulty levels.

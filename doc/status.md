@@ -12,6 +12,7 @@ Last updated: 2026-09-30.
 - Database foundation: migration runner, `users` / `oauth_accounts` / `sessions` schema, password hashing, session tokens, account validation and data-access functions (`lib/users.ts`). Used by email/password auth.
 
 - Email/password sign up (`/fr/sign-up`, `/en/sign-up`), sign in (`/…/sign-in`), sign out, session cookie and current-user lookup. The header shows the signed-in username or Sign in / Join links.
+- OAuth sign-in with Google, GitHub and Discord (buttons appear once the provider's credentials are in `.env`). Not yet tested against real provider apps.
 
 ## Mocked / not wired
 
@@ -28,11 +29,11 @@ Last updated: 2026-09-30.
 
 ## Not started
 
-Real-time race sync, lobbies, guest sessions (no page creates a guest yet), OAuth flows (GitHub, Discord), bots, stats persistence, heatmaps.
+Real-time race sync, lobbies, guest sessions (no page creates a guest yet) (GitHub, Discord), bots, stats persistence, heatmaps.
 
 ## Undecided
 
-- Auth extras: password reset, email verification, rate limiting of sign-in attempts, redirect back to the previous page after sign-in.
+- Auth extras: password reset, email verification, rate limiting of sign-in attempts, redirect back to the previous page after sign-in, linking an OAuth identity to an existing email/password account, showing OAuth avatars.
 
 - Light mode design.
 - Final behavior of bonuses and catch-up mechanics.

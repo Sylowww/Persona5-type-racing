@@ -329,6 +329,11 @@ const en = {
       passwordHint: "At least 8 characters",
     },
     preview: "type fast. type true. leave your mark.",
+    oauth: {
+      divider: "or",
+      continueWith: "Continue with {provider}",
+      error: "Sign-in with that provider failed. Try again.",
+    },
     errors: {
       required: "This field is required.",
       usernameLength: "Username must be 3 to 20 characters.",

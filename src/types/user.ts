@@ -10,4 +10,5 @@ export type User = {
   createdAt: Date;
 };
 
-export type OAuthProvider = "github" | "discord";
+export const oauthProviders = ["google", "github", "discord"] as const;
+export type OAuthProvider = (typeof oauthProviders)[number];

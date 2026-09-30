@@ -52,3 +52,9 @@ test("rejects a wrong password with a generic message", async ({ page }) => {
   await page.getByRole("button", { name: "Enter the race" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Incorrect email or password." })).toBeVisible();
 });
+
+test("rejects an OAuth callback with a forged state", async ({ page }) => {
+  await page.goto("/api/auth/github/callback?code=x&state=forged");
+  await expect(page).toHaveURL(/\/fr\/sign-in\?error=oauth$/);
+  await expect(page.getByText("La connexion avec ce service a échoué. Réessaie.")).toBeVisible();
+});

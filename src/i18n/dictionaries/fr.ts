@@ -331,6 +331,11 @@ const fr: Dictionary = {
       passwordHint: "Au moins 8 caractères",
     },
     preview: "tape vite. tape juste. laisse ta marque.",
+    oauth: {
+      divider: "ou",
+      continueWith: "Continuer avec {provider}",
+      error: "La connexion avec ce service a échoué. Réessaie.",
+    },
     errors: {
       required: "Ce champ est obligatoire.",
       usernameLength: "Le nom d'utilisateur doit contenir de 3 à 20 caractères.",
