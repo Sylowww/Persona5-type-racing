@@ -1,15 +1,18 @@
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import type { LobbyPlayer } from "@/types/lobby";
+import type { LobbyMember } from "@/types/lobby";
 import { PlayerEmblem } from "./player-emblem";
 
 type PlayerCardProps = {
   dictionary: Dictionary["lobby"]["roster"];
-  player: LobbyPlayer;
+  player: LobbyMember;
   slot: number;
+  isYou: boolean;
 };
 
-export function PlayerCard({ dictionary, player, slot }: PlayerCardProps) {
+// Level, title and best speed come later with persistent stats.
+export function PlayerCard({ dictionary, player, slot, isYou }: PlayerCardProps) {
+  const presence = !player.isConnected ? dictionary.reconnecting : isYou ? dictionary.you : dictionary.online;
   const tilt = slot % 2 === 0 ? "rotate-1" : "-rotate-1";
   const backing = !player.isReady
     ? "bg-error-container"
@@ -32,9 +35,9 @@ export function PlayerCard({ dictionary, player, slot }: PlayerCardProps) {
             </span>
             <h3 className="mt-1 truncate font-hud text-headline-sm font-black uppercase italic text-secondary">{player.name}</h3>
             <span
-              className={`font-hud text-[11px] font-black uppercase ${player.isReady ? "text-secondary-fixed" : "text-error"}`}
+              className={`font-hud text-[11px] font-black uppercase ${player.isConnected ? "text-secondary-fixed" : "text-error"}`}
             >
-              {formatMessage(dictionary.level, { level: player.level, title: player.title })}
+              {presence}
             </span>
           </div>
           <span
@@ -61,7 +64,7 @@ export function PlayerCard({ dictionary, player, slot }: PlayerCardProps) {
             <span
               className={`font-display text-headline-md italic leading-none ${player.isHost ? "text-primary-container" : "text-secondary"}`}
             >
-              {formatMessage(dictionary.wpm, { wpm: player.bestWpm })}
+              {dictionary.noRecord}
             </span>
           </div>
         </div>

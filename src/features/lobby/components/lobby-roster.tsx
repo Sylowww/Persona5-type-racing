@@ -1,21 +1,24 @@
 import { Icon } from "@/components/ui/icon";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { openSlotCount } from "@/lib/lobby";
-import type { Lobby } from "@/types/lobby";
+import type { LobbyMember } from "@/types/lobby";
 import { AddBotCard } from "./add-bot-card";
 import { EmptySlotCard } from "./empty-slot-card";
 import { PlayerCard } from "./player-card";
 
 type LobbyRosterProps = {
   dictionary: Dictionary["lobby"];
-  lobby: Lobby;
+  code: string;
+  capacity: number;
+  players: readonly LobbyMember[];
+  youId: string;
 };
 
-export function LobbyRoster({ dictionary, lobby }: LobbyRosterProps) {
+export function LobbyRoster({ dictionary, code, capacity, players, youId }: LobbyRosterProps) {
   const { roster } = dictionary;
-  const openSlots = openSlotCount(lobby.players.length, lobby.capacity);
-  // The last free seat offers a bot; the others invite players.
-  const inviteSlots = Math.max(0, openSlots - 1);
+  const openSlots = openSlotCount(players.length, capacity);
+  // Lobbies hold a whole class, so free seats collapse into one invite card, plus the bot card.
+  const inviteSlots = Math.min(1, Math.max(0, openSlots - 1));
 
   return (
     <section className="flex flex-col gap-4">
@@ -25,12 +28,12 @@ export function LobbyRoster({ dictionary, lobby }: LobbyRosterProps) {
       </h2>
 
       <ol className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {lobby.players.map((player, index) => (
-          <PlayerCard key={player.id} dictionary={roster} player={player} slot={index + 1} />
+        {players.map((player, index) => (
+          <PlayerCard key={player.id} dictionary={roster} player={player} slot={index + 1} isYou={player.id === youId} />
         ))}
         {Array.from({ length: inviteSlots }, (_, index) => {
-          const slot = lobby.players.length + index + 1;
-          return <EmptySlotCard key={slot} dictionary={roster} slot={slot} code={lobby.code} />;
+          const slot = players.length + index + 1;
+          return <EmptySlotCard key={slot} dictionary={roster} slot={slot} code={code} />;
         })}
         {openSlots > 0 && <AddBotCard dictionary={dictionary.bots} wpmLabel={roster.wpm} />}
       </ol>

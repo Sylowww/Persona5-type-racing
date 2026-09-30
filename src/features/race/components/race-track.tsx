@@ -45,7 +45,11 @@ export function RaceTrack({ dictionary, locale, racers, youId }: RaceTrackProps)
           });
 
           return (
-            <li key={racer.id} aria-label={label} className="relative flex h-11 items-center overflow-hidden bg-surface-container-highest px-2">
+            <li
+              key={racer.id}
+              aria-label={label}
+              className={`relative flex h-11 items-center overflow-hidden bg-surface-container-highest px-2 ${racer.isConnected ? "" : "opacity-50"}`}
+            >
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex justify-between opacity-20">
                 {quarterMarks.map((mark) => (
                   <div key={mark} className="h-full w-px bg-on-surface" />

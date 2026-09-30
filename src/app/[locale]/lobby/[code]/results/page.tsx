@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
+import { LobbyPresence } from "@/features/lobby/components/lobby-presence";
+import { loadLobby } from "@/features/lobby/load-lobby";
 import { CombatDossier } from "@/features/results/components/combat-dossier";
 import { KeyboardHeatmap } from "@/features/results/components/keyboard-heatmap";
 import { ResultsActions } from "@/features/results/components/results-actions";
@@ -9,9 +11,10 @@ import { ResultsPodium } from "@/features/results/components/results-podium";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
 import { rankRacers } from "@/lib/results";
-import { mockRaceResult } from "@/mocks/race-result";
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+type Params = { params: Promise<{ locale: string; code: string }> };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
 
@@ -19,12 +22,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return { title: `${results.title} - ${metadata.title}` };
 }
 
-export default async function RaceResultsPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
+export default async function RaceResultsPage({ params }: Params) {
+  const { locale, code: rawCode } = await params;
   if (!isLocale(locale)) notFound();
 
-  const { results: dictionary } = await getDictionary(locale);
-  const result = mockRaceResult;
+  const [{ user, code, store, view }, { results: dictionary }] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
+  const lobbyHref = `/${locale}/lobby/${code}`;
+  const result = store.result(code, user.id);
+  if (!result) redirect(lobbyHref);
   const ranked = rankRacers(result.racers);
   const place = ranked.findIndex((racer) => racer.id === result.youId) + 1;
   const you = ranked[place - 1];
@@ -41,7 +46,8 @@ export default async function RaceResultsPage({ params }: { params: Promise<{ lo
             <CombatDossier dictionary={dictionary.dossier} locale={locale} result={result} wpm={you.wpm} />
             <KeyboardHeatmap dictionary={dictionary.heatmap} keyStats={result.keyStats} />
           </div>
-          <ResultsActions dictionary={dictionary.actions} locale={locale} />
+          <ResultsActions dictionary={dictionary.actions} lobbyHref={lobbyHref} />
+          {view && <LobbyPresence locale={locale} initialView={view} />}
         </div>
       </div>
     </main>

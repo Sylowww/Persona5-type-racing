@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { Icon } from "@/components/ui/icon";
+import { createLobby } from "@/features/lobby/actions";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import type { Locale } from "@/i18n/locales";
 
 type Feedback = "idle" | "pressed" | "flash";
 
@@ -17,19 +19,27 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
   );
 }
 
-export function StartRaceButton({ dictionary }: { dictionary: Dictionary["home"]["startRace"] }) {
+type StartRaceButtonProps = {
+  dictionary: Dictionary["home"]["startRace"];
+  locale: Locale;
+};
+
+export function StartRaceButton({ dictionary, locale }: StartRaceButtonProps) {
   const [feedback, setFeedback] = useState<Feedback>("idle");
   const timers = useRef<number[]>([]);
+  const [isPending, startTransition] = useTransition();
 
-  // Matchmaking does not exist yet: the button only plays its feedback animation.
+  // Matchmaking does not exist yet: starting a race opens a new lobby to invite players into.
   const trigger = useCallback(() => {
+    if (isPending) return;
+    startTransition(() => createLobby(locale));
     timers.current.forEach(window.clearTimeout);
     setFeedback("pressed");
     timers.current = [
       window.setTimeout(() => setFeedback("flash"), PRESS_MS),
       window.setTimeout(() => setFeedback("idle"), PRESS_MS + FLASH_MS),
     ];
-  }, []);
+  }, [isPending, locale]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {

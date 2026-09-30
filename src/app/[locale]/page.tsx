@@ -32,7 +32,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <div className="relative z-10 grid w-full grid-cols-1 items-start gap-7 px-4 py-4 md:px-10 lg:grid-cols-12">
           <div className="flex flex-col gap-7 lg:col-span-7">
             <CallingCardBanner dictionary={home.callingCard} />
-            <StartRaceButton dictionary={home.startRace} />
+            <StartRaceButton dictionary={home.startRace} locale={locale} />
 
             <div className="grid grid-cols-1 gap-4 pt-1 md:grid-cols-2">
               <ModeCard
@@ -45,7 +45,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 {...modes.lobby}
                 meta={formatMessage(modes.lobby.meta, mockLobbySlots)}
               />
-              <JoinCodeCard dictionary={home.joinCode} />
+              <JoinCodeCard dictionary={home.joinCode} locale={locale} />
               <ModeCard variant="training" {...modes.training} />
             </div>
 

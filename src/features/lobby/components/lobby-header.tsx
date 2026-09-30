@@ -1,16 +1,22 @@
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import { readyMeter } from "@/lib/lobby";
 import { CopyCodeButton } from "./copy-code-button";
+
+/** Beyond this many players the meter shows proportions instead of one segment per player. */
+const MAX_SEGMENTS = 12;
 
 type LobbyHeaderProps = {
   dictionary: Dictionary["lobby"]["header"];
   code: string;
-  server: { name: string; pingMs: number };
-  readyCount: number;
+  playerCount: number;
   capacity: number;
+  readyCount: number;
 };
 
-export function LobbyHeader({ dictionary, code, server, readyCount, capacity }: LobbyHeaderProps) {
+export function LobbyHeader({ dictionary, code, playerCount, capacity, readyCount }: LobbyHeaderProps) {
+  const meter = readyMeter(readyCount, playerCount, MAX_SEGMENTS);
+
   return (
     <div className="flex flex-col items-stretch justify-between gap-4 xl:flex-row xl:items-center">
       <div className="flex flex-wrap items-center gap-4">
@@ -29,7 +35,7 @@ export function LobbyHeader({ dictionary, code, server, readyCount, capacity }: 
         <div className="flex rotate-1 items-center gap-2 bg-surface-container-high px-4 py-2 shadow-hard-md">
           <span className="size-2.5 rounded-full bg-secondary-fixed motion-safe:animate-ping" />
           <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">
-            {formatMessage(dictionary.server, { name: server.name, ping: server.pingMs })}
+            {formatMessage(dictionary.seats, { count: playerCount, capacity })}
           </span>
         </div>
       </div>
@@ -40,14 +46,14 @@ export function LobbyHeader({ dictionary, code, server, readyCount, capacity }: 
             {dictionary.squad}
           </span>
           <span className="font-hud text-headline-sm font-black uppercase italic leading-none text-secondary">
-            {formatMessage(dictionary.lockedIn, { ready: readyCount, total: capacity })}
+            {formatMessage(dictionary.lockedIn, { ready: readyCount, total: playerCount })}
           </span>
         </div>
         <div aria-hidden="true" className="flex items-center gap-1">
-          {Array.from({ length: capacity }, (_, index) => (
+          {Array.from({ length: meter.segments }, (_, index) => (
             <span
               key={index}
-              className={`h-7 w-3.5 -skew-x-12 ${index < readyCount ? "bg-secondary-fixed shadow-hard-xs" : "bg-surface-container-highest"}`}
+              className={`h-7 w-3.5 -skew-x-12 ${index < meter.filled ? "bg-secondary-fixed shadow-hard-xs" : "bg-surface-container-highest"}`}
             />
           ))}
         </div>

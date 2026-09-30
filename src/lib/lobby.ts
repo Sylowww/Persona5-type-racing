@@ -1,4 +1,5 @@
-import type { BotDifficulty } from "@/types/lobby";
+import type { Locale } from "@/i18n/locales";
+import type { BotDifficulty, LobbySettings } from "@/types/lobby";
 
 type Readiness = { isReady: boolean };
 
@@ -21,4 +22,16 @@ export function openSlotCount(playerCount: number, capacity: number): number {
 /** A race needs at least two players and everyone ready. */
 export function canStartRace(players: readonly Readiness[]): boolean {
   return players.length >= 2 && countReady(players) === players.length;
+}
+
+/** Filled and total segments of the ready meter; large lobbies are scaled down to `maxSegments`. */
+export function readyMeter(ready: number, total: number, maxSegments: number): { filled: number; segments: number } {
+  const segments = Math.min(total, maxSegments);
+  if (total === 0) return { filled: 0, segments: 0 };
+  return { filled: Math.round((ready / total) * segments), segments };
+}
+
+/** The rules every race uses until race settings exist: built-in texts with punctuation, compared exactly. */
+export function currentRaceSettings(locale: Locale): LobbySettings {
+  return { mode: null, language: locale.toUpperCase(), punctuation: true, numbers: false, caseSensitive: true };
 }

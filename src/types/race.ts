@@ -11,13 +11,6 @@ export type RaceRacer = {
   isConnected: boolean;
 };
 
-export type Race = {
-  text: string;
-  /** Id of the racer controlled by this client. */
-  youId: string;
-  racers: readonly RaceRacer[];
-};
-
 /** The local player's own race progress, as the server last validated it. */
 export type RaceYou = {
   typed: string;
