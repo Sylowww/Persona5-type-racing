@@ -1,5 +1,6 @@
 export const iconNames = [
   "add_circle",
+  "analytics",
   "arrow_forward",
   "assignment",
   "bolt",
@@ -9,6 +10,7 @@ export const iconNames = [
   "content_copy",
   "electric_bolt",
   "graphic_eq",
+  "home",
   "keyboard",
   "military_tech",
   "model_training",
@@ -28,6 +30,7 @@ export const iconNames = [
   "tune",
   "visibility",
   "volume_up",
+  "warning",
 ] as const;
 
 export type IconName = (typeof iconNames)[number];

@@ -10,6 +10,7 @@ src/
     [locale]/page.tsx       Home page: composes feature components
     [locale]/lobby/page.tsx Lobby page
     [locale]/race/page.tsx  Live race page
+    [locale]/race/results/page.tsx  Race results page
   components/
     layout/                 Site-wide chrome (header, footer, wordmark)
     ui/                     Generic, reusable primitives (Icon)
