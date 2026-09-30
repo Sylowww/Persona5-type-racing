@@ -31,7 +31,7 @@ export function SiteHeader({ locale, dictionary, user, server }: SiteHeaderProps
         <SiteNav locale={locale} dictionary={dictionary} />
 
         <div className="flex shrink-0 items-center gap-4">
-          <div className="hidden items-center gap-2 bg-surface-container-high px-2 py-1 2xl:flex">
+          <div className="hidden items-center gap-2 bg-surface-container-high px-2 py-1 min-[1800px]:flex">
             <span className="relative flex size-2">
               <span className="absolute inline-flex size-full rounded-full bg-secondary-fixed opacity-75 motion-safe:animate-ping" />
               <span className="relative inline-flex size-2 rounded-full bg-secondary-fixed" />

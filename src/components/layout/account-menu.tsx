@@ -17,7 +17,7 @@ export function AccountMenu({ locale, dictionary, user }: AccountMenuProps) {
       <nav aria-label={dictionary.label} className="flex items-center gap-2">
         <Link
           href={`/${locale}/sign-in`}
-          className="hidden px-2 py-1 font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant hover:text-secondary sm:block"
+          className="hidden px-2 py-1 font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant hover:text-secondary sm:block xl:hidden min-[1800px]:block"
         >
           {dictionary.signIn}
         </Link>
@@ -26,7 +26,7 @@ export function AccountMenu({ locale, dictionary, user }: AccountMenuProps) {
           className="flex -skew-x-6 items-center gap-1 bg-primary-container px-3 py-1.5 font-hud text-label-hud font-black uppercase italic text-on-primary-container shadow-hard-sm shadow-secondary transition-colors hover:bg-secondary-container hover:text-on-secondary-fixed"
         >
           <Icon name="login" size={18} className="skew-x-6" />
-          <span className="skew-x-6">{dictionary.signUp}</span>
+          <span className="sr-only skew-x-6 sm:not-sr-only">{dictionary.signUp}</span>
         </Link>
       </nav>
     );

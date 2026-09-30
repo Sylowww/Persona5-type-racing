@@ -26,7 +26,7 @@ export function SiteNav({ locale, dictionary }: SiteNavProps) {
         const route = routes[item];
         const href = route === undefined ? undefined : `/${locale}${route}`;
         const isActive = href === pathname;
-        const className = `whitespace-nowrap px-3 py-1 font-hud text-lg font-black uppercase italic ${
+        const className = `whitespace-nowrap px-1.5 py-1 font-hud text-base font-black min-[1800px]:px-3 min-[1800px]:text-lg uppercase italic ${
           isActive
             ? "bg-primary-container text-on-primary-container shadow-hard-sm shadow-secondary-fixed"
             : "text-on-surface-variant"

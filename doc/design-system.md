@@ -58,7 +58,7 @@ Always use tokens; never hardcode hex colors in components (SVG included: use `f
 ## Responsive
 
 - The race itself targets desktop; other pages must work on phones without horizontal scroll.
-- Page gutter: `px-4 md:px-10`. Header nav appears at `xl`, server status at `2xl`.
+- Page gutter: `px-4 md:px-10`. Header nav appears at `xl` (compact until 1800px); server status and the header "Sign in" text link show from 1800px.
 
 ## Open points
 
