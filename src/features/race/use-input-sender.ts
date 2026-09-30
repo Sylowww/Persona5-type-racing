@@ -7,13 +7,18 @@ const FLUSH_MS = 50;
 const RETRY_MS = 500;
 const MAX_BATCH = 200;
 
+/** `crypto.randomUUID` only exists on HTTPS and localhost; this also works on a LAN address over HTTP. */
+function randomClientId(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 /**
  * Sends keystrokes to the server in small numbered batches, one request at a time.
  * A failed request is retried with the same number, so the server never applies a batch twice.
  * Each page mount has its own client id, so batches from before a reload never collide with new ones.
  */
 export function useInputSender(code: string) {
-  const [clientId] = useState(() => crypto.randomUUID());
+  const [clientId] = useState(randomClientId);
   const queue = useRef<InputEvent[]>([]);
   const seq = useRef(0);
   const inFlight = useRef(false);
