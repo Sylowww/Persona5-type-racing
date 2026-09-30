@@ -10,6 +10,7 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { formatMessage } from "@/i18n/format";
 import { isLocale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getPlayerStats } from "@/lib/race-history-db";
 import { mockBlitzBet, mockLeaderboard, mockLobbySlots } from "@/mocks/player";
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
@@ -18,6 +19,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
   const [dictionary, currentUser] = await Promise.all([getDictionary(locale), getCurrentUser()]);
   const user = currentUser?.kind === "registered" ? currentUser : null;
+  const stats = user ? await getPlayerStats(user.id) : null;
   const { home } = dictionary;
   const { modes } = home;
   // The player's own ranking does not exist yet; only the mock rivals are shown.
@@ -53,7 +55,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </div>
 
           <div className="flex flex-col gap-4 lg:col-span-5">
-            <PlayerDossier locale={locale} dictionary={home.dossier} user={user} leaderboard={rivals} />
+            <PlayerDossier locale={locale} dictionary={home.dossier} user={user} stats={stats} leaderboard={rivals} />
           </div>
         </div>
       </div>
