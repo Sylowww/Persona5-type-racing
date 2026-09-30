@@ -8,6 +8,7 @@ src/
     globals.css             Tailwind 4 theme tokens (see design-system.md)
     [locale]/layout.tsx     <html>, fonts, icon font, site header/footer, metadata
     [locale]/page.tsx       Home page: composes feature components
+    [locale]/lobby/page.tsx Lobby page
   components/
     layout/                 Site-wide chrome (header, footer, wordmark)
     ui/                     Generic, reusable primitives (Icon)

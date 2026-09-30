@@ -1,4 +1,5 @@
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
+import { SiteNav } from "@/components/layout/site-nav";
 import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -11,8 +12,6 @@ type SiteHeaderProps = {
   player: PlayerProfile;
   server: ServerStatus;
 };
-
-const navItems = ["home", "quickRace", "lobby", "training", "leaderboards"] as const;
 
 export function SiteHeader({ locale, dictionary, player, server }: SiteHeaderProps) {
   const onlineCount = new Intl.NumberFormat(locale).format(server.onlineCount);
@@ -27,25 +26,7 @@ export function SiteHeader({ locale, dictionary, player, server }: SiteHeaderPro
           </span>
         </div>
 
-        <nav aria-label={dictionary.navLabel} className="hidden items-center gap-1 xl:flex">
-          {navItems.map((item) => {
-            const isActive = item === "home";
-            return (
-              // Only the home page exists for now; the other entries become links once their pages are built.
-              <span
-                key={item}
-                aria-current={isActive ? "page" : undefined}
-                className={`whitespace-nowrap px-3 py-1 font-hud text-lg font-black uppercase italic ${
-                  isActive
-                    ? "bg-primary-container text-on-primary-container shadow-hard-sm shadow-secondary-fixed"
-                    : "text-on-surface-variant"
-                }`}
-              >
-                {dictionary.nav[item]}
-              </span>
-            );
-          })}
-        </nav>
+        <SiteNav locale={locale} dictionary={dictionary} />
 
         <div className="flex shrink-0 items-center gap-4">
           <div className="hidden items-center gap-2 bg-surface-container-high px-2 py-1 2xl:flex">
