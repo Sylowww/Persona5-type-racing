@@ -61,7 +61,7 @@ export function RaceTrack({ dictionary, locale, racers, youId }: RaceTrackProps)
                 className={`absolute inset-y-0 left-0 transition-[width] duration-300 ${
                   isYou
                     ? "bg-gradient-to-r from-primary-container/20 via-primary-container/60 to-primary-container"
-                    : "bg-surface-bright/60"
+                    : "bg-gradient-to-r from-primary-container/5 via-primary-container/25 to-primary-container/45"
                 }`}
                 style={{ width }}
               />
