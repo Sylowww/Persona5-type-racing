@@ -85,14 +85,14 @@ describe("lobby store", () => {
     // Typing progress is batched until the next tick.
     clock += 1_000;
     const before = bobStream.views.length;
-    expect(store.input(code, "ann", { seq: 1, events: chars(text.slice(0, 10)) })).toBeNull();
+    expect(store.input(code, "ann", { clientId: "tab", seq: 1, events: chars(text.slice(0, 10)) })).toBeNull();
     expect(bobStream.views.length).toBe(before);
     store.tick();
     expect(bobStream.last()?.race?.racers[0].progress).toBeCloseTo(10 / text.length);
 
     clock += 20_000;
-    store.input(code, "ann", { seq: 2, events: chars(text.slice(10)) });
-    store.input(code, "bob", { seq: 1, events: chars(text) });
+    store.input(code, "ann", { clientId: "tab", seq: 2, events: chars(text.slice(10)) });
+    store.input(code, "bob", { clientId: "tab", seq: 1, events: chars(text) });
     expect(annStream.last()?.phase).toBe("finished");
     expect(bobStream.last()?.hasResult).toBe(true);
     expect(store.result(code, "bob")?.racers.map((racer) => racer.id)).toEqual(["ann", "bob"]);

@@ -65,7 +65,8 @@ export type Racer = {
   name: string;
   emblem: PlayerEmblem;
   typing: TypingState;
-  /** Last input batch applied. */
+  /** Page currently sending this racer's input, and its last applied batch. */
+  inputClient: string | null;
   inputSeq: number;
   keys: Record<string, KeyTotals>;
   samples: SpeedSample[];
@@ -222,6 +223,7 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         name: member.name,
         emblem: member.emblem,
         typing: initialTypingState,
+        inputClient: null,
         inputSeq: 0,
         keys: {},
         samples: [],
@@ -242,12 +244,15 @@ export function setConnected(state: LobbyState, userId: string, connected: boole
 /**
  * Replays a batch of keystrokes with the shared typing rules, timed by the server clock.
  * Batches already applied, input outside the race and keystrokes above the speed limit are ignored.
+ * A new page (e.g. after a reload) takes over with its first batch; late batches from the old page are then ignored.
  */
 export function applyInput(state: LobbyState, userId: string, batch: InputBatch, now: number): LobbyState {
   const race = state.race;
   if (state.phase !== "racing" || !race || now < race.startsAt || !isMember(state, userId)) return state;
   const racer = race.racers.find((candidate) => candidate.id === userId);
-  if (!racer || batch.seq <= racer.inputSeq || racer.typing.finishedAt !== null) return state;
+  if (!racer || racer.typing.finishedAt !== null) return state;
+  const isNext = batch.clientId === racer.inputClient ? batch.seq > racer.inputSeq : batch.seq === 1;
+  if (!isNext) return state;
 
   const keyBudget = Math.floor(((now - race.startsAt) / 1000 + 1) * state.config.maxKeysPerSecond);
   const keys = { ...racer.keys };
@@ -273,7 +278,7 @@ export function applyInput(state: LobbyState, userId: string, batch: InputBatch,
     if (typing.finishedAt !== null) break;
   }
 
-  const updated: Racer = { ...racer, typing, inputSeq: batch.seq, keys, samples: withSample(racer, race, typing, now, state.config) };
+  const updated: Racer = { ...racer, typing, inputClient: batch.clientId, inputSeq: batch.seq, keys, samples: withSample(racer, race, typing, now, state.config) };
   return {
     ...state,
     race: { ...race, racers: race.racers.map((candidate) => (candidate.id === userId ? updated : candidate)) },
@@ -407,6 +412,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
           keystrokes: own.typing.keystrokes,
           mistakes: own.typing.mistakes,
           streak: own.typing.streak,
+          inputClient: own.inputClient,
           inputSeq: own.inputSeq,
           place: liveOrder(race).indexOf(userId) + 1,
           finishedAt: own.typing.finishedAt,
@@ -448,7 +454,8 @@ export function resultFor(state: LobbyState, userId: string): RaceResult | null 
 /** Validates an input batch received from a client; null when malformed. */
 export function parseInputBatch(value: unknown): InputBatch | null {
   if (typeof value !== "object" || value === null) return null;
-  const { seq, events } = value as { seq?: unknown; events?: unknown };
+  const { clientId, seq, events } = value as { clientId?: unknown; seq?: unknown; events?: unknown };
+  if (typeof clientId !== "string" || clientId.length === 0 || clientId.length > 64) return null;
   if (typeof seq !== "number" || !Number.isSafeInteger(seq) || seq < 1) return null;
   if (!Array.isArray(events) || events.length > MAX_EVENTS_PER_BATCH) return null;
 
@@ -464,5 +471,5 @@ export function parseInputBatch(value: unknown): InputBatch | null {
       return null;
     }
   }
-  return { seq, events: parsed };
+  return { clientId, seq, events: parsed };
 }

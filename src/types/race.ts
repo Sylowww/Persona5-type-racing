@@ -24,7 +24,9 @@ export type RaceYou = {
   keystrokes: number;
   mistakes: number;
   streak: number;
-  /** Last input batch the server applied; the client continues from the next one. */
+  /** Page (input client) whose keystrokes the server applies; a reloaded page takes over with a new id. */
+  inputClient: string | null;
+  /** Last batch applied from that client. */
   inputSeq: number;
   /** 1-based live place. */
   place: number;
@@ -55,7 +57,9 @@ export type InputEvent =
   | { type: "delete" };
 
 export type InputBatch = {
-  /** Increases by one per batch; lets the server ignore a batch it already applied. */
+  /** Random id of the page sending input. */
+  clientId: string;
+  /** Starts at 1 on each page and increases by one per batch; lets the server ignore a batch it already applied. */
   seq: number;
   events: readonly InputEvent[];
 };

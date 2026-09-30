@@ -114,12 +114,12 @@ describe("starting a race", () => {
 describe("typing during the race", () => {
   it("ignores input before the start", () => {
     const state = unwrap(startRace(readyAll(lobbyWith("ann", "bob")), "ann", TEXT, T0));
-    expect(applyInput(state, "ann", { seq: 1, events: chars("go") }, START - 10)).toBe(state);
+    expect(applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars("go") }, START - 10)).toBe(state);
   });
 
   it("tracks progress with the shared typing rules", () => {
     let state = racing("ann", "bob");
-    state = applyInput(state, "ann", { seq: 1, events: [...chars("gx"), { type: "delete" }, ...chars("o")] }, START + 1_000);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: [...chars("gx"), { type: "delete" }, ...chars("o")] }, START + 1_000);
     const you = viewFor(state, "ann", START + 1_000)?.race?.you;
     expect(you).toMatchObject({ typed: "go", keystrokes: 3, mistakes: 1, inputSeq: 1, place: 1 });
     const bob = viewFor(state, "bob", START + 1_000)?.race?.racers.find((racer) => racer.id === "ann");
@@ -128,28 +128,38 @@ describe("typing during the race", () => {
 
   it("applies a repeated batch only once", () => {
     let state = racing("ann", "bob");
-    state = applyInput(state, "ann", { seq: 1, events: chars("go") }, START + 500);
-    const again = applyInput(state, "ann", { seq: 1, events: chars("go") }, START + 600);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars("go") }, START + 500);
+    const again = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars("go") }, START + 600);
     expect(again).toBe(state);
   });
 
+  it("lets a reloaded page take over and ignores the old page's late batches", () => {
+    let state = racing("ann", "bob");
+    state = applyInput(state, "ann", { clientId: "old", seq: 1, events: chars("go") }, START + 500);
+    state = applyInput(state, "ann", { clientId: "new", seq: 1, events: chars(" ") }, START + 900);
+    // Sent by the old page before the reload but received after.
+    state = applyInput(state, "ann", { clientId: "old", seq: 2, events: chars("xx") }, START + 1_000);
+    state = applyInput(state, "ann", { clientId: "new", seq: 2, events: chars("n") }, START + 1_100);
+    expect(viewFor(state, "ann", START + 1_100)?.race?.you).toMatchObject({ typed: "go n", inputClient: "new", inputSeq: 2 });
+  });
+
   it("drops keystrokes faster than the speed limit", () => {
-    const state = applyInput(racing("ann", "bob"), "ann", { seq: 1, events: chars("go now") }, START);
+    const state = applyInput(racing("ann", "bob"), "ann", { clientId: "tab", seq: 1, events: chars("go now") }, START);
     // Budget at the start is one second of input (30 keys); raise the bar by using a tiny config instead.
     expect(state.race?.racers[0].typing.typed).toBe("go now");
 
     const strict = createLobby({ code: "P5-TEST", locale: "en", host: { id: "a", name: "a" }, now: T0, config: { maxKeysPerSecond: 2 } });
     let lobby = unwrap(joinLobby(strict, { id: "b", name: "b" }, T0));
     lobby = advance(unwrap(startRace(readyAll(lobby), "a", TEXT, T0)), START);
-    lobby = applyInput(lobby, "a", { seq: 1, events: chars("go now") }, START);
+    lobby = applyInput(lobby, "a", { clientId: "tab", seq: 1, events: chars("go now") }, START);
     expect(lobby.race?.racers[0].typing.typed).toBe("go");
   });
 
   it("ranks finishers by finish time, then by progress", () => {
     let state = racing("ann", "bob", "cid");
-    state = applyInput(state, "cid", { seq: 1, events: chars("go no") }, START + 1_000);
-    state = applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000);
-    state = applyInput(state, "ann", { seq: 1, events: chars(TEXT) }, START + 3_000);
+    state = applyInput(state, "cid", { clientId: "tab", seq: 1, events: chars("go no") }, START + 1_000);
+    state = applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 2_000);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 3_000);
     expect(state.race && liveOrder(state.race)).toEqual(["bob", "ann", "cid"]);
     expect(viewFor(state, "ann", START + 3_000)?.race?.you?.place).toBe(2);
   });
@@ -158,9 +168,9 @@ describe("typing during the race", () => {
 describe("finishing a race", () => {
   it("finishes once every racer is done and ranks the results", () => {
     let state = racing("ann", "bob");
-    state = applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000);
+    state = applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 2_000);
     expect(advance(state, START + 2_000).phase).toBe("racing");
-    state = applyInput(state, "ann", { seq: 1, events: [...chars("gx"), { type: "delete" }, ...chars("o now")] }, START + 3_000);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: [...chars("gx"), { type: "delete" }, ...chars("o now")] }, START + 3_000);
     state = advance(state, START + 3_000);
 
     expect(state.phase).toBe("finished");
@@ -178,7 +188,7 @@ describe("finishing a race", () => {
 
   it("ends at the time limit and ranks unfinished racers as not finished", () => {
     let state = racing("ann", "bob");
-    state = applyInput(state, "ann", { seq: 1, events: chars("go") }, START + 1_000);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars("go") }, START + 1_000);
     const limit = state.race?.endsAt ?? 0;
     expect(isRaceOver(state, limit - 1)).toBe(false);
     state = advance(state, limit + 5_000);
@@ -195,7 +205,7 @@ describe("finishing a race", () => {
   it("waits for a disconnected racer during the grace period", () => {
     let state = racing("ann", "bob");
     state = setConnected(state, "bob", false, START + 1_000);
-    state = applyInput(state, "ann", { seq: 1, events: chars(TEXT) }, START + 2_000);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 2_000);
 
     expect(advance(state, START + 20_000).phase).toBe("racing");
     expect(advance(state, START + 31_000).phase).toBe("finished");
@@ -203,7 +213,7 @@ describe("finishing a race", () => {
 
   it("lets a racer reconnect and keep their progress", () => {
     let state = racing("ann", "bob");
-    state = applyInput(state, "bob", { seq: 1, events: chars("go") }, START + 1_000);
+    state = applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars("go") }, START + 1_000);
     state = setConnected(state, "bob", false, START + 1_500);
     state = setConnected(advance(state, START + 10_000), "bob", true, START + 10_000);
 
@@ -217,7 +227,7 @@ describe("finishing a race", () => {
     expect(state.hostId).toBe("bob");
     expect(viewFor(state, "ann", START)).toBeNull();
 
-    state = advance(applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000), START + 2_000);
+    state = advance(applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 2_000), START + 2_000);
     expect(state.phase).toBe("finished");
     expect(resultFor(state, "bob")?.racers.map((racer) => racer.id)).toEqual(["bob", "ann"]);
   });
@@ -225,7 +235,7 @@ describe("finishing a race", () => {
   it("does not depend on the host staying connected", () => {
     let state = racing("ann", "bob");
     state = setConnected(state, "ann", false, START);
-    state = advance(applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000), START + 2_000);
+    state = advance(applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 2_000), START + 2_000);
     expect(state.phase).toBe("racing");
     expect(advance(state, START + 30_000).phase).toBe("finished");
   });
@@ -234,8 +244,8 @@ describe("finishing a race", () => {
 describe("after a race", () => {
   function finished(): LobbyState {
     let state = racing("ann", "bob");
-    state = applyInput(state, "ann", { seq: 1, events: chars(TEXT) }, START + 1_000);
-    state = applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 1_000);
+    state = applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 2_000);
     return advance(state, START + 2_000);
   }
 
@@ -271,7 +281,8 @@ describe("disconnects in the waiting room", () => {
 
 describe("parseInputBatch", () => {
   it("accepts well-formed batches", () => {
-    expect(parseInputBatch({ seq: 2, events: [{ type: "char", char: "é", delayMs: 80 }, { type: "delete" }] })).toEqual({
+    expect(parseInputBatch({ clientId: "tab", seq: 2, events: [{ type: "char", char: "é", delayMs: 80 }, { type: "delete" }] })).toEqual({
+      clientId: "tab",
       seq: 2,
       events: [{ type: "char", char: "é", delayMs: 80 }, { type: "delete" }],
     });
@@ -279,9 +290,10 @@ describe("parseInputBatch", () => {
 
   it("rejects malformed batches", () => {
     expect(parseInputBatch(null)).toBeNull();
-    expect(parseInputBatch({ seq: 0, events: [] })).toBeNull();
-    expect(parseInputBatch({ seq: 1, events: [{ type: "char", char: "ab", delayMs: 1 }] })).toBeNull();
-    expect(parseInputBatch({ seq: 1, events: [{ type: "paste", char: "a" }] })).toBeNull();
-    expect(parseInputBatch({ seq: 1, events: Array.from({ length: 201 }, () => ({ type: "delete" })) })).toBeNull();
+    expect(parseInputBatch({ clientId: "tab", seq: 0, events: [] })).toBeNull();
+    expect(parseInputBatch({ seq: 1, events: [] })).toBeNull();
+    expect(parseInputBatch({ clientId: "tab", seq: 1, events: [{ type: "char", char: "ab", delayMs: 1 }] })).toBeNull();
+    expect(parseInputBatch({ clientId: "tab", seq: 1, events: [{ type: "paste", char: "a" }] })).toBeNull();
+    expect(parseInputBatch({ clientId: "tab", seq: 1, events: Array.from({ length: 201 }, () => ({ type: "delete" })) })).toBeNull();
   });
 });
