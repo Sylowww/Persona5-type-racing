@@ -1,0 +1,436 @@
+<!DOCTYPE html><html class="dark" lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_blank" name="shell-type"><title>TYPE//STRIKE - Terminal Entrance</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Chivo:ital,wght@0,700;0,900;1,900&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-secondary-fixed":"#201c00","on-surface-variant":"#e8bcb8","surface-container-high":"#2a2a2c","on-error-container":"#ffdad6","inverse-surface":"#e5e1e4","on-secondary-fixed-variant":"#504700","on-primary-fixed-variant":"#930014","on-primary-container":"#fff8f7","on-secondary-container":"#716500","background":"#131315","surface-tint":"#ffb3ae","surface-container-lowest":"#0e0e10","surface-dim":"#131315","tertiary-fixed":"#ffdad8","on-primary-fixed":"#410004","secondary-fixed":"#fde400","secondary":"#ffffff","inverse-primary":"#c0001e","outline":"#af8784","secondary-container":"#fde400","on-error":"#690005","primary-container":"#e60026","primary-fixed":"#ffdad7","secondary-fixed-dim":"#dec800","tertiary-fixed-dim":"#ffb3b1","surface-container-low":"#1c1b1d","error":"#ffb4ab","surface-bright":"#39393b","on-tertiary-fixed-variant":"#92001c","primary-fixed-dim":"#ffb3ae","on-surface":"#e5e1e4","error-container":"#93000a","on-tertiary-container":"#fff7f6","surface-container-highest":"#353437","tertiary":"#ffb3b1","primary":"#ffb3ae","outline-variant":"#5e3f3c","on-secondary":"#373100","surface-container":"#201f21","on-primary":"#68000b","on-tertiary-fixed":"#410007","inverse-on-surface":"#313032","on-tertiary":"#680011","on-background":"#e5e1e4","tertiary-container":"#e50031","surface-variant":"#353437","surface":"#131315"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","space-xl":"3rem","space-xs":"0.25rem","gutter-mobile":"0.75rem","space-sm":"0.5rem","margin-mobile":"1rem","space-lg":"1.75rem","gutter":"1.5rem","margin":"2.5rem"},"fontFamily":{"label-badge":["Anton"],"display-hero-mobile":["Anton"],"body-lg":["Space Grotesk"],"headline-lg":["Anton"],"label-hud":["Chivo"],"headline-sm":["Chivo"],"body-md":["Space Grotesk"],"headline-lg-mobile":["Anton"],"headline-md":["Anton"],"display-hero":["Anton"],"body-typing-mobile":["Space Grotesk"],"body-typing-stream":["Space Grotesk"]},"fontSize":{"label-badge":["14px",{"lineHeight":"14px","letterSpacing":"0.08em","fontWeight":"400"}],"display-hero-mobile":["48px",{"lineHeight":"52px","letterSpacing":"0.02em","fontWeight":"400"}],"body-lg":["18px",{"lineHeight":"26px","letterSpacing":"0em","fontWeight":"500"}],"headline-lg":["48px",{"lineHeight":"52px","letterSpacing":"0.04em","fontWeight":"400"}],"label-hud":["13px",{"lineHeight":"16px","letterSpacing":"0.12em","fontWeight":"900"}],"headline-sm":["22px",{"lineHeight":"28px","letterSpacing":"0.05em","fontWeight":"900"}],"body-md":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"headline-lg-mobile":["32px",{"lineHeight":"36px","letterSpacing":"0.03em","fontWeight":"400"}],"headline-md":["32px",{"lineHeight":"36px","letterSpacing":"0.03em","fontWeight":"400"}],"display-hero":["84px",{"lineHeight":"84px","letterSpacing":"0.02em","fontWeight":"400"}],"body-typing-mobile":["20px",{"lineHeight":"32px","letterSpacing":"0.02em","fontWeight":"700"}],"body-typing-stream":["28px",{"lineHeight":"44px","letterSpacing":"0.04em","fontWeight":"700"}]}}}};</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface antialiased min-h-screen relative overflow-x-hidden flex items-center justify-center"><main class="w-full min-h-screen flex items-center justify-center bg-surface-container-lowest relative z-10"><div class="flex flex-col w-full relative select-none">
+<!-- Dynamic Background Canvas Decor -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+<div class="absolute -top-32 -left-20 w-[140vw] h-[130vh] opacity-10 bg-[radial-gradient(circle_at_center,_#ffb3ae_1.5px,_transparent_1.5px)] [background-size:24px_24px] rotate-[-4deg]"></div>
+<div class="absolute top-1/4 -right-48 w-96 h-96 bg-primary-container/20 rounded-full blur-3xl"></div>
+<div class="absolute bottom-10 left-10 w-[500px] h-40 bg-secondary-fixed/10 -rotate-12 blur-2xl"></div>
+<!-- Manga Speed Line Slits -->
+<svg class="absolute inset-0 w-full h-full opacity-15" fill="none" preserveAspectRatio="none" viewBox="0 0 1440 900">
+<path d="M-100 0 L600 900 M200 0 L900 900 M500 0 L1200 900 M900 0 L1600 900 M1200 0 L1800 900" stroke="#e60026" stroke-dasharray="16 28" stroke-width="4"></path>
+<polygon fill="#e60026" fill-opacity="0.08" points="1200,-50 1480,-50 1400,950 1100,950"></polygon>
+<polygon fill="#fde400" fill-opacity="0.05" points="-80,300 240,300 120,950 -120,950"></polygon>
+</svg>
+</div>
+<div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
+<!-- Top Climax Banner: Persona 5 All-Out Victory Style -->
+<header class="relative w-full">
+<!-- Angled Underlay Shadow Slabs -->
+<div class="relative -rotate-1 transform transition-transform duration-300">
+<div class="bg-primary-container p-4 md:p-6 shadow-2xl relative overflow-hidden">
+<!-- Halftone comic strip accent bar -->
+<div class="absolute top-0 right-0 w-96 h-full bg-[radial-gradient(#201c00_2px,transparent_2px)] [background-size:12px_12px] opacity-25"></div>
+<div class="flex flex-col lg:flex-row items-center justify-between gap-4 relative z-10">
+<!-- Left Logo & Comic Climax Punch -->
+<div class="flex items-center gap-4 flex-wrap">
+<!-- TYPE//STRIKE Iconic Cutout Badge -->
+<div class="bg-secondary text-surface-container-lowest px-4 py-2 rotate-[-3deg] shadow-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container font-black" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-headline-lg text-headline-lg uppercase tracking-tighter">TYPE</span>
+<span class="bg-surface-container-lowest text-secondary px-2.5 py-0.5 ml-1 font-headline-lg text-headline-lg tracking-widest">STRIKE</span>
+</div>
+<!-- Main Mission Slogan -->
+<div class="relative">
+<div class="bg-secondary-fixed text-on-secondary-fixed px-3 py-1 font-label-hud text-label-hud uppercase rotate-[2deg] shadow-md inline-block">
+                  ALL-OUT HEIST CONFIRMED
+                </div>
+<h1 class="font-headline-lg text-headline-lg text-on-primary-container tracking-wider uppercase drop-shadow-[3px_3px_0px_#0e0e10]">
+                  MISSION ACCOMPLISHED // VICTORY!
+                </h1>
+</div>
+</div>
+<!-- Right Telemetry Badges & Rank S Stamp -->
+<div class="flex items-center gap-3">
+<div class="bg-surface-container-lowest px-4 py-2 rotate-[2deg] shadow-md text-right">
+<span class="block font-label-hud text-label-hud text-secondary-fixed">EXP TELEMETRY</span>
+<span class="font-headline-md text-headline-md text-secondary tracking-normal">+12,500 <span class="text-tertiary font-body-md text-body-md">PTS</span></span>
+</div>
+<!-- Red Starburst Rank S -->
+<div class="relative bg-surface-container-lowest p-2 rotate-[-5deg] shadow-2xl">
+<div class="bg-secondary-fixed text-on-secondary-fixed px-3 py-1 text-center font-label-badge text-label-badge uppercase">
+                  RANK
+                </div>
+<div class="text-center font-display-hero text-display-hero leading-none text-primary-fixed-dim px-2">
+                  S
+                </div>
+<div class="text-center font-label-hud text-label-hud text-secondary uppercase bg-primary-container px-2 py-0.5 -mt-1">
+                  FLIGHT OF THIEF
+                </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content 3-Column Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- LEFT COLUMN (35% -> lg:col-span-4): The Victory Podium -->
+<section class="lg:col-span-4 flex flex-col space-y-4">
+<!-- Header Tag -->
+<div class="flex items-center justify-between bg-surface-container-high px-4 py-2 rotate-[-1deg] shadow-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-xl" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<span class="font-headline-sm text-headline-sm text-on-surface uppercase">RIVALRY PODIUM</span>
+</div>
+<span class="font-label-hud text-label-hud bg-primary-container text-on-primary-container px-2 py-0.5 uppercase">LIVE HEIST</span>
+</div>
+<!-- 1ST PLACE MVP HERO CARD -->
+<div class="relative bg-surface-container p-5 rotate-[1.5deg] shadow-xl transition-all duration-300 hover:rotate-0">
+<!-- MVP Ribbon Sticker -->
+<div class="absolute -top-3 -right-3 z-20 bg-secondary-fixed text-on-secondary-fixed px-3 py-1 font-label-badge text-label-badge rotate-12 shadow-md uppercase">
+            MVP // APEX
+          </div>
+<div class="flex items-start gap-4">
+<!-- Anime Thief Avatar -->
+<div class="relative w-24 h-24 shrink-0 bg-surface-container-lowest overflow-hidden shadow-lg">
+<img alt="Persona 5 Phantom Thief Typist Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1UuQJtdxAVeYjIUB2yIDX55HNf9WtJQKB4oVbCl6TjJw4QQ7mclNazkExqUGzXadKFTDjFo6vxa7W1zrPeNdPGCdlFsT5wKMJak7HYaT85o2iNUjRBd4HccKpXUeRefXHwbvqXVMSCJ57x-yAj6_52t6sv3ysElaTWjFp-7rJh2HKzAUeY__9PgtHXs3lLJ_3pAuk4-m9efwPsiQ_xj9aJPNANuWOXNMF_SFSgx0ZyBgkNCQbJZkex7rVmp">
+<div class="absolute bottom-0 inset-x-0 bg-primary-container/90 py-0.5 text-center font-label-hud text-label-hud text-on-primary-container">
+                1ST PLACE
+              </div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-sm" style="font-variation-settings: 'FILL' 1;">crown</span>
+<span class="font-headline-sm text-headline-sm text-secondary truncate">YOU / JOKER_KEY</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-display-hero text-headline-lg text-secondary-fixed leading-none">144</span>
+<span class="font-headline-sm text-headline-sm text-tertiary-fixed">WPM</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-hud text-label-hud mt-1">
+<span>ACC: <strong class="text-secondary font-bold">99.4%</strong></span>
+<span>LATENCY: <strong class="text-secondary font-bold">118ms</strong></span>
+</div>
+</div>
+</div>
+<!-- New Personal Best Red Sticker Stamp -->
+<div class="mt-4 pt-3 bg-surface-container-low px-3 py-2 flex items-center justify-between">
+<div class="bg-primary-container text-on-primary-container px-2 py-0.5 font-label-hud text-label-hud uppercase rotate-[-3deg] shadow-sm">
+              NEW PERSONAL BEST!
+            </div>
+<span class="font-label-hud text-label-hud text-secondary-fixed">+14 WPM vs 30D AVG</span>
+</div>
+</div>
+<!-- 2ND PLACE CARD: SKULL -->
+<div class="bg-surface-container-low p-4 rotate-[-1deg] shadow-lg flex items-center justify-between hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-container-high flex items-center justify-center font-headline-sm text-headline-sm text-outline shadow-inner">
+              2
+            </div>
+<div>
+<div class="font-headline-sm text-headline-sm text-secondary flex items-center gap-1.5">
+                SKULL
+                <span class="bg-surface-container-highest text-on-surface text-label-hud font-label-hud px-1.5 py-0.2">SILVER</span>
+</div>
+<div class="font-body-md text-body-md text-outline">GHOST RUNNER PROTOCOL</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-headline-md text-headline-md text-on-surface leading-none">129 <span class="font-label-hud text-label-hud text-tertiary">WPM</span></div>
+<div class="font-label-hud text-label-hud text-on-surface-variant">97.8% ACC</div>
+</div>
+</div>
+<!-- 3RD PLACE CARD: PANTHER -->
+<div class="bg-surface-container-low p-4 rotate-[1deg] shadow-lg flex items-center justify-between hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-container-high flex items-center justify-center font-headline-sm text-headline-sm text-outline-variant shadow-inner">
+              3
+            </div>
+<div>
+<div class="font-headline-sm text-headline-sm text-secondary flex items-center gap-1.5">
+                PANTHER
+                <span class="bg-surface-container-highest text-on-surface text-label-hud font-label-hud px-1.5 py-0.2">BRONZE</span>
+</div>
+<div class="font-body-md text-body-md text-outline">STRIKE RUNNER FLEET</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-headline-md text-headline-md text-on-surface leading-none">124 <span class="font-label-hud text-label-hud text-tertiary">WPM</span></div>
+<div class="font-label-hud text-label-hud text-on-surface-variant">98.1% ACC</div>
+</div>
+</div>
+<!-- Mini Heist Log Note -->
+<div class="bg-surface-container-lowest p-3 shadow-inner text-on-surface-variant font-body-md text-body-md">
+<div class="flex items-center gap-1 text-secondary-fixed font-label-hud text-label-hud mb-1">
+<span class="material-symbols-outlined text-sm">terminal</span>
+            PODIUM TELEMETRY
+          </div>
+          You dominated sector 4 with a 42-word flawless speed chain. Skull slipped at second 24.
+        </div>
+</section>
+<!-- CENTER COLUMN (35% -> lg:col-span-4): Combat Telemetry Dossier -->
+<section class="lg:col-span-4 flex flex-col space-y-4">
+<!-- Header Tag -->
+<div class="flex items-center justify-between bg-surface-container-high px-4 py-2 rotate-[1deg] shadow-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary font-black" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-headline-sm text-headline-sm text-on-surface uppercase">COMBAT DOSSIER</span>
+</div>
+<span class="font-label-hud text-label-hud bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 uppercase">30 SEC BURST</span>
+</div>
+<!-- Speed Telemetry Card & SVG Sparkline Curve -->
+<div class="bg-surface-container p-4 shadow-xl relative">
+<div class="flex justify-between items-start mb-2">
+<div>
+<span class="font-label-hud text-label-hud text-outline uppercase block">FINAL AVERAGE VELOCITY</span>
+<span class="font-display-hero text-headline-lg text-secondary leading-none">144 <span class="font-headline-sm text-headline-sm text-primary">WPM</span></span>
+</div>
+<div class="text-right">
+<span class="font-label-hud text-label-hud text-secondary-fixed bg-surface-container-highest px-2 py-0.5 inline-block">PEAK: 156 WPM</span>
+<span class="font-body-md text-body-md text-on-surface-variant block mt-1">AT 00:19.4S</span>
+</div>
+</div>
+<!-- Interactive Inline SVG Match Velocity Chart -->
+<div class="w-full h-32 bg-surface-container-lowest p-2 shadow-inner relative flex flex-col justify-end">
+<!-- Background Grid lines -->
+<div class="absolute inset-x-2 top-4 border-b border-surface-container-highest/40 flex justify-between text-[10px] text-outline font-label-hud">
+<span>160 WPM</span><span>PEAK LIMIT</span>
+</div>
+<div class="absolute inset-x-2 top-14 border-b border-surface-container-highest/30 flex justify-between text-[10px] text-outline font-label-hud">
+<span>120 WPM</span><span>PAR PACE</span>
+</div>
+<!-- Dynamic Vector Path -->
+<svg class="w-full h-24 overflow-visible" fill="none" viewBox="0 0 300 80">
+<!-- Shadow fill -->
+<polygon class="text-primary-container/20" fill="currentColor" points="0,75 20,60 50,55 80,48 110,40 140,42 170,20 200,10 230,22 260,18 290,12 300,15 300,80 0,80"></polygon>
+<!-- Line -->
+<polyline points="0,75 20,60 50,55 80,48 110,40 140,42 170,20 200,10 230,22 260,18 290,12 300,15" stroke="#e60026" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></polyline>
+<!-- Ghost Runner Curve -->
+<polyline points="0,78 20,65 50,60 80,55 110,50 140,48 170,35 200,38 230,34 260,30 290,28 300,30" stroke="#fde400" stroke-dasharray="4 4" stroke-width="1.5"></polyline>
+<!-- Apex Peak Dot -->
+<circle cx="200" cy="10" fill="#fde400" r="4" stroke="#0e0e10" stroke-width="2"></circle>
+</svg>
+<div class="flex justify-between font-label-hud text-label-hud text-outline pt-1">
+<span>00:00</span>
+<span>00:15 MIDWAY</span>
+<span>00:30 FINISH</span>
+</div>
+</div>
+</div>
+<!-- Precision Matrix Card -->
+<div class="bg-surface-container p-4 shadow-xl">
+<div class="flex items-center justify-between mb-3">
+<span class="font-headline-sm text-headline-sm text-secondary">PRECISION MATRIX</span>
+<span class="bg-surface-container-high px-2 py-0.5 font-label-hud text-label-hud text-secondary-fixed">482 KEYSTROKES</span>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center">
+<div class="bg-surface-container-lowest p-2">
+<span class="block font-label-hud text-label-hud text-on-surface-variant">ACCURACY</span>
+<span class="font-headline-md text-headline-md text-secondary">99.4%</span>
+</div>
+<div class="bg-surface-container-lowest p-2">
+<span class="block font-label-hud text-label-hud text-on-surface-variant">FAULTS</span>
+<span class="font-headline-md text-headline-md text-error">3 <span class="text-xs font-normal">MIS</span></span>
+</div>
+<div class="bg-surface-container-lowest p-2">
+<span class="block font-label-hud text-label-hud text-on-surface-variant">LATENCY</span>
+<span class="font-headline-md text-headline-md text-secondary-fixed">118<span class="text-xs font-normal">ms</span></span>
+</div>
+</div>
+</div>
+<!-- Weak Key Callouts // Sluggish Delay Targets -->
+<div class="bg-surface-container p-4 shadow-xl rotate-[-0.5deg]">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-hud text-label-hud text-error uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">warning</span>
+              SLUGGISH KEYS // TARGET DELAYS
+            </span>
+<span class="font-label-hud text-label-hud text-outline">BOTTLENECKS</span>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-surface-container-lowest p-2 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer group">
+<span class="font-headline-lg text-headline-lg text-error group-hover:scale-110 transition-transform">Q</span>
+<span class="font-label-hud text-label-hud text-secondary-fixed mt-1">320ms</span>
+<span class="font-body-md text-[11px] text-outline">LEFT PINKY</span>
+</div>
+<div class="bg-surface-container-lowest p-2 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer group">
+<span class="font-headline-lg text-headline-lg text-error group-hover:scale-110 transition-transform">Z</span>
+<span class="font-label-hud text-label-hud text-secondary-fixed mt-1">290ms</span>
+<span class="font-body-md text-[11px] text-outline">L-EXTENSION</span>
+</div>
+<div class="bg-surface-container-lowest p-2 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer group">
+<span class="font-headline-lg text-headline-lg text-error group-hover:scale-110 transition-transform">;</span>
+<span class="font-label-hud text-label-hud text-secondary-fixed mt-1">340ms</span>
+<span class="font-body-md text-[11px] text-outline">RIGHT FLANK</span>
+</div>
+</div>
+</div>
+</section>
+<!-- RIGHT COLUMN (30% -> lg:col-span-4): Physical Keyboard Heatmap & Calling Card -->
+<section class="lg:col-span-4 flex flex-col space-y-4">
+<!-- Header Tag -->
+<div class="flex items-center justify-between bg-surface-container-high px-4 py-2 rotate-[-1deg] shadow-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed font-black">keyboard</span>
+<span class="font-headline-sm text-headline-sm text-on-surface uppercase">HARDWARE HEATMAP</span>
+</div>
+<span class="font-label-hud text-label-hud bg-surface-container-highest text-secondary px-2 py-0.5 uppercase">QWERTY 60%</span>
+</div>
+<!-- Physical Keyboard Matrix Visualization -->
+<div class="bg-surface-container p-4 shadow-xl">
+<div class="flex items-center justify-between mb-3 text-on-surface-variant font-label-hud text-label-hud">
+<span class="text-secondary">HEATMAP DENSITY</span>
+<div class="flex items-center gap-2">
+<span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-secondary"></span> &gt;130 WPM</span>
+<span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-secondary-fixed"></span> 100-130</span>
+<span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-primary-container"></span> LAG/FAULT</span>
+</div>
+</div>
+<!-- QWERTY Visual Grid -->
+<div class="space-y-1.5 p-3 bg-surface-container-lowest shadow-inner select-none font-headline-sm text-xs">
+<!-- Row 1 Numbers -->
+<div class="flex gap-1 justify-center">
+<div class="w-6 h-6 bg-surface-container-high flex items-center justify-center text-outline">`</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">1</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">2</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">3</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">4</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">5</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">6</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">7</div>
+<div class="w-6 h-6 bg-secondary-fixed text-on-secondary-fixed font-bold flex items-center justify-center">8</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">9</div>
+<div class="w-6 h-6 bg-secondary-fixed text-on-secondary-fixed font-bold flex items-center justify-center">0</div>
+<div class="w-8 h-6 bg-surface-container-high flex items-center justify-center text-outline">BKSP</div>
+</div>
+<!-- Row 2 QWERTY -->
+<div class="flex gap-1 justify-center">
+<div class="w-8 h-6 bg-surface-container-high flex items-center justify-center text-outline">TAB</div>
+<div class="w-6 h-6 bg-primary-container text-on-primary-container font-black flex items-center justify-center ring-2 ring-primary-fixed">Q</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">W</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">E</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">R</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">T</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">Y</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">U</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">I</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">O</div>
+<div class="w-6 h-6 bg-secondary-fixed text-on-secondary-fixed font-bold flex items-center justify-center">P</div>
+<div class="w-6 h-6 bg-surface-container-high flex items-center justify-center text-outline">[</div>
+</div>
+<!-- Row 3 ASDF -->
+<div class="flex gap-1 justify-center">
+<div class="w-9 h-6 bg-surface-container-high flex items-center justify-center text-outline">CAPS</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">A</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">S</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">D</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">F</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">G</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">H</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">J</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">K</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">L</div>
+<div class="w-6 h-6 bg-primary-container text-on-primary-container font-black flex items-center justify-center ring-2 ring-primary-fixed">;</div>
+<div class="w-7 h-6 bg-surface-container-high flex items-center justify-center text-outline">RET</div>
+</div>
+<!-- Row 4 ZXCV -->
+<div class="flex gap-1 justify-center">
+<div class="w-11 h-6 bg-surface-container-high flex items-center justify-center text-outline">SHFT</div>
+<div class="w-6 h-6 bg-primary-container text-on-primary-container font-black flex items-center justify-center ring-2 ring-primary-fixed">Z</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">X</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">C</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">V</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">B</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">N</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">M</div>
+<div class="w-6 h-6 bg-secondary-fixed text-on-secondary-fixed font-bold flex items-center justify-center">,</div>
+<div class="w-6 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center">.</div>
+<div class="w-10 h-6 bg-surface-container-high flex items-center justify-center text-outline">SHFT</div>
+</div>
+<!-- Row 5 SPACE -->
+<div class="flex gap-1 justify-center">
+<div class="w-8 h-6 bg-surface-container-high flex items-center justify-center text-outline">CTRL</div>
+<div class="w-8 h-6 bg-surface-container-high flex items-center justify-center text-outline">ALT</div>
+<div class="w-36 h-6 bg-secondary text-surface-container-lowest font-bold flex items-center justify-center tracking-widest">SPACE (152 WPM)</div>
+<div class="w-8 h-6 bg-surface-container-high flex items-center justify-center text-outline">ALT</div>
+<div class="w-8 h-6 bg-surface-container-high flex items-center justify-center text-outline">FN</div>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between text-outline font-label-hud text-label-hud">
+<span class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm">touch_app</span>
+              CLICK ANY KEY TO DRILL IN TRAINING DOJO
+            </span>
+</div>
+</div>
+<!-- Post-Match Rating Gain & Promotion Calling Card -->
+<div class="relative bg-secondary-fixed p-4 rotate-[1deg] text-on-secondary-fixed shadow-xl overflow-hidden">
+<!-- Background stylized comic phantom watermark -->
+<div class="absolute -right-6 -bottom-6 font-display-hero text-8xl text-on-secondary-fixed/10 pointer-events-none">
+            THIEF
+          </div>
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-label-badge bg-on-secondary-fixed text-secondary-fixed px-2 py-0.5 uppercase">
+              HEIST RATING UPDATE
+            </span>
+<span class="font-headline-sm text-headline-sm">+340 RP</span>
+</div>
+<div class="mt-2">
+<h3 class="font-headline-lg text-headline-md tracking-tight uppercase leading-none">
+              PROMOTED TO MASTER THIEF III
+            </h3>
+<p class="font-body-md text-body-md text-on-secondary-fixed-variant mt-1">
+              Top 0.8% of global phantom runners. Next tier unlocked: <span class="font-bold text-on-secondary-fixed underline">HEIST EMPEROR</span>.
+            </p>
+</div>
+<div class="mt-3 w-full bg-on-secondary-fixed/20 h-2 rounded-full overflow-hidden">
+<div class="bg-on-secondary-fixed h-full w-4/5"></div>
+</div>
+<div class="flex justify-between font-label-hud text-label-hud text-on-secondary-fixed mt-1">
+<span>2,840 RP</span>
+<span>3,000 RP (NEXT PROMOTION)</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom Persistent Action Bar -->
+<footer class="relative z-20 pt-2 pb-6">
+<div class="bg-surface-container-low p-4 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+<!-- Auxiliary Command Shortcuts -->
+<div class="flex items-center flex-wrap gap-2 w-full md:w-auto">
+<button class="bg-surface-container px-3 py-2 text-on-surface hover:bg-surface-container-high transition-colors font-label-hud text-label-hud uppercase flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm text-secondary-fixed">bookmark</span>
+            SAVE DOSSIER <span class="bg-surface-container-highest px-1.5 py-0.2 text-[10px] text-tertiary">[S]</span>
+</button>
+<button class="bg-surface-container px-3 py-2 text-on-surface hover:bg-surface-container-high transition-colors font-label-hud text-label-hud uppercase flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm text-primary">share</span>
+            EXPORT CALLING CARD <span class="bg-surface-container-highest px-1.5 py-0.2 text-[10px] text-tertiary">[E]</span>
+</button>
+<button class="bg-surface-container px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors font-label-hud text-label-hud uppercase flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm">home</span>
+            HEIST LOBBY <span class="bg-surface-container-highest px-1.5 py-0.2 text-[10px] text-outline">[ESC]</span>
+</button>
+</div>
+<!-- Primary Call to Action -->
+<div class="w-full md:w-auto">
+<button class="w-full md:w-auto bg-primary-container hover:bg-secondary-fixed hover:text-on-secondary-fixed text-on-primary-container px-8 py-3.5 rotate-[-2deg] hover:rotate-0 transition-all duration-200 shadow-[6px_6px_0px_#0e0e10] flex items-center justify-center gap-3 group" id="rematch-btn">
+<span class="material-symbols-outlined text-2xl group-hover:animate-spin" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-headline-lg text-headline-md tracking-wider uppercase">REMATCH // QUEUE NEXT RACE</span>
+<span class="bg-surface-container-lowest text-secondary px-2 py-0.5 font-label-hud text-label-hud uppercase ml-2 group-hover:bg-on-secondary-fixed group-hover:text-secondary-fixed">
+              [ENTER]
+            </span>
+</button>
+</div>
+</div>
+</footer>
+</div>
+<!-- Interactive Hotkey & Drill Script -->
+<script>
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        const btn = document.getElementById('rematch-btn');
+        if (btn) {
+          btn.classList.add('scale-95', 'bg-secondary-fixed');
+          setTimeout(() => {
+            alert('Re-queuing Phantom Typist Matchmaker...');
+            btn.classList.remove('scale-95');
+          }, 150);
+        }
+      } else if (event.key.toLowerCase() === 's') {
+        alert('Combat Replay Dossier saved to local vault.');
+      } else if (event.key.toLowerCase() === 'e') {
+        alert('Calling Card generated! Direct link copied to clipboard.');
+      }
+    });
+  </script>
+</div></main></body></html>

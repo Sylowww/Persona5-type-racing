@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>TYPE//STRIKE - Competitive Typing Syndicate</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Chivo:ital,wght@0,700;0,900;1,900&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-secondary-fixed":"#201c00","on-surface-variant":"#e8bcb8","surface-container-high":"#2a2a2c","on-error-container":"#ffdad6","inverse-surface":"#e5e1e4","on-secondary-fixed-variant":"#504700","on-primary-fixed-variant":"#930014","on-primary-container":"#fff8f7","on-secondary-container":"#716500","background":"#131315","surface-tint":"#ffb3ae","surface-container-lowest":"#0e0e10","surface-dim":"#131315","tertiary-fixed":"#ffdad8","on-primary-fixed":"#410004","secondary-fixed":"#fde400","secondary":"#ffffff","inverse-primary":"#c0001e","outline":"#af8784","secondary-container":"#fde400","on-error":"#690005","primary-container":"#e60026","primary-fixed":"#ffdad7","secondary-fixed-dim":"#dec800","tertiary-fixed-dim":"#ffb3b1","surface-container-low":"#1c1b1d","error":"#ffb4ab","surface-bright":"#39393b","on-tertiary-fixed-variant":"#92001c","primary-fixed-dim":"#ffb3ae","on-surface":"#e5e1e4","error-container":"#93000a","on-tertiary-container":"#fff7f6","surface-container-highest":"#353437","tertiary":"#ffb3b1","primary":"#ffb3ae","outline-variant":"#5e3f3c","on-secondary":"#373100","surface-container":"#201f21","on-primary":"#68000b","on-tertiary-fixed":"#410007","inverse-on-surface":"#313032","on-tertiary":"#680011","on-background":"#e5e1e4","tertiary-container":"#e50031","surface-variant":"#353437","surface":"#131315"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","space-xl":"3rem","space-xs":"0.25rem","gutter-mobile":"0.75rem","space-sm":"0.5rem","margin-mobile":"1rem","space-lg":"1.75rem","gutter":"1.5rem","margin":"2.5rem"},"fontFamily":{"label-badge":["Anton"],"display-hero-mobile":["Anton"],"body-lg":["Space Grotesk"],"headline-lg":["Anton"],"label-hud":["Chivo"],"headline-sm":["Chivo"],"body-md":["Space Grotesk"],"headline-lg-mobile":["Anton"],"headline-md":["Anton"],"display-hero":["Anton"],"body-typing-mobile":["Space Grotesk"],"body-typing-stream":["Space Grotesk"]},"fontSize":{"label-badge":["14px",{"lineHeight":"14px","letterSpacing":"0.08em","fontWeight":"400"}],"display-hero-mobile":["48px",{"lineHeight":"52px","letterSpacing":"0.02em","fontWeight":"400"}],"body-lg":["18px",{"lineHeight":"26px","letterSpacing":"0em","fontWeight":"500"}],"headline-lg":["48px",{"lineHeight":"52px","letterSpacing":"0.04em","fontWeight":"400"}],"label-hud":["13px",{"lineHeight":"16px","letterSpacing":"0.12em","fontWeight":"900"}],"headline-sm":["22px",{"lineHeight":"28px","letterSpacing":"0.05em","fontWeight":"900"}],"body-md":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"headline-lg-mobile":["32px",{"lineHeight":"36px","letterSpacing":"0.03em","fontWeight":"400"}],"headline-md":["32px",{"lineHeight":"36px","letterSpacing":"0.03em","fontWeight":"400"}],"display-hero":["84px",{"lineHeight":"84px","letterSpacing":"0.02em","fontWeight":"400"}],"body-typing-mobile":["20px",{"lineHeight":"32px","letterSpacing":"0.02em","fontWeight":"700"}],"body-typing-stream":["28px",{"lineHeight":"44px","letterSpacing":"0.04em","fontWeight":"700"}]}}}};</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen relative overflow-x-hidden"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="h-20 w-full px-margin flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md shrink-0"><div class="flex items-center gap-space-sm"><img alt="Brand logo. - Primary color: #e60026
+- Font: anton
+- Mode: dark
+- Roundness: rounded-lg
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X9i9LAYn8DriLdQM9aj68I_2Bk-31a7LT7aBnoFhlBWP3GM4_aL-U9Ad_yIzcwkvKUjz6Nzod6XPMHLrOu32d5DwUAFEt7OLtoKYvJznUQddDq7D3XTpuxY5MMafHjx0n9jYm9kNMMW54gCyjhG9A5noao6rlIrIxwlXHjHTRm9UwQnHbHBRZ0snlBgX-W0PPUtQVS2FhPJqjuPuxjsFhJTvtIdqlvTrEZy7XbYb5ZghUTXKgBh7cse7rE"/><div class="flex flex-col -space-y-1"><span class="font-headline-md text-headline-md uppercase italic tracking-wider text-secondary">TYPE<span class="text-primary-container">//</span>STRIKE</span><span class="font-label-hud text-[10px] tracking-widest text-on-surface-variant uppercase font-black">METAVERSE DRIFT SYSTEM</span></div></div></div><nav class="hidden lg:flex items-center gap-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm text-headline-sm uppercase italic shadow-[3px_3px_0px_#fde400]"><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="home-radar" href="#">HOME // RADAR</a><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="quick-race" href="#">QUICK RACE</a><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="heist-lobby" href="#">HEIST LOBBY</a><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="training-dojo" href="#">TRAINING DOJO</a><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="leaderboards" href="#">LEADERBOARDS</a></nav><div class="flex items-center gap-space-md shrink-0"><div class="hidden xl:flex items-center gap-space-sm px-space-sm py-space-xs bg-surface-container-high"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary-fixed opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-secondary-fixed"></span></span><span class="font-label-hud text-label-hud uppercase tracking-widest text-on-surface-variant">METAVERSE-07 <span class="text-secondary">// 2,410 ONLINE</span></span></div><button class="flex items-center justify-center w-9 h-9 bg-surface-container text-on-surface-variant hover:text-on-surface transition-all"><span class="material-symbols-outlined text-[20px]">volume_up</span></button><div class="flex items-center gap-space-sm px-space-sm py-1 bg-surface-container"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-label-hud text-label-hud text-secondary-fixed uppercase tracking-wider font-black">LVL 48</span><span class="font-body-md text-body-md text-secondary font-bold truncate max-w-[90px]">PHANTOM</span></div><div class="font-headline-sm text-[11px] leading-none text-primary-container font-black tracking-widest">142 WPM</div></div></div></div></div></header><main class="w-full pt-20 bg-surface-container-lowest min-h-[calc(100vh-140px)]"><div class="flex flex-col w-full relative select-none">
+<!-- Dynamic Halftone & P5 Comic Strip Backdrop -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden opacity-25">
+<div class="absolute -top-32 -left-32 w-[650px] h-[650px] bg-primary-container rounded-full blur-[140px] opacity-40"></div>
+<div class="absolute top-1/2 -right-24 w-[500px] h-[500px] bg-secondary-container rounded-full blur-[160px] opacity-20"></div>
+<!-- Halftone grid simulation -->
+<svg class="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="16" id="p5-halftone" patterntransform="rotate(45)" patternunits="userSpaceOnUse" width="16">
+<circle cx="2" cy="2" fill="#e5e1e4" r="1.8"></circle>
+</pattern>
+<pattern height="40" id="diag-stripes" patterntransform="rotate(-25)" patternunits="userSpaceOnUse" width="40">
+<line opacity="0.1" stroke="#ffdad7" stroke-width="2" x1="0" x2="0" y1="0" y2="40"></line>
+</pattern>
+</defs>
+<rect fill="url(#p5-halftone)" height="100%" width="100%"></rect>
+<rect fill="url(#diag-stripes)" height="100%" width="100%"></rect>
+</svg>
+</div>
+<!-- Primary Desktop Command Layout (60% Combat Core / 40% Dossier Telemetry) -->
+<div class="relative z-10 w-full px-margin py-space-md grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT 60% COLUMN: COMBAT LAUNCHPAD -->
+<div class="lg:col-span-7 flex flex-col gap-space-lg">
+<!-- Persona 5 Calling Card Style Giant Header Strip -->
+<div class="relative mt-2">
+<!-- Offset comic paper shadow behind -->
+<div class="absolute -inset-1 bg-surface-container-lowest translate-x-2 translate-y-2.5 rotate-[-1.5deg]"></div>
+<!-- Red Comic Cutout Block inspired by uploaded logo style -->
+<div class="relative bg-primary-container p-space-md shadow-[6px_6px_0px_#0e0e10] rotate-[-2.5deg] flex flex-wrap items-center justify-between gap-space-md">
+<!-- Cutout white badge with black text -->
+<div class="flex items-center gap-3">
+<!-- Starburst Badge -->
+<div class="relative w-12 h-12 flex items-center justify-center bg-surface-container-lowest shadow-[3px_3px_0px_#fde400] rotate-6">
+<span class="font-headline-lg text-secondary-fixed text-headline-md italic leading-none">★</span>
+</div>
+<div class="bg-secondary text-surface-container-lowest px-4 py-1.5 shadow-[4px_4px_0px_#0e0e10] rotate-[-3deg]">
+<span class="font-display-hero text-headline-lg uppercase italic tracking-wider leading-none">TAKE THEIR</span>
+</div>
+<!-- Inverted Black banner for WORDS -->
+<div class="bg-surface-container-lowest text-secondary px-5 py-1.5 shadow-[4px_4px_0px_#fde400] rotate-[3.5deg]">
+<span class="font-display-hero text-headline-lg uppercase italic tracking-wider text-secondary leading-none">WORDS!</span>
+</div>
+</div>
+<!-- Alert Tape Tag -->
+<div class="bg-secondary-container text-on-secondary-fixed px-3 py-1 font-label-hud text-label-hud uppercase tracking-widest font-black rotate-[-6deg] shadow-[2px_2px_0px_#0e0e10]">
+            P5-KEY//OVERDRIVE
+          </div>
+</div>
+</div>
+<!-- MAIN MASSIVE CALL TO ACTION (START A RACE) -->
+<div class="relative group cursor-pointer -mt-1" id="btn-engage-main">
+<!-- Deep Graphic Shadow -->
+<div class="absolute -inset-1 bg-surface-container-lowest translate-x-3 translate-y-3 rotate-[-1.8deg] transition-transform group-hover:translate-x-4 group-hover:translate-y-4"></div>
+<!-- Primary Action Shell -->
+<div class="relative bg-primary-container text-on-primary-container p-space-lg rotate-[-1.5deg] shadow-[5px_5px_0px_#fde400] transition-transform group-hover:-translate-y-1">
+<!-- Background angled accent hash -->
+<div class="absolute top-0 right-0 h-full w-32 bg-tertiary-container/30 skew-x-[-18deg] pointer-events-none overflow-hidden">
+<div class="w-full h-full flex flex-col justify-around opacity-40">
+<div class="h-2 bg-secondary"></div>
+<div class="h-2 bg-secondary"></div>
+<div class="h-2 bg-secondary"></div>
+</div>
+</div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-16 h-16 bg-surface-container-lowest text-secondary-fixed flex items-center justify-center shadow-[4px_4px_0px_#ffffff] rotate-[-5deg] group-hover:rotate-0 transition-transform">
+<span class="material-symbols-outlined text-[38px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 font-label-hud text-label-hud uppercase tracking-wider font-black">ACTIVE QUEUE</span>
+<span class="font-label-hud text-label-hud tracking-widest text-on-primary-fixed uppercase font-black">RANKED SYNDICATE</span>
+</div>
+<h1 class="font-display-hero text-headline-lg uppercase italic tracking-wider text-secondary drop-shadow-[2px_2px_0px_#0e0e10] leading-none mt-1">
+                  START A RACE
+                </h1>
+</div>
+</div>
+<!-- Keyboard shortcut trigger pill -->
+<div class="flex flex-col items-end gap-1">
+<div class="bg-surface-container-lowest text-secondary-fixed px-space-md py-space-xs shadow-[3px_3px_0px_#ffffff] rotate-2 flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm uppercase tracking-wider text-secondary-fixed">[ENTER]</span>
+<span class="font-label-hud text-label-hud text-on-surface-variant font-bold">OR</span>
+<span class="font-headline-sm text-headline-sm uppercase tracking-wider text-secondary-fixed">[SPACE]</span>
+</div>
+<span class="font-label-hud text-[11px] uppercase tracking-widest text-on-primary-fixed font-black">TO AUTO-MATCHMAKE</span>
+</div>
+</div>
+</div>
+</div>
+<!-- COLLAGE OF SECONDARY COMBAT MODES -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md pt-space-xs">
+<!-- CARD 1: 1v1 BLITZ DUEL -->
+<div class="relative group cursor-pointer">
+<div class="absolute -inset-0.5 bg-surface-container-lowest translate-x-2 translate-y-2 rotate-[1deg]"></div>
+<div class="relative bg-surface-container-low p-space-md rotate-[-1deg] shadow-[4px_4px_0px_#e60026] hover:-translate-y-1 transition-all">
+<div class="flex items-start justify-between">
+<div class="bg-primary-container text-on-primary-container px-2 py-0.5 font-label-hud text-label-hud uppercase font-black rotate-[-3deg] shadow-[2px_2px_0px_#0e0e10]">
+                30-SEC BLITZ
+              </div>
+<span class="material-symbols-outlined text-primary-container text-[24px]">swords</span>
+</div>
+<div class="mt-space-md flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md uppercase italic text-secondary tracking-wide">
+                QUICK PLAY // 1v1
+              </h2>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">
+                Instantly drop into Shibuya crossroads with a random phantom rival. Pure raw WPM showdown.
+              </p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between bg-surface-container-lowest p-space-xs">
+<span class="font-label-hud text-label-hud text-secondary-fixed font-black tracking-widest">BET: 150 COINS</span>
+<span class="font-label-hud text-label-hud text-secondary uppercase font-bold flex items-center gap-1 group-hover:text-primary transition-colors">
+                FIGHT <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</span>
+</div>
+</div>
+</div>
+<!-- CARD 2: CREATE HEIST LOBBY -->
+<div class="relative group cursor-pointer">
+<div class="absolute -inset-0.5 bg-surface-container-lowest translate-x-2 translate-y-2 rotate-[-1.5deg]"></div>
+<div class="relative bg-surface-container p-space-md rotate-[1.5deg] shadow-[4px_4px_0px_#fde400] hover:-translate-y-1 transition-all">
+<div class="flex items-start justify-between">
+<div class="bg-secondary-container text-on-secondary-fixed px-2 py-0.5 font-label-hud text-label-hud uppercase font-black rotate-[2deg] shadow-[2px_2px_0px_#0e0e10]">
+                CUSTOM RULES
+              </div>
+<span class="material-symbols-outlined text-secondary-fixed text-[24px]">theater_comedy</span>
+</div>
+<div class="mt-space-md flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md uppercase italic text-secondary tracking-wide">
+                CREATE HEIST LOBBY
+              </h2>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">
+                Draft toxic poison-words, inverted key modifiers, and invite up to 8 party phantoms.
+              </p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between bg-surface-container-lowest p-space-xs">
+<span class="font-label-hud text-label-hud text-on-surface font-black tracking-widest">SLOTS: 2 - 8</span>
+<span class="font-label-hud text-label-hud text-secondary uppercase font-bold flex items-center gap-1 group-hover:text-secondary-fixed transition-colors">
+                HOST <span class="material-symbols-outlined text-[16px]">add_circle</span>
+</span>
+</div>
+</div>
+</div>
+<!-- CARD 3: JOIN WITH CODE -->
+<div class="relative">
+<div class="absolute -inset-0.5 bg-surface-container-lowest translate-x-2 translate-y-2 rotate-[0.5deg]"></div>
+<div class="relative bg-surface-container-high p-space-md rotate-[-0.5deg] shadow-[4px_4px_0px_#ffffff]">
+<div class="flex items-center justify-between">
+<span class="font-label-hud text-label-hud uppercase font-black text-on-surface-variant tracking-widest">SECRET FREQUENCY</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">pin</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm uppercase italic text-secondary tracking-wider mt-2">
+              JOIN WITH CODE
+            </h3>
+<div class="mt-space-sm flex items-center gap-space-xs">
+<input class="w-full bg-surface-container-lowest px-3 py-2 font-headline-sm text-headline-sm text-secondary-fixed uppercase tracking-widest placeholder:text-surface-variant focus:outline-none focus:bg-surface-container shadow-inner" maxlength="6" placeholder="P5-XXXX" type="text"/>
+<button class="bg-primary-container text-on-primary-container px-4 py-2 font-headline-sm text-headline-sm uppercase italic shadow-[3px_3px_0px_#0e0e10] hover:bg-secondary-container hover:text-on-secondary-fixed transition-all shrink-0">
+                PUNCH IN
+              </button>
+</div>
+</div>
+</div>
+<!-- CARD 4: TRAINING DOJO -->
+<div class="relative group cursor-pointer">
+<div class="absolute -inset-0.5 bg-surface-container-lowest translate-x-2 translate-y-2 rotate-[-2deg]"></div>
+<div class="relative bg-surface-container-low p-space-md rotate-[1deg] shadow-[4px_4px_0px_#ffdad7] hover:-translate-y-1 transition-all">
+<div class="flex items-start justify-between">
+<div class="bg-surface-variant text-secondary px-2 py-0.5 font-label-hud text-label-hud uppercase font-bold">
+                SOLO DRILLS
+              </div>
+<span class="material-symbols-outlined text-on-surface-variant text-[24px]">model_training</span>
+</div>
+<div class="mt-space-md flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md uppercase italic text-secondary tracking-wide">
+                TRAINING DOJO
+              </h2>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">
+                Palace quote transcripts, code syntax sprints, blind keystrokes, and finger speed calibration.
+              </p>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between bg-surface-container-lowest p-space-xs">
+<span class="font-label-hud text-label-hud text-tertiary-fixed font-black tracking-widest">0 COMMITTED ERRORS</span>
+<span class="font-label-hud text-label-hud text-secondary uppercase font-bold flex items-center gap-1 group-hover:text-primary-container transition-colors">
+                ENTER <span class="material-symbols-outlined text-[16px]">north_east</span>
+</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Real-time Typing Streamer Mock Marquee Preview -->
+<div class="relative bg-surface-container-lowest p-space-md shadow-[4px_4px_0px_#2a2a2c] flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 bg-primary-container animate-pulse rounded-full"></span>
+<span class="font-label-hud text-label-hud uppercase tracking-widest text-primary-container font-black">PALACE QUOTE DRILL PREVIEW</span>
+</div>
+<span class="font-label-hud text-label-hud text-on-surface-variant">TARGET KEYSTROKE STREAM</span>
+</div>
+<div class="bg-surface-container-high p-space-md flex items-center gap-2 overflow-x-hidden font-body-typing-stream text-body-typing-stream whitespace-nowrap">
+<span class="text-on-surface-variant line-through opacity-70">The mask</span>
+<span class="bg-secondary text-surface-container-lowest px-2 py-0.5 rotate-[-2deg] font-bold shadow-[2px_2px_0px_#e60026]">reveals</span>
+<span class="text-secondary tracking-wide">your rebellion when words fail to ignite the palace</span>
+<span class="inline-block w-3 h-8 bg-primary-container animate-ping"></span>
+</div>
+</div>
+</div>
+<!-- RIGHT 40% COLUMN: TACTICAL DOSSIER & CALLING CARD -->
+<div class="lg:col-span-5 flex flex-col gap-space-md">
+<!-- DOSSIER CARD CONTAINER with simulated paper clip & tape -->
+<div class="relative">
+<!-- Offset Graphic Drop -->
+<div class="absolute -inset-1 bg-surface-container-lowest translate-x-3 translate-y-3 rotate-[1.5deg]"></div>
+<!-- White/Yellow Stamped Tape Graphic on Top Left -->
+<div class="absolute -top-3 left-6 z-20 bg-secondary-fixed/90 text-on-secondary-fixed px-4 py-0.5 font-label-hud text-label-hud uppercase font-black rotate-[-4deg] shadow-[2px_2px_0px_#0e0e10]">
+          CONFIDENTIAL // DOSSIER #048
+        </div>
+<!-- Red Corner Pin on Top Right -->
+<div class="absolute -top-2 -right-2 z-20 w-8 h-8 bg-primary-container rotate-12 flex items-center justify-center text-secondary shadow-[2px_2px_0px_#0e0e10]">
+<span class="material-symbols-outlined text-[18px]">push_pin</span>
+</div>
+<div class="relative bg-surface-container p-space-lg shadow-[6px_6px_0px_#e60026] flex flex-col gap-space-md">
+<!-- CALLING CARD AVATAR & IDENTITY -->
+<div class="flex items-center gap-space-md bg-surface-container-lowest p-space-md rotate-[-1deg] shadow-[4px_4px_0px_#ffffff]">
+<!-- Anime Phantom Avatar from user assets -->
+<div class="relative w-24 h-24 shrink-0 overflow-hidden bg-primary-container shadow-[3px_3px_0px_#fde400]">
+<img alt="Persona 5 Phantom Typist Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1UuQJtdxAVeYjIUB2yIDX55HNf9WtJQKB4oVbCl6TjJw4QQ7mclNazkExqUGzXadKFTDjFo6vxa7W1zrPeNdPGCdlFsT5wKMJak7HYaT85o2iNUjRBd4HccKpXUeRefXHwbvqXVMSCJ57x-yAj6_52t6sv3ysElaTWjFp-7rJh2HKzAUeY__9PgtHXs3lLJ_3pAuk4-m9efwPsiQ_xj9aJPNANuWOXNMF_SFSgx0ZyBgkNCQbJZkex7rVmp"/>
+<div class="absolute bottom-0 right-0 bg-secondary text-surface-container-lowest font-headline-sm text-[12px] px-1 font-black">
+                LV.48
+              </div>
+</div>
+<!-- Identity Badges -->
+<div class="flex flex-col justify-center min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="bg-primary-container text-on-primary-container px-2 py-0.5 font-label-hud text-[11px] uppercase font-black">CODENAME</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 font-label-hud text-[11px] uppercase font-black">RANK: S</span>
+</div>
+<h2 class="font-headline-lg text-headline-md text-secondary uppercase italic tracking-wider truncate mt-1">
+                JOKER_KEY
+              </h2>
+<span class="font-label-hud text-label-hud text-on-surface-variant uppercase tracking-widest font-bold">
+                SYNDICATE: PHANTOM THIEVES
+              </span>
+</div>
+</div>
+<!-- KEY COMBAT TELEMETRY / RADAR METRICS -->
+<div class="grid grid-cols-3 gap-space-xs text-center">
+<div class="bg-surface-container-high p-space-sm shadow-[3px_3px_0px_#0e0e10] flex flex-col items-center">
+<span class="font-label-hud text-[10px] tracking-widest text-on-surface-variant uppercase font-black">RECORD WPM</span>
+<span class="font-headline-lg text-headline-md text-primary-container italic font-black leading-none mt-1">142</span>
+<span class="font-label-hud text-[10px] text-secondary-fixed font-bold mt-1">TOP 1.4%</span>
+</div>
+<div class="bg-surface-container-high p-space-sm shadow-[3px_3px_0px_#0e0e10] flex flex-col items-center">
+<span class="font-label-hud text-[10px] tracking-widest text-on-surface-variant uppercase font-black">ACCURACY</span>
+<span class="font-headline-lg text-headline-md text-secondary italic font-black leading-none mt-1">98.4%</span>
+<span class="font-label-hud text-[10px] text-primary-fixed font-bold mt-1">RAZOR SHARP</span>
+</div>
+<div class="bg-surface-container-high p-space-sm shadow-[3px_3px_0px_#0e0e10] flex flex-col items-center">
+<span class="font-label-hud text-[10px] tracking-widest text-on-surface-variant uppercase font-black">WIN STREAK</span>
+<span class="font-headline-lg text-headline-md text-secondary-fixed italic font-black leading-none mt-1">5X</span>
+<span class="font-label-hud text-[10px] text-tertiary font-bold mt-1">SHIBUYA RUN</span>
+</div>
+</div>
+<!-- GRAPHIC TELEMETRY RADAR SVG -->
+<div class="relative bg-surface-container-lowest p-space-md shadow-[3px_3px_0px_#2a2a2c] flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-hud text-label-hud uppercase tracking-widest text-secondary font-black">METRIC RADAR // KEYBOARD PROFICIENCY</span>
+<span class="bg-primary-container text-on-primary-container text-[10px] px-1.5 py-0.5 font-label-hud font-black uppercase">SYNC 99%</span>
+</div>
+<!-- Stylized Polygonal SVG Radar Chart -->
+<div class="w-full flex items-center justify-center py-1">
+<svg class="w-48 h-36 overflow-visible" viewbox="0 0 200 160">
+<!-- Background spider web polygon rings -->
+<polygon fill="none" points="100,10 170,45 170,115 100,150 30,115 30,45" stroke="#353437" stroke-dasharray="3 3" stroke-width="1.5"></polygon>
+<polygon fill="none" points="100,35 145,58 145,102 100,125 55,102 55,58" stroke="#353437" stroke-width="1.5"></polygon>
+<polygon fill="none" points="100,60 120,72 120,88 100,100 80,88 80,72" stroke="#353437" stroke-width="1"></polygon>
+<!-- Axis lines -->
+<line stroke="#353437" stroke-width="1" x1="100" x2="100" y1="10" y2="150"></line>
+<line stroke="#353437" stroke-width="1" x1="30" x2="170" y1="45" y2="115"></line>
+<line stroke="#353437" stroke-width="1" x1="30" x2="170" y1="115" y2="45"></line>
+<!-- Player Telemetry Shape in Crimson + Yellow highlight -->
+<polygon fill="#e60026" fill-opacity="0.45" points="100,18 160,52 148,110 100,138 42,98 48,50" stroke="#ffe600" stroke-width="2.5"></polygon>
+<!-- Radar Corner Value Nodes -->
+<circle cx="100" cy="18" fill="#ffffff" r="3"></circle>
+<circle cx="160" cy="52" fill="#ffffff" r="3"></circle>
+<circle cx="148" cy="110" fill="#ffffff" r="3"></circle>
+<circle cx="100" cy="138" fill="#ffffff" r="3"></circle>
+<circle cx="42" cy="98" fill="#ffffff" r="3"></circle>
+<circle cx="48" cy="50" fill="#ffffff" r="3"></circle>
+<!-- Node Labels -->
+<text fill="#ffb3ae" font-family="Chivo" font-size="9" font-weight="900" text-anchor="middle" x="100" y="4">BURST SPEED</text>
+<text fill="#e5e1e4" font-family="Chivo" font-size="8" font-weight="900" x="178" y="48">ACCURACY</text>
+<text fill="#e5e1e4" font-family="Chivo" font-size="8" font-weight="900" x="178" y="118">STAMINA</text>
+<text fill="#fde400" font-family="Chivo" font-size="9" font-weight="900" text-anchor="middle" x="100" y="160">STREAK</text>
+<text fill="#e5e1e4" font-family="Chivo" font-size="8" font-weight="900" x="0" y="118">RHYTHM</text>
+<text fill="#e5e1e4" font-family="Chivo" font-size="8" font-weight="900" x="0" y="48">RECOVERY</text>
+</svg>
+</div>
+</div>
+<!-- METROPOLITAN LIVE LEADERBOARD TICKER -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-hud text-label-hud uppercase tracking-widest text-secondary font-black">METROPOLITAN RIVAL LEADERBOARD</span>
+<span class="font-label-hud text-[11px] text-secondary-fixed font-black tracking-wider uppercase animate-pulse">● LIVE UPDATES</span>
+</div>
+<div class="flex flex-col gap-1.5 font-body-md text-body-md">
+<!-- Rank 1 Rival -->
+<div class="flex items-center justify-between p-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors shadow-[2px_2px_0px_#0e0e10]">
+<div class="flex items-center gap-space-sm">
+<span class="w-6 text-center font-headline-sm text-headline-sm text-secondary-fixed italic">01</span>
+<div class="flex flex-col">
+<span class="font-body-md font-bold text-secondary uppercase leading-none">CROW_66</span>
+<span class="font-label-hud text-[10px] text-on-surface-variant font-bold">PALACE OVERLORD</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-primary-container italic font-black">168 WPM</span>
+<span class="material-symbols-outlined text-secondary-fixed text-[16px]">military_tech</span>
+</div>
+</div>
+<!-- Rank 2 Rival -->
+<div class="flex items-center justify-between p-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors shadow-[2px_2px_0px_#0e0e10]">
+<div class="flex items-center gap-space-sm">
+<span class="w-6 text-center font-headline-sm text-headline-sm text-on-surface-variant italic">02</span>
+<div class="flex flex-col">
+<span class="font-body-md font-bold text-secondary uppercase leading-none">QUEEN_FIST</span>
+<span class="font-label-hud text-[10px] text-on-surface-variant font-bold">TACTICAL CADET</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-secondary italic font-black">154 WPM</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">military_tech</span>
+</div>
+</div>
+<!-- Rank 7: Current Player (Highlighted in Yellow/Red) -->
+<div class="flex items-center justify-between p-2 bg-primary-container text-on-primary-container rotate-[-1deg] shadow-[3px_3px_0px_#fde400]">
+<div class="flex items-center gap-space-sm">
+<span class="w-6 text-center font-headline-sm text-headline-sm text-secondary-fixed italic">07</span>
+<div class="flex flex-col">
+<span class="font-body-md font-black text-secondary uppercase leading-none flex items-center gap-1">
+                      YOU // JOKER_KEY <span class="bg-secondary-fixed text-on-secondary-fixed text-[9px] px-1 font-black">TARGET</span>
+</span>
+<span class="font-label-hud text-[10px] text-on-primary-fixed font-bold">STRIKE SYNDICATE</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-secondary-fixed italic font-black">142 WPM</span>
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+</div>
+<!-- AUDIO SWITCH TOGGLE (MECHANICAL KEY SWITCH EMULATOR) -->
+<div class="mt-space-xs bg-surface-container-lowest p-space-sm flex items-center justify-between shadow-[2px_2px_0px_#ffffff]">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">keyboard</span>
+<span class="font-label-hud text-[11px] uppercase tracking-wider text-secondary font-black">
+                KEY AUDIO:
+              </span>
+</div>
+<!-- Clicky / Linear Switcher -->
+<div class="flex items-center gap-1 bg-surface-container p-0.5" id="audio-switch-toggle">
+<button class="px-2 py-0.5 font-label-hud text-[10px] uppercase font-black bg-primary-container text-on-primary-container transition-all" id="btn-audio-clicky">
+                CLICKY BLUE
+              </button>
+<button class="px-2 py-0.5 font-label-hud text-[10px] uppercase font-black text-on-surface-variant hover:text-secondary transition-all" id="btn-audio-linear">
+                LINEAR RED
+              </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Keyboard Trigger Script -->
+<script>
+    // Desktop keyboard shortcuts: Enter / Space triggers primary start
+    document.addEventListener('keydown', (e) => {
+      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+      if (activeTag === 'input' || activeTag === 'textarea') return;
+
+      if (e.code === 'Enter' || e.code === 'Space') {
+        e.preventDefault();
+        const mainBtn = document.getElementById('btn-engage-main');
+        if (mainBtn) {
+          mainBtn.classList.add('scale-95');
+          setTimeout(() => {
+            mainBtn.classList.remove('scale-95');
+            // Simulating prompt engagement feedback
+            const originalColor = mainBtn.querySelector('.bg-primary-container');
+            if (originalColor) {
+              originalColor.classList.add('bg-secondary-container');
+              setTimeout(() => originalColor.classList.remove('bg-secondary-container'), 250);
+            }
+          }, 120);
+        }
+      }
+    });
+
+    // Mechanical switch sound toggle behavior
+    const btnClicky = document.getElementById('btn-audio-clicky');
+    const btnLinear = document.getElementById('btn-audio-linear');
+    if (btnClicky && btnLinear) {
+      btnClicky.addEventListener('click', () => {
+        btnClicky.className = 'px-2 py-0.5 font-label-hud text-[10px] uppercase font-black bg-primary-container text-on-primary-container transition-all';
+        btnLinear.className = 'px-2 py-0.5 font-label-hud text-[10px] uppercase font-black text-on-surface-variant hover:text-secondary transition-all';
+      });
+      btnLinear.addEventListener('click', () => {
+        btnLinear.className = 'px-2 py-0.5 font-label-hud text-[10px] uppercase font-black bg-secondary-container text-on-secondary-fixed transition-all';
+        btnClicky.className = 'px-2 py-0.5 font-label-hud text-[10px] uppercase font-black text-on-surface-variant hover:text-secondary transition-all';
+      });
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-container-lowest py-space-lg"><div class="w-full px-margin flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><span class="font-headline-md text-headline-md italic uppercase text-on-surface-variant">TYPE<span class="text-primary-container">//</span>STRIKE</span><span class="font-label-hud text-label-hud text-on-surface-variant tracking-widest">ALL PHANTOM RIGHTS RESERVED © 2025</span></div><div class="flex items-center gap-space-lg"><span class="font-label-hud text-label-hud uppercase tracking-wider text-on-surface-variant">STATUS // ONLINE</span><span class="font-label-hud text-label-hud uppercase tracking-wider text-on-surface-variant">ENCRYPTION // 512-BIT ACID</span><span class="font-label-hud text-label-hud uppercase tracking-wider text-on-surface-variant">VERSION // 4.8.1-P5</span></div></div></footer></body></html>
+

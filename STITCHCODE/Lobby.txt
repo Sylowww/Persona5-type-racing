@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>TYPE//STRIKE - Competitive Typing Syndicate</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Chivo:ital,wght@0,700;0,900;1,900&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-secondary-fixed":"#201c00","on-surface-variant":"#e8bcb8","surface-container-high":"#2a2a2c","on-error-container":"#ffdad6","inverse-surface":"#e5e1e4","on-secondary-fixed-variant":"#504700","on-primary-fixed-variant":"#930014","on-primary-container":"#fff8f7","on-secondary-container":"#716500","background":"#131315","surface-tint":"#ffb3ae","surface-container-lowest":"#0e0e10","surface-dim":"#131315","tertiary-fixed":"#ffdad8","on-primary-fixed":"#410004","secondary-fixed":"#fde400","secondary":"#ffffff","inverse-primary":"#c0001e","outline":"#af8784","secondary-container":"#fde400","on-error":"#690005","primary-container":"#e60026","primary-fixed":"#ffdad7","secondary-fixed-dim":"#dec800","tertiary-fixed-dim":"#ffb3b1","surface-container-low":"#1c1b1d","error":"#ffb4ab","surface-bright":"#39393b","on-tertiary-fixed-variant":"#92001c","primary-fixed-dim":"#ffb3ae","on-surface":"#e5e1e4","error-container":"#93000a","on-tertiary-container":"#fff7f6","surface-container-highest":"#353437","tertiary":"#ffb3b1","primary":"#ffb3ae","outline-variant":"#5e3f3c","on-secondary":"#373100","surface-container":"#201f21","on-primary":"#68000b","on-tertiary-fixed":"#410007","inverse-on-surface":"#313032","on-tertiary":"#680011","on-background":"#e5e1e4","tertiary-container":"#e50031","surface-variant":"#353437","surface":"#131315"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","space-xl":"3rem","space-xs":"0.25rem","gutter-mobile":"0.75rem","space-sm":"0.5rem","margin-mobile":"1rem","space-lg":"1.75rem","gutter":"1.5rem","margin":"2.5rem"},"fontFamily":{"label-badge":["Anton"],"display-hero-mobile":["Anton"],"body-lg":["Space Grotesk"],"headline-lg":["Anton"],"label-hud":["Chivo"],"headline-sm":["Chivo"],"body-md":["Space Grotesk"],"headline-lg-mobile":["Anton"],"headline-md":["Anton"],"display-hero":["Anton"],"body-typing-mobile":["Space Grotesk"],"body-typing-stream":["Space Grotesk"]},"fontSize":{"label-badge":["14px",{"lineHeight":"14px","letterSpacing":"0.08em","fontWeight":"400"}],"display-hero-mobile":["48px",{"lineHeight":"52px","letterSpacing":"0.02em","fontWeight":"400"}],"body-lg":["18px",{"lineHeight":"26px","letterSpacing":"0em","fontWeight":"500"}],"headline-lg":["48px",{"lineHeight":"52px","letterSpacing":"0.04em","fontWeight":"400"}],"label-hud":["13px",{"lineHeight":"16px","letterSpacing":"0.12em","fontWeight":"900"}],"headline-sm":["22px",{"lineHeight":"28px","letterSpacing":"0.05em","fontWeight":"900"}],"body-md":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"headline-lg-mobile":["32px",{"lineHeight":"36px","letterSpacing":"0.03em","fontWeight":"400"}],"headline-md":["32px",{"lineHeight":"36px","letterSpacing":"0.03em","fontWeight":"400"}],"display-hero":["84px",{"lineHeight":"84px","letterSpacing":"0.02em","fontWeight":"400"}],"body-typing-mobile":["20px",{"lineHeight":"32px","letterSpacing":"0.02em","fontWeight":"700"}],"body-typing-stream":["28px",{"lineHeight":"44px","letterSpacing":"0.04em","fontWeight":"700"}]}}}};</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen relative overflow-x-hidden"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="h-20 w-full px-margin flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md shrink-0"><div class="flex items-center gap-space-sm"><img alt="Brand logo. - Primary color: #e60026
+- Font: anton
+- Mode: dark
+- Roundness: rounded-lg
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X9i9LAYn8DriLdQM9aj68I_2Bk-31a7LT7aBnoFhlBWP3GM4_aL-U9Ad_yIzcwkvKUjz6Nzod6XPMHLrOu32d5DwUAFEt7OLtoKYvJznUQddDq7D3XTpuxY5MMafHjx0n9jYm9kNMMW54gCyjhG9A5noao6rlIrIxwlXHjHTRm9UwQnHbHBRZ0snlBgX-W0PPUtQVS2FhPJqjuPuxjsFhJTvtIdqlvTrEZy7XbYb5ZghUTXKgBh7cse7rE"/><div class="flex flex-col -space-y-1"><span class="font-headline-md text-headline-md uppercase italic tracking-wider text-secondary">TYPE<span class="text-primary-container">//</span>STRIKE</span><span class="font-label-hud text-[10px] tracking-widest text-on-surface-variant uppercase font-black">METAVERSE DRIFT SYSTEM</span></div></div></div><nav class="hidden lg:flex items-center gap-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm text-headline-sm uppercase italic shadow-[3px_3px_0px_#fde400]"><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="home-radar" href="#">HOME // RADAR</a><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="quick-race" href="#">QUICK RACE</a><a aria-current="page" class="px-space-md py-space-xs transition-all bg-primary-container text-on-primary-container font-headline-sm text-headline-sm uppercase italic shadow-[3px_3px_0px_#fde400]" data-path="heist-lobby" href="#">HEIST LOBBY</a><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="training-dojo" href="#">TRAINING DOJO</a><a class="px-space-md py-space-xs font-headline-sm text-headline-sm italic uppercase text-on-surface-variant transition-all" data-path="leaderboards" href="#">LEADERBOARDS</a></nav><div class="flex items-center gap-space-md shrink-0"><div class="hidden xl:flex items-center gap-space-sm px-space-sm py-space-xs bg-surface-container-high"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary-fixed opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-secondary-fixed"></span></span><span class="font-label-hud text-label-hud uppercase tracking-widest text-on-surface-variant">METAVERSE-07 <span class="text-secondary">// 2,410 ONLINE</span></span></div><button class="flex items-center justify-center w-9 h-9 bg-surface-container text-on-surface-variant hover:text-on-surface transition-all"><span class="material-symbols-outlined text-[20px]">volume_up</span></button><div class="flex items-center gap-space-sm px-space-sm py-1 bg-surface-container"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-label-hud text-label-hud text-secondary-fixed uppercase tracking-wider font-black">LVL 48</span><span class="font-body-md text-body-md text-secondary font-bold truncate max-w-[90px]">PHANTOM</span></div><div class="font-headline-sm text-[11px] leading-none text-primary-container font-black tracking-widest">142 WPM</div></div></div></div></div></header><main class="w-full pt-20 bg-surface-container-lowest min-h-[calc(100vh-140px)]"><div class="flex flex-col w-full relative select-none">
+<!-- Dynamic Halftone & Noise Ambient Background Decor -->
+<div class="pointer-events-none absolute inset-0 overflow-hidden z-0 opacity-20">
+<div class="absolute -top-32 -left-20 w-[600px] h-[600px] bg-primary-container rounded-full blur-[140px] transform -rotate-12"></div>
+<div class="absolute top-1/2 -right-32 w-[500px] h-[500px] bg-secondary-container rounded-full blur-[150px] opacity-30"></div>
+<div class="absolute inset-0 bg-[radial-gradient(#e5e1e4_1px,transparent_1px)] [background-size:24px_24px] opacity-15"></div>
+</div>
+<div class="relative z-10 w-full px-margin py-space-md flex flex-col gap-space-lg max-w-[1720px] mx-auto">
+<!-- Top Lobby Header: Persona 5 Cutout Graphic Bar -->
+<div class="relative w-full flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<!-- Slanted Room Code Tape -->
+<div class="flex items-center gap-space-sm flex-wrap">
+<div class="relative transform -rotate-2 origin-left bg-primary-container text-on-primary-container px-space-lg py-space-sm shadow-[6px_6px_0px_#0e0e10]">
+<div class="absolute -top-3 -left-3 bg-secondary-container text-on-secondary-container font-label-hud text-label-hud px-2 py-0.5 transform rotate-6 uppercase font-black">
+            MISSION DISPATCH
+          </div>
+<div class="flex items-center gap-space-md">
+<span class="font-headline-lg text-headline-lg uppercase italic tracking-wider text-secondary leading-none">
+              HEIST TARGET CODE <span class="text-secondary-fixed">#JOK3R</span>
+</span>
+<button class="bg-surface-container-lowest text-secondary hover:bg-secondary-fixed hover:text-on-secondary-fixed font-label-hud text-label-hud uppercase px-space-sm py-1.5 flex items-center gap-1 transition-transform active:scale-95 shadow-[2px_2px_0px_#fde400]" id="copy-btn">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span>COPY LINK [C]</span>
+</button>
+</div>
+</div>
+<div class="transform rotate-1 bg-surface-container-high px-space-md py-space-sm text-on-surface flex items-center gap-space-sm shadow-[4px_4px_0px_#0e0e10]">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-fixed animate-ping"></span>
+<span class="font-label-hud text-label-hud uppercase text-on-surface-variant font-black">SERVER // <span class="text-secondary">TOKYO METAVERSE (12ms)</span></span>
+</div>
+</div>
+<!-- Right Header Telemetry: Player Locked In Meter -->
+<div class="flex items-center gap-space-md self-end xl:self-auto">
+<div class="transform -rotate-1 bg-surface-container px-space-md py-space-sm shadow-[4px_4px_0px_#e60026] flex items-center gap-space-md">
+<div class="flex flex-col text-right">
+<span class="font-label-hud text-[11px] tracking-widest text-on-surface-variant uppercase font-black">HEIST SYNDICATE</span>
+<span class="font-headline-sm text-headline-sm uppercase italic text-secondary leading-none">
+<span class="text-secondary-fixed">4</span> / 6 LOCKED IN
+            </span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-3.5 h-7 bg-secondary-fixed transform -skew-x-12 shadow-[2px_2px_0px_#000]"></span>
+<span class="w-3.5 h-7 bg-secondary-fixed transform -skew-x-12 shadow-[2px_2px_0px_#000]"></span>
+<span class="w-3.5 h-7 bg-secondary-fixed transform -skew-x-12 shadow-[2px_2px_0px_#000]"></span>
+<span class="w-3.5 h-7 bg-secondary-fixed transform -skew-x-12 shadow-[2px_2px_0px_#000]"></span>
+<span class="w-3.5 h-7 bg-surface-container-highest transform -skew-x-12"></span>
+<span class="w-3.5 h-7 bg-surface-container-highest transform -skew-x-12"></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Center Main Grid & Tactical Sidebar -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- Left & Center: 70% Calling Card Arena (8 Columns on XL) -->
+<div class="xl:col-span-8 flex flex-col gap-space-md">
+<!-- Graphic Slash Banner Over Grid -->
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center gap-2 bg-surface-container px-space-md py-1 transform -skew-x-12">
+<span class="material-symbols-outlined text-primary-container text-[18px]">sports_martial_arts</span>
+<span class="font-label-hud text-label-hud uppercase tracking-widest text-secondary font-black">SYNCHRONIZED PHANTOMS // CALLING CARDS</span>
+</div>
+<span class="font-label-hud text-[12px] uppercase tracking-wider text-outline">HOLD [SPACE] TO TOGGLE READY</span>
+</div>
+<!-- 3x2 Asymmetric Staggered Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
+<!-- SLOT 1: HOST / YOU (Joker_Key) -->
+<div class="relative group transform hover:-translate-y-1 transition-transform duration-200">
+<!-- Cutout Backdrop Angle -->
+<div class="absolute inset-0 bg-primary-container transform -rotate-1 translate-x-1 translate-y-1 shadow-[5px_5px_0px_#0e0e10]"></div>
+<div class="relative bg-surface-container-low p-space-md flex flex-col justify-between h-[290px] overflow-hidden">
+<!-- Top Card Info Bar -->
+<div class="flex items-start justify-between z-10">
+<div class="flex flex-col">
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-badge text-label-badge px-2 py-0.5 uppercase italic font-black shadow-[2px_2px_0px_#000] inline-block w-fit">
+                    HOST // P1
+                  </span>
+<span class="font-headline-sm text-headline-sm uppercase italic text-secondary mt-1 tracking-wide">JOKER_KEY</span>
+<span class="font-label-hud text-[11px] text-secondary-fixed uppercase font-black">LVL 48 // APEX TYPIST</span>
+</div>
+<!-- Ready Stamp -->
+<div class="transform rotate-6 bg-secondary-fixed text-on-secondary-fixed px-3 py-1 font-headline-sm text-[16px] uppercase italic tracking-wider font-black shadow-[3px_3px_0px_#e60026] animate-pulse">
+                  READY!
+                </div>
+</div>
+<!-- Center Graphic Avatar Feature -->
+<div class="absolute right-0 bottom-4 w-44 h-44 pointer-events-none opacity-90 group-hover:scale-105 transition-transform duration-300">
+<img alt="Persona 5 stylized phantom thief typing operative avatar with domino mask" class="w-full h-full object-cover rounded-none filter contrast-125" src="https://lh3.googleusercontent.com/aida/AEtjO1UuQJtdxAVeYjIUB2yIDX55HNf9WtJQKB4oVbCl6TjJw4QQ7mclNazkExqUGzXadKFTDjFo6vxa7W1zrPeNdPGCdlFsT5wKMJak7HYaT85o2iNUjRBd4HccKpXUeRefXHwbvqXVMSCJ57x-yAj6_52t6sv3ysElaTWjFp-7rJh2HKzAUeY__9PgtHXs3lLJ_3pAuk4-m9efwPsiQ_xj9aJPNANuWOXNMF_SFSgx0ZyBgkNCQbJZkex7rVmp"/>
+</div>
+<!-- Halftone Dots Graphic Overlay in Card -->
+<div class="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:12px_12px] opacity-10 pointer-events-none"></div>
+<!-- Bottom Stat Ticker -->
+<div class="z-10 bg-surface-container-lowest/90 p-space-sm backdrop-blur-sm transform -skew-x-6 w-3/4">
+<div class="flex items-baseline justify-between transform skew-x-6">
+<span class="font-label-hud text-[11px] text-on-surface-variant font-black uppercase">RECORD VELOCITY</span>
+<span class="font-headline-md text-headline-md text-primary-container leading-none italic font-black">142 <span class="text-[12px] font-label-hud text-secondary">WPM</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- SLOT 2: MONA_CAT -->
+<div class="relative group transform hover:-translate-y-1 transition-transform duration-200">
+<div class="absolute inset-0 bg-surface-container-highest transform rotate-1 translate-x-1 translate-y-1 shadow-[5px_5px_0px_#0e0e10]"></div>
+<div class="relative bg-surface-container-low p-space-md flex flex-col justify-between h-[290px] overflow-hidden">
+<div class="flex items-start justify-between z-10">
+<div class="flex flex-col">
+<span class="bg-surface-bright text-secondary font-label-badge text-label-badge px-2 py-0.5 uppercase italic font-bold inline-block w-fit">
+                    INFILTRATOR // P2
+                  </span>
+<span class="font-headline-sm text-headline-sm uppercase italic text-secondary mt-1 tracking-wide">MONA_CAT</span>
+<span class="font-label-hud text-[11px] text-outline uppercase font-black">LVL 39 // STEALTH KEY</span>
+</div>
+<div class="transform -rotate-3 bg-secondary-fixed text-on-secondary-fixed px-3 py-1 font-headline-sm text-[16px] uppercase italic tracking-wider font-black shadow-[3px_3px_0px_#000]">
+                  READY!
+                </div>
+</div>
+<!-- Stylized Character Silhouette Illustration -->
+<div class="absolute right-1 bottom-4 w-36 h-36 flex items-center justify-center opacity-70 group-hover:scale-105 transition-transform">
+<svg class="w-full h-full text-secondary-fixed fill-current" viewbox="0 0 100 100">
+<polygon class="opacity-20 text-primary-container" points="50,5 90,90 10,90"></polygon>
+<circle class="fill-surface-container-high" cx="50" cy="45" r="28"></circle>
+<path class="fill-secondary-fixed" d="M35 30 L45 15 L50 28 L55 15 L65 30 Z"></path>
+<circle class="fill-secondary" cx="42" cy="45" r="4"></circle>
+<circle class="fill-secondary" cx="58" cy="45" r="4"></circle>
+<path d="M44 58 Q50 64 56 58" fill="none" stroke="white" stroke-width="2"></path>
+</svg>
+</div>
+<div class="z-10 bg-surface-container-lowest/90 p-space-sm backdrop-blur-sm transform -skew-x-6 w-3/4">
+<div class="flex items-baseline justify-between transform skew-x-6">
+<span class="font-label-hud text-[11px] text-on-surface-variant font-black uppercase">BURST SPEED</span>
+<span class="font-headline-md text-headline-md text-secondary leading-none italic font-black">118 <span class="text-[12px] font-label-hud text-outline">WPM</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- SLOT 3: SKULL_CRUSH (WAITING STATE) -->
+<div class="relative group transform hover:-translate-y-1 transition-transform duration-200">
+<div class="absolute inset-0 bg-error-container transform -rotate-1 translate-x-1 translate-y-1 shadow-[5px_5px_0px_#0e0e10]"></div>
+<div class="relative bg-surface-container-low p-space-md flex flex-col justify-between h-[290px] overflow-hidden">
+<div class="flex items-start justify-between z-10">
+<div class="flex flex-col">
+<span class="bg-surface-bright text-secondary font-label-badge text-label-badge px-2 py-0.5 uppercase italic font-bold inline-block w-fit">
+                    VANGUARD // P3
+                  </span>
+<span class="font-headline-sm text-headline-sm uppercase italic text-secondary mt-1 tracking-wide">SKULL_CRUSH</span>
+<span class="font-label-hud text-[11px] text-error uppercase font-black">LVL 42 // BRAWLER SWITCH</span>
+</div>
+<div class="transform rotate-3 bg-error-container text-on-error-container px-3 py-1 font-headline-sm text-[16px] uppercase italic tracking-wider font-black animate-pulse shadow-[2px_2px_0px_#000]">
+                  WAITING...
+                </div>
+</div>
+<!-- Vector Skull Outline -->
+<div class="absolute right-3 bottom-6 w-36 h-36 flex items-center justify-center opacity-60">
+<svg class="w-full h-full fill-none stroke-error" stroke-width="3" viewbox="0 0 100 100">
+<path d="M25 40 C25 20, 75 20, 75 40 C75 55, 65 65, 65 75 L35 75 C35 65, 25 55, 25 40 Z"></path>
+<circle class="fill-error" cx="40" cy="45" r="7"></circle>
+<circle class="fill-error" cx="60" cy="45" r="7"></circle>
+<line stroke-width="3" x1="45" x2="55" y1="62" y2="62"></line>
+<line stroke-width="3" x1="42" x2="42" y1="75" y2="85"></line>
+<line stroke-width="3" x1="50" x2="50" y1="75" y2="85"></line>
+<line stroke-width="3" x1="58" x2="58" y1="75" y2="85"></line>
+</svg>
+</div>
+<div class="z-10 bg-surface-container-lowest/90 p-space-sm backdrop-blur-sm transform -skew-x-6 w-3/4">
+<div class="flex items-baseline justify-between transform skew-x-6">
+<span class="font-label-hud text-[11px] text-on-surface-variant font-black uppercase">AVERAGE DPS</span>
+<span class="font-headline-md text-headline-md text-secondary leading-none italic font-black">125 <span class="text-[12px] font-label-hud text-outline">WPM</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- SLOT 4: PANTHER_VIP -->
+<div class="relative group transform hover:-translate-y-1 transition-transform duration-200">
+<div class="absolute inset-0 bg-primary-container transform rotate-1 translate-x-1 translate-y-1 shadow-[5px_5px_0px_#0e0e10]"></div>
+<div class="relative bg-surface-container-low p-space-md flex flex-col justify-between h-[290px] overflow-hidden">
+<div class="flex items-start justify-between z-10">
+<div class="flex flex-col">
+<span class="bg-surface-bright text-secondary font-label-badge text-label-badge px-2 py-0.5 uppercase italic font-bold inline-block w-fit">
+                    EXEC // P4
+                  </span>
+<span class="font-headline-sm text-headline-sm uppercase italic text-secondary mt-1 tracking-wide">PANTHER_VIP</span>
+<span class="font-label-hud text-[11px] text-secondary-fixed uppercase font-black">LVL 45 // WHIP CLICKS</span>
+</div>
+<div class="transform -rotate-2 bg-secondary-fixed text-on-secondary-fixed px-3 py-1 font-headline-sm text-[16px] uppercase italic tracking-wider font-black shadow-[3px_3px_0px_#e60026]">
+                  READY!
+                </div>
+</div>
+<!-- Mask Motif Vector -->
+<div class="absolute -right-2 bottom-6 w-40 h-40 opacity-70 flex items-center justify-center">
+<svg class="w-full h-full fill-primary-container" viewbox="0 0 100 100">
+<path d="M10 35 Q50 65 90 35 Q85 70 50 85 Q15 70 10 35 Z"></path>
+<circle class="fill-surface-container-lowest" cx="35" cy="48" r="8"></circle>
+<circle class="fill-surface-container-lowest" cx="65" cy="48" r="8"></circle>
+</svg>
+</div>
+<div class="z-10 bg-surface-container-lowest/90 p-space-sm backdrop-blur-sm transform -skew-x-6 w-3/4">
+<div class="flex items-baseline justify-between transform skew-x-6">
+<span class="font-label-hud text-[11px] text-on-surface-variant font-black uppercase">BURST SPEED</span>
+<span class="font-headline-md text-headline-md text-secondary leading-none italic font-black">131 <span class="text-[12px] font-label-hud text-outline">WPM</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- SLOT 5: EMPTY SLOT / INVITE PHANTOM -->
+<div class="relative group cursor-pointer h-[290px]">
+<div class="absolute inset-0 bg-surface-container-high transform -rotate-1 translate-x-1 translate-y-1"></div>
+<div class="relative h-full bg-surface-container-low/70 hover:bg-surface-container p-space-md flex flex-col items-center justify-center text-center transition-colors">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center mb-space-sm group-hover:scale-110 group-hover:bg-primary-container transition-all shadow-[4px_4px_0px_#0e0e10]">
+<span class="material-symbols-outlined text-secondary text-[32px]">person_add</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase italic text-secondary tracking-wide">
+                EMPTY SLOT // P5
+              </span>
+<span class="font-label-hud text-label-hud uppercase text-on-surface-variant tracking-widest mt-1">
+                INVITE PHANTOM OPERATIVE
+              </span>
+<div class="mt-space-md px-space-md py-1 bg-surface-container-highest group-hover:bg-secondary-fixed group-hover:text-on-secondary-fixed text-secondary font-label-hud text-[11px] uppercase tracking-wider font-black transition-colors">
+                CLICK TO COPY LOBBY CODE
+              </div>
+</div>
+</div>
+<!-- SLOT 6: ADD PHANTOM BOT DIALOG -->
+<div class="relative group h-[290px]">
+<div class="absolute inset-0 bg-surface-container-high transform rotate-1 translate-x-1 translate-y-1"></div>
+<div class="relative h-full bg-surface-container-low p-space-md flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="bg-surface-bright text-secondary font-label-badge text-label-badge px-2 py-0.5 uppercase italic font-bold">
+                  AI SIMULATOR
+                </span>
+<span class="material-symbols-outlined text-outline">smart_toy</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm uppercase italic text-secondary leading-tight">
+                  + ADD PHANTOM BOT
+                </span>
+<span class="font-label-hud text-[11px] text-on-surface-variant uppercase tracking-wider mt-1">
+                  SELECT SYNTHETIC DIFFICULTY
+                </span>
+</div>
+<!-- Bot Selector Pills -->
+<div class="flex flex-col gap-1.5">
+<button class="w-full text-left px-space-sm py-1 bg-surface-container hover:bg-surface-bright text-on-surface flex items-center justify-between text-body-md font-body-md transition-colors">
+<span class="font-bold">ROOKIE // AGENT</span>
+<span class="font-headline-sm text-[13px] text-outline">60 WPM</span>
+</button>
+<button class="w-full text-left px-space-sm py-1 bg-surface-container-highest hover:bg-primary-container hover:text-on-primary-container text-secondary flex items-center justify-between text-body-md font-body-md transition-colors">
+<span class="font-bold">MASTER // SHADOW</span>
+<span class="font-headline-sm text-[13px] text-secondary-fixed">120 WPM</span>
+</button>
+<button class="w-full text-left px-space-sm py-1 bg-surface-container hover:bg-secondary-fixed hover:text-on-secondary-fixed text-on-surface flex items-center justify-between text-body-md font-body-md transition-colors">
+<span class="font-bold">GODSPEED // PHANTOM</span>
+<span class="font-headline-sm text-[13px] text-primary-container">150 WPM</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Meta Ticker Strip Under Grid -->
+<div class="w-full bg-surface-container-lowest px-space-md py-space-sm flex items-center justify-between flex-wrap gap-2 text-on-surface-variant">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px] text-secondary-fixed">electric_bolt</span>
+<span class="font-label-hud text-label-hud uppercase tracking-widest">DRIFT BOOST ENABLED // 100% ACCURACY STREAK MULTIPLIER ACTIVE</span>
+</div>
+<div class="font-label-hud text-[11px] uppercase tracking-wider text-outline">
+            MATCH STARTS INSTANTLY WHEN 6/6 ACCEPT
+          </div>
+</div>
+</div>
+<!-- Right Sidebar: 30% HEIST RULES & LOADOUT DOSSIER (4 Columns on XL) -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Dossier Header Ribbon -->
+<div class="relative transform rotate-1">
+<div class="bg-secondary-fixed text-on-secondary-fixed px-space-md py-space-sm shadow-[4px_4px_0px_#0e0e10] flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm uppercase italic font-black tracking-wider">
+              HEIST RULES &amp; LOADOUT
+            </span>
+<span class="material-symbols-outlined text-[20px]">assignment</span>
+</div>
+</div>
+<!-- Dossier Card Shell -->
+<div class="bg-surface-container p-space-md flex flex-col gap-space-md shadow-[6px_6px_0px_#0e0e10]">
+<!-- Rule 1: Mission Directive / Race Mode -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-hud text-[11px] uppercase tracking-widest text-primary font-black">DIRECTIVE 01 // RACE MODE</span>
+<span class="font-label-hud text-[11px] text-secondary-fixed uppercase font-black">COMPETITIVE</span>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-surface-container-low p-2 text-center">
+<span class="font-label-hud text-[10px] text-outline block uppercase">SPRINT</span>
+<span class="font-headline-sm text-[16px] text-secondary">30s RUN</span>
+</div>
+<div class="bg-primary-container text-on-primary-container p-2 text-center shadow-[2px_2px_0px_#000]">
+<span class="font-label-hud text-[10px] text-secondary-fixed block uppercase">BURST</span>
+<span class="font-headline-sm text-[16px] text-secondary font-black">100 WORDS</span>
+</div>
+<div class="bg-surface-container-low p-2 text-center opacity-70">
+<span class="font-label-hud text-[10px] text-outline block uppercase">HARDCORE</span>
+<span class="font-headline-sm text-[14px] text-error">SUDDEN DEATH</span>
+</div>
+</div>
+<div class="text-[12px] font-body-md text-on-surface-variant italic mt-1">
+              * Sudden Death: First mis-hit triggers catastrophic lockdown. Disqualification immediate.
+            </div>
+</div>
+<div class="w-full h-px bg-surface-container-highest"></div>
+<!-- Rule 2: Lexicon Dictionary Seed -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-hud text-[11px] uppercase tracking-widest text-primary font-black">DIRECTIVE 02 // LEXICON SEED</span>
+<span class="font-label-hud text-[11px] text-secondary uppercase font-bold">ENGLISH 1K</span>
+</div>
+<div class="bg-surface-container-low p-space-sm flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-body-md">
+<span class="text-on-surface">Punctuation [!?.,;:]</span>
+<span class="font-headline-sm text-[13px] text-secondary-fixed font-black">ENABLED</span>
+</div>
+<div class="flex items-center justify-between text-body-md">
+<span class="text-on-surface">Numbers &amp; Operators [0-9]</span>
+<span class="font-headline-sm text-[13px] text-secondary-fixed font-black">ENABLED</span>
+</div>
+<div class="flex items-center justify-between text-body-md">
+<span class="text-on-surface">Casing (Acid Shift)</span>
+<span class="font-headline-sm text-[13px] text-outline">STANDARD</span>
+</div>
+</div>
+</div>
+<div class="w-full h-px bg-surface-container-highest"></div>
+<!-- Rule 3: Keystroke Sound Profile -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-hud text-[11px] uppercase tracking-widest text-primary font-black">AUDIO SYNTH // SWITCH AUDIO</span>
+<span class="material-symbols-outlined text-[18px] text-secondary">graphic_eq</span>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<button class="bg-surface-container-low hover:bg-surface-bright py-2 text-center text-on-surface text-label-hud font-label-hud uppercase">
+                BLUE CLICK
+              </button>
+<button class="bg-secondary-fixed text-on-secondary-fixed py-2 text-center font-label-hud text-label-hud uppercase font-black shadow-[2px_2px_0px_#000]">
+                TOPRE THOCK
+              </button>
+<button class="bg-surface-container-low hover:bg-surface-bright py-2 text-center text-on-surface text-label-hud font-label-hud uppercase">
+                SILENT RED
+              </button>
+</div>
+</div>
+<div class="w-full h-px bg-surface-container-highest"></div>
+<!-- Spectator Gallery & Live Audience Counter -->
+<div class="bg-surface-container-lowest p-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">visibility</span>
+<div class="flex flex-col">
+<span class="font-label-hud text-[11px] text-secondary uppercase font-black">2 SPECTATORS WATCHING</span>
+<span class="font-body-md text-[12px] text-outline">SHADOW_EYE, PROTO_99</span>
+</div>
+</div>
+<button class="px-space-sm py-1 bg-surface-container text-on-surface-variant hover:text-secondary font-label-hud text-[11px] uppercase">
+              INVITE OBSERVER
+            </button>
+</div>
+</div>
+<!-- Chat / Taunt Mini Feed Banner -->
+<div class="bg-surface-container-low p-space-sm flex flex-col gap-2">
+<div class="flex items-center justify-between text-outline text-[11px] font-label-hud">
+<span>METAVERSE TAUNT RELAY</span>
+<span class="text-secondary-fixed">LIVE</span>
+</div>
+<div class="flex flex-col gap-1 text-[13px] font-body-md">
+<div><span class="text-primary font-bold">MONA_CAT:</span> Ready whenever, don't miss the first comma!</div>
+<div><span class="text-secondary-fixed font-bold">JOKER_KEY:</span> Locking in 140+ pace. Stay sharp.</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Slanted Action Dock -->
+<div class="w-full mt-space-md pt-space-md flex flex-col lg:flex-row items-center justify-between gap-space-md">
+<!-- Left Side Action Triggers -->
+<div class="flex items-center gap-space-sm flex-wrap w-full lg:w-auto">
+<button class="px-space-md py-space-sm bg-surface-container hover:bg-surface-container-high text-secondary font-headline-sm text-headline-sm uppercase italic flex items-center gap-2 transform -skew-x-6 transition-transform hover:-translate-y-0.5 shadow-[3px_3px_0px_#0e0e10]">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+<span>LOBBY SETTINGS</span>
+</button>
+<button class="px-space-md py-space-sm bg-surface-container hover:bg-surface-container-high text-secondary font-headline-sm text-headline-sm uppercase italic flex items-center gap-2 transform -skew-x-6 transition-transform hover:-translate-y-0.5 shadow-[3px_3px_0px_#0e0e10]">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+<span>CHAT / TAUNTS</span>
+</button>
+<button class="px-space-md py-space-sm bg-surface-container hover:bg-error-container hover:text-on-error-container text-error font-headline-sm text-headline-sm uppercase italic flex items-center gap-2 transform -skew-x-6 transition-transform hover:-translate-y-0.5 shadow-[3px_3px_0px_#0e0e10]">
+<span class="material-symbols-outlined text-[20px]">close</span>
+<span>LEAVE LOBBY [ESC]</span>
+</button>
+</div>
+<!-- Right Main CTA: Persona Style High-Voltage Ready / Start Race Button -->
+<div class="relative w-full lg:w-auto flex justify-end">
+<!-- Floating Yellow Comic Badge Stamp -->
+<div class="absolute -top-5 -left-4 z-20 bg-secondary-fixed text-on-secondary-fixed font-headline-lg text-[22px] px-3 py-0.5 uppercase italic font-black transform -rotate-12 shadow-[3px_3px_0px_#000] pointer-events-none">
+          GO!!
+        </div>
+<button class="relative group w-full lg:w-auto overflow-hidden bg-primary-container text-on-primary-container px-space-xl py-space-md transform -skew-x-12 transition-all duration-200 hover:-translate-y-1 active:translate-y-0 shadow-[8px_8px_0px_#fde400]" id="commence-btn">
+<!-- Hazard Diagonal Strip Background Accent on Hover -->
+<div class="absolute inset-0 bg-[repeating-linear-gradient(45deg,#000_0,#000_15px,#e60026_15px,#e60026_30px)] opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none"></div>
+<div class="relative z-10 flex items-center justify-center gap-space-md transform skew-x-12">
+<span class="material-symbols-outlined text-[32px] group-hover:animate-bounce">play_arrow</span>
+<div class="flex flex-col text-left">
+<span class="font-label-hud text-[11px] text-secondary-fixed tracking-widest uppercase font-black leading-none">ALL SYSTEMS GO</span>
+<span class="font-headline-lg text-headline-lg uppercase italic font-black tracking-wider text-secondary leading-none mt-1">
+                COMMENCE OPERATION <span class="text-secondary-fixed">// EXECUTE HEIST</span>
+</span>
+</div>
+</div>
+</button>
+</div>
+</div>
+</div>
+<script>
+    // Simple micro-interactions for pre-match lobby
+    const copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span><span>COPIED #JOK3R</span>';
+        copyBtn.classList.add('bg-secondary-fixed', 'text-on-secondary-fixed');
+        setTimeout(() => {
+          copyBtn.innerHTML = originalText;
+          copyBtn.classList.remove('bg-secondary-fixed', 'text-on-secondary-fixed');
+        }, 1800);
+      });
+    }
+
+    const commenceBtn = document.getElementById('commence-btn');
+    if (commenceBtn) {
+      commenceBtn.addEventListener('click', () => {
+        commenceBtn.classList.add('animate-pulse');
+        const label = commenceBtn.querySelector('.font-headline-lg');
+        if (label) {
+          label.textContent = 'STRIKE INITIALIZING...';
+        }
+      });
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-container-lowest py-space-lg"><div class="w-full px-margin flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><span class="font-headline-md text-headline-md italic uppercase text-on-surface-variant">TYPE<span class="text-primary-container">//</span>STRIKE</span><span class="font-label-hud text-label-hud text-on-surface-variant tracking-widest">ALL PHANTOM RIGHTS RESERVED © 2025</span></div><div class="flex items-center gap-space-lg"><span class="font-label-hud text-label-hud uppercase tracking-wider text-on-surface-variant">STATUS // ONLINE</span><span class="font-label-hud text-label-hud uppercase tracking-wider text-on-surface-variant">ENCRYPTION // 512-BIT ACID</span><span class="font-label-hud text-label-hud uppercase tracking-wider text-on-surface-variant">VERSION // 4.8.1-P5</span></div></div></footer></body></html>
