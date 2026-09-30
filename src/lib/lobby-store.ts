@@ -1,16 +1,18 @@
 // In-memory home of every lobby: applies engine rules, runs timers and notifies subscribers.
 // State lives in this process only, so the app must run as a single Node instance (see doc/architecture.md).
 import type { Locale } from "@/i18n/locales";
-import type { LobbyView } from "@/types/lobby";
+import type { BotDifficulty, LobbyView } from "@/types/lobby";
 import type { InputBatch, RaceResult } from "@/types/race";
 import { generateUniqueLobbyCode, type RandomInt } from "./lobby-code";
 import {
+  addBot,
   advance,
   applyInput,
   createLobby,
   isMember,
   joinLobby,
   leaveLobby,
+  removeBot,
   resultFor,
   setConnected,
   setReady,
@@ -33,6 +35,8 @@ export type LobbyStoreOptions = {
   config?: Partial<EngineConfig>;
   now?: () => number;
   randomInt?: RandomInt;
+  /** Drives bot behavior; defaults to Math.random. */
+  random?: () => number;
   /** How often timers run and typing progress is broadcast; null disables the timer (tests call `tick`). */
   tickMs?: number | null;
 };
@@ -42,6 +46,7 @@ export type LobbyStore = ReturnType<typeof createLobbyStore>;
 export function createLobbyStore(options: LobbyStoreOptions = {}) {
   const now = options.now ?? Date.now;
   const randomInt = options.randomInt ?? ((max: number) => Math.floor(Math.random() * max));
+  const random = options.random ?? Math.random;
   const tickMs = options.tickMs === undefined ? 100 : options.tickMs;
 
   const lobbies = new Map<string, LobbyState>();
@@ -72,7 +77,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       lobbies.delete(code);
     } else {
       lobbies.set(code, next);
-      for (const member of next.members) if (isMember(next, member.id)) lobbyOfUser.set(member.id, code);
+      for (const member of next.members) if (member.bot === null && isMember(next, member.id)) lobbyOfUser.set(member.id, code);
     }
 
     if (immediate) broadcast(code);
@@ -111,7 +116,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     }
   }
 
-  /** Countdown end, race end, expired seats, and throttled progress broadcasts. */
+  /** Countdown end, bot keystrokes, race end, expired seats, and throttled progress broadcasts. */
   function tick() {
     const time = now();
     for (const [code, state] of [...lobbies]) {
@@ -155,7 +160,15 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     },
 
     start(code: string, userId: string): StoreError | null {
-      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.locale, randomInt), time));
+      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.locale, randomInt), time, random));
+    },
+
+    addBot(code: string, userId: string, difficulty: BotDifficulty): StoreError | null {
+      return updateOutcome(code, (state) => addBot(state, userId, difficulty));
+    },
+
+    removeBot(code: string, userId: string, botId: string): StoreError | null {
+      return updateOutcome(code, (state) => removeBot(state, userId, botId));
     },
 
     input(code: string, userId: string, batch: InputBatch): StoreError | null {

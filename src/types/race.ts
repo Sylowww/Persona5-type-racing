@@ -8,6 +8,7 @@ export type RaceRacer = {
   progress: number;
   wpm: number;
   isFinished: boolean;
+  isBot: boolean;
   isConnected: boolean;
 };
 

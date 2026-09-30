@@ -131,4 +131,24 @@ describe("lobby store", () => {
     store.leave(code, "ann");
     expect(store.exists(code)).toBe(false);
   });
+
+  it("races a player against a bot on the server clock, then deletes the lobby when the player leaves", () => {
+    const code = store.create(ann, "en");
+    const annStream = listen(code, "ann");
+    expect(store.addBot(code, "ann", "godspeed")).toBeNull();
+    const bot = annStream.last()?.players[1];
+    expect(bot?.bot).toBe("godspeed");
+    expect(store.lobbyOf(bot?.id ?? "")).toBeNull();
+
+    store.setReady(code, "ann", true);
+    expect(store.start(code, "ann")).toBeNull();
+    clock += 3_000 + 5_000;
+    store.tick();
+    const racer = annStream.last()?.race?.racers.find((candidate) => candidate.id === bot?.id);
+    expect(racer?.progress).toBeGreaterThan(0);
+
+    store.leave(code, "ann");
+    store.tick();
+    expect(store.exists(code)).toBe(false);
+  });
 });

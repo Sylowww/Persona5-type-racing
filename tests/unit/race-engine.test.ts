@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addBot,
   advance,
   applyInput,
   createLobby,
@@ -8,6 +9,7 @@ import {
   leaveLobby,
   liveOrder,
   parseInputBatch,
+  removeBot,
   resultFor,
   setConnected,
   setReady,
@@ -276,6 +278,78 @@ describe("disconnects in the waiting room", () => {
     let state = setConnected(lobbyWith("ann", "bob"), "bob", false, T0);
     state = setConnected(state, "bob", true, T0 + 10_000);
     expect(advance(state, T0 + 60_000).members).toHaveLength(2);
+  });
+});
+
+describe("bots", () => {
+  /** Always the middle of the range: plans are reproducible. */
+  const steady = () => 0.5;
+
+  it("lets the host add bots of different difficulties, always ready", () => {
+    let state = lobbyWith("ann", "bob");
+    state = unwrap(addBot(state, "ann", "rookie"));
+    state = unwrap(addBot(state, "ann", "godspeed"));
+    const players = viewFor(state, "bob", T0)?.players ?? [];
+    expect(players.map((player) => player.bot)).toEqual([null, null, "rookie", "godspeed"]);
+    expect(players.filter((player) => player.bot).every((player) => player.isReady && player.isConnected && !player.isHost)).toBe(true);
+    expect(new Set(players.map((player) => player.name)).size).toBe(4);
+  });
+
+  it("only lets the host add or remove bots, outside races", () => {
+    const state = unwrap(addBot(lobbyWith("ann", "bob"), "ann", "master"));
+    const botId = state.members[2].id;
+    expect(addBot(state, "bob", "master")).toEqual({ ok: false, error: "notHost" });
+    expect(removeBot(state, "bob", botId)).toEqual({ ok: false, error: "notHost" });
+    expect(removeBot(state, "ann", "bob")).toEqual({ ok: false, error: "notMember" });
+    expect(unwrap(removeBot(state, "ann", botId)).members.map((member) => member.id)).toEqual(["ann", "bob"]);
+
+    const started = unwrap(startRace(readyAll(state), "ann", TEXT, T0, steady));
+    expect(addBot(started, "ann", "rookie")).toEqual({ ok: false, error: "wrongPhase" });
+  });
+
+  it("counts bots against the capacity", () => {
+    let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: "ann", name: "ann" }, now: T0, config: { capacity: 2 } });
+    state = unwrap(addBot(state, "ann", "rookie"));
+    expect(addBot(state, "ann", "rookie")).toEqual({ ok: false, error: "lobbyFull" });
+  });
+
+  it("lets a single player race a bot, which types on its own and finishes", () => {
+    let state = unwrap(addBot(lobbyWith("ann"), "ann", "godspeed"));
+    state = advance(unwrap(startRace(readyAll(state), "ann", TEXT, T0, steady)), START);
+    const botId = state.members[1].id;
+
+    state = advance(state, START + 1_500);
+    const midway = viewFor(state, "ann", START + 1_500)?.race?.racers.find((racer) => racer.id === botId);
+    expect(midway?.isBot).toBe(true);
+    expect(midway?.progress).toBeGreaterThan(0);
+
+    state = advance(state, START + 60_000);
+    expect(state.phase).toBe("racing");
+    state = advance(applyInput(state, "ann", { clientId: "a", seq: 1, events: chars(TEXT) }, START + 61_000), START + 61_000);
+    expect(state.phase).toBe("finished");
+    expect(resultFor(state, "ann")?.racers.map((racer) => racer.id)).toEqual([botId, "ann"]);
+  });
+
+  it("ends the race once no player is left to race the bots, then closes the lobby", () => {
+    let state = unwrap(addBot(lobbyWith("ann"), "ann", "rookie"));
+    state = advance(unwrap(startRace(readyAll(state), "ann", TEXT, T0, steady)), START);
+    state = advance(leaveLobby(state, "ann"), START + 100);
+    expect(state.phase).toBe("finished");
+    expect(state.members).toEqual([]);
+  });
+
+  it("removes bots when the last player leaves the waiting room", () => {
+    const state = unwrap(addBot(lobbyWith("ann"), "ann", "master"));
+    expect(leaveLobby(state, "ann").members).toEqual([]);
+  });
+
+  it("keeps bots ready for the rematch", () => {
+    let state = unwrap(addBot(lobbyWith("ann"), "ann", "godspeed"));
+    state = advance(unwrap(startRace(readyAll(state), "ann", TEXT, T0, steady)), START);
+    state = advance(applyInput(state, "ann", { clientId: "a", seq: 1, events: chars(TEXT) }, START + 60_000), START + 60_000);
+    state = unwrap(setReady(state, "ann", true));
+    expect(state.phase).toBe("waiting");
+    expect(state.members.map((member) => member.isReady)).toEqual([true, true]);
   });
 });
 

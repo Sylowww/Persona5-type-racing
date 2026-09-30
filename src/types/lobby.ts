@@ -14,6 +14,8 @@ export type LobbyMember = {
   isReady: boolean;
   /** False while the player's connection is lost (they keep their seat for a grace period). */
   isConnected: boolean;
+  /** Difficulty of a bot; null for human players. */
+  bot: BotDifficulty | null;
 };
 
 /** Snapshot of a lobby for one viewer, sent by the server on every change. */

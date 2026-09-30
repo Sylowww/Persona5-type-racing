@@ -1,8 +1,9 @@
 // Authoritative lobby and race rules. Pure functions of (state, event, now): no timers, no I/O and no
 // transport, so the same rules work behind SSE today and any other transport later.
 import type { Locale } from "@/i18n/locales";
-import type { LobbyPhase, LobbyView, PlayerEmblem } from "@/types/lobby";
-import type { InputBatch, KeyStat, RaceRacer, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
+import type { BotDifficulty, LobbyPhase, LobbyView, PlayerEmblem } from "@/types/lobby";
+import type { InputBatch, InputEvent, KeyStat, RaceRacer, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
+import { planBotRun, type BotStep } from "./bots";
 import { canStartRace } from "./lobby";
 import { rankRacers } from "./results";
 import {
@@ -45,6 +46,7 @@ export const defaultEngineConfig: EngineConfig = {
 const MAX_EVENTS_PER_BATCH = 200;
 const MAX_KEY_DELAY_MS = 2_000;
 const emblems: readonly PlayerEmblem[] = ["domino", "cat", "skull", "mask"];
+const botNames = ["Phantom", "Raven", "Viper", "Noir", "Cipher", "Echo", "Nova", "Jinx", "Blaze", "Ghost"];
 
 export type Presence = "connected" | "disconnected" | "left";
 
@@ -56,6 +58,8 @@ export type Member = {
   presence: Presence;
   /** When the connection was lost; null while connected. */
   disconnectedAt: number | null;
+  /** Difficulty of a bot; null for human players. Bots are always connected and ready. */
+  bot: BotDifficulty | null;
 };
 
 type KeyTotals = { delayMs: number; timed: number; mistakes: number };
@@ -70,6 +74,8 @@ export type Racer = {
   inputSeq: number;
   keys: Record<string, KeyTotals>;
   samples: SpeedSample[];
+  /** A bot's planned keystrokes and how many were already applied; null for human players. */
+  bot: { steps: BotStep[]; applied: number } | null;
 };
 
 export type Race = {
@@ -144,6 +150,7 @@ function newMember(player: Player, joinIndex: number, now: number): Member {
     isReady: false,
     presence: "disconnected",
     disconnectedAt: now,
+    bot: null,
   };
 }
 
@@ -155,21 +162,30 @@ export function isMember(state: LobbyState, userId: string): boolean {
   return state.members.some((member) => member.id === userId && member.presence !== "left");
 }
 
-/** The host stays while present; otherwise the longest-standing active member takes over. */
-function withHost(state: LobbyState): LobbyState {
-  if (isMember(state, state.hostId)) return state;
-  const next = activeMembers(state)[0];
-  return next ? { ...state, hostId: next.id } : state;
+function isRaceRunning(state: LobbyState): boolean {
+  return state.phase === "countdown" || state.phase === "racing";
 }
 
-/** After a race, the first lobby action brings everyone back to the waiting room. */
+/**
+ * The host stays while present; otherwise the longest-standing active player takes over. Bots never host,
+ * and they are removed once no player is left (outside a race, which ends on its own).
+ */
+function withHost(state: LobbyState): LobbyState {
+  const humans = activeMembers(state).filter((member) => member.bot === null);
+  if (humans.length === 0) {
+    return isRaceRunning(state) ? state : { ...state, members: state.members.filter((member) => member.bot === null) };
+  }
+  return isMember(state, state.hostId) ? state : { ...state, hostId: humans[0].id };
+}
+
+/** After a race, the first lobby action brings everyone back to the waiting room. Bots stay ready. */
 function reopen(state: LobbyState): LobbyState {
   if (state.phase !== "finished") return state;
   return withHost({
     ...state,
     phase: "waiting",
     race: null,
-    members: activeMembers(state).map((member) => ({ ...member, isReady: false })),
+    members: activeMembers(state).map((member) => ({ ...member, isReady: member.bot !== null })),
   });
 }
 
@@ -185,10 +201,48 @@ export function joinLobby(state: LobbyState, player: Player, now: number): Outco
   });
 }
 
+/** The host adds a bot of the chosen difficulty while the lobby is waiting. */
+export function addBot(state: LobbyState, userId: string, difficulty: BotDifficulty): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  const open = reopen(state);
+  if (open.phase !== "waiting") return fail("wrongPhase");
+  if (activeMembers(open).length >= open.config.capacity) return fail("lobbyFull");
+
+  const bot: Member = {
+    id: `bot-${open.joinCount}`,
+    name: botName(open),
+    emblem: emblems[open.joinCount % emblems.length],
+    isReady: true,
+    presence: "connected",
+    disconnectedAt: null,
+    bot: difficulty,
+  };
+  return ok({ ...open, members: [...open.members, bot], joinCount: open.joinCount + 1 });
+}
+
+/** A name no one in the lobby uses, numbered once every name is taken. */
+function botName(state: LobbyState): string {
+  const taken = new Set(state.members.map((member) => member.name));
+  const count = state.members.filter((member) => member.bot !== null).length;
+  const free = botNames.find((name) => !taken.has(name));
+  return free ?? `${botNames[count % botNames.length]} ${Math.floor(count / botNames.length) + 1}`;
+}
+
+/** The host removes a bot while the lobby is waiting. */
+export function removeBot(state: LobbyState, userId: string, botId: string): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  const open = reopen(state);
+  if (open.phase !== "waiting") return fail("wrongPhase");
+  if (!open.members.some((member) => member.id === botId && member.bot !== null)) return fail("notMember");
+  return ok({ ...open, members: open.members.filter((member) => member.id !== botId) });
+}
+
 /** Leaving before a race removes the seat; leaving during one keeps the racer in the results as not finished. */
 export function leaveLobby(state: LobbyState, userId: string): LobbyState {
   if (!isMember(state, userId)) return state;
-  const inRace = state.phase === "countdown" || state.phase === "racing";
+  const inRace = isRaceRunning(state);
   const members = inRace
     ? state.members.map((member) => (member.id === userId ? { ...member, presence: "left" as const, isReady: false } : member))
     : state.members.filter((member) => member.id !== userId);
@@ -202,7 +256,8 @@ export function setReady(state: LobbyState, userId: string, isReady: boolean): O
   return ok({ ...open, members: open.members.map((member) => (member.id === userId ? { ...member, isReady } : member)) });
 }
 
-export function startRace(state: LobbyState, userId: string, text: string, now: number): Outcome {
+/** `random` drives the bots' behavior during this race. */
+export function startRace(state: LobbyState, userId: string, text: string, now: number, random: () => number = Math.random): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
   if (state.hostId !== userId) return fail("notHost");
   if (state.phase !== "waiting") return fail("wrongPhase");
@@ -227,6 +282,7 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         inputSeq: 0,
         keys: {},
         samples: [],
+        bot: member.bot === null ? null : { steps: planBotRun(text, member.bot, random), applied: 0 },
       })),
     },
   });
@@ -255,34 +311,66 @@ export function applyInput(state: LobbyState, userId: string, batch: InputBatch,
   if (!isNext) return state;
 
   const keyBudget = Math.floor(((now - race.startsAt) / 1000 + 1) * state.config.maxKeysPerSecond);
-  const keys = { ...racer.keys };
-  let typing = racer.typing;
-
+  let typed = racer;
   for (const event of batch.events.slice(0, MAX_EVENTS_PER_BATCH)) {
-    if (event.type === "delete") {
-      typing = deleteChar(typing);
-      continue;
-    }
-    const expected = race.text[typing.typed.length];
-    if (expected === undefined || typing.keystrokes >= keyBudget) break;
-
-    const key = expected.toLowerCase();
-    const totals = keys[key] ?? { delayMs: 0, timed: 0, mistakes: 0 };
-    if (event.char !== expected) {
-      keys[key] = { ...totals, mistakes: totals.mistakes + 1 };
-    } else if (event.delayMs > 0) {
-      keys[key] = { ...totals, delayMs: totals.delayMs + Math.min(event.delayMs, MAX_KEY_DELAY_MS), timed: totals.timed + 1 };
-    }
-
-    typing = typeChar(typing, race.text, event.char, now);
-    if (typing.finishedAt !== null) break;
+    if (event.type === "char" && (race.text[typed.typing.typed.length] === undefined || typed.typing.keystrokes >= keyBudget)) break;
+    typed = typeEvent(typed, race.text, event, now);
+    if (typed.typing.finishedAt !== null) break;
   }
 
-  const updated: Racer = { ...racer, typing, inputClient: batch.clientId, inputSeq: batch.seq, keys, samples: withSample(racer, race, typing, now, state.config) };
+  const updated: Racer = {
+    ...typed,
+    inputClient: batch.clientId,
+    inputSeq: batch.seq,
+    samples: withSample(racer, race, typed.typing, now, state.config),
+  };
   return {
     ...state,
     race: { ...race, racers: race.racers.map((candidate) => (candidate.id === userId ? updated : candidate)) },
   };
+}
+
+/** Applies one keystroke with the shared typing rules and records it in the racer's key stats. */
+function typeEvent(racer: Racer, text: string, event: InputEvent, now: number): Racer {
+  if (event.type === "delete") return { ...racer, typing: deleteChar(racer.typing) };
+  const expected = text[racer.typing.typed.length];
+  if (expected === undefined) return racer;
+
+  const key = expected.toLowerCase();
+  const totals = racer.keys[key] ?? { delayMs: 0, timed: 0, mistakes: 0 };
+  let keyTotals = totals;
+  if (event.char !== expected) {
+    keyTotals = { ...totals, mistakes: totals.mistakes + 1 };
+  } else if (event.delayMs > 0) {
+    keyTotals = { ...totals, delayMs: totals.delayMs + Math.min(event.delayMs, MAX_KEY_DELAY_MS), timed: totals.timed + 1 };
+  }
+  return { ...racer, typing: typeChar(racer.typing, text, event.char, now), keys: { ...racer.keys, [key]: keyTotals } };
+}
+
+/** Replays every bot keystroke planned up to `now` (or the time limit), each at its own planned time. */
+function runBots(state: LobbyState, now: number): LobbyState {
+  const race = state.race;
+  if (state.phase !== "racing" || !race) return state;
+  const elapsedMs = Math.min(now, race.endsAt) - race.startsAt;
+  let changed = false;
+
+  const racers = race.racers.map((racer) => {
+    let next = racer;
+    while (next.bot && next.typing.finishedAt === null && next.bot.applied < next.bot.steps.length) {
+      const step = next.bot.steps[next.bot.applied];
+      if (step.atMs > elapsedMs) break;
+      const time = race.startsAt + step.atMs;
+      const typed = typeEvent(next, race.text, step.event, time);
+      next = {
+        ...typed,
+        bot: { ...next.bot, applied: next.bot.applied + 1 },
+        samples: withSample(next, race, typed.typing, time, state.config),
+      };
+    }
+    if (next !== racer) changed = true;
+    return next;
+  });
+  return changed ? { ...state, race: { ...race, racers } } : state;
 }
 
 function withSample(racer: Racer, race: Race, typing: TypingState, now: number, config: EngineConfig): SpeedSample[] {
@@ -297,6 +385,7 @@ function withSample(racer: Racer, race: Race, typing: TypingState, now: number, 
 export function advance(state: LobbyState, now: number): LobbyState {
   let next = state;
   if (next.phase === "countdown" && next.race && now >= next.race.startsAt) next = { ...next, phase: "racing" };
+  next = runBots(next, now);
   if (next.phase === "racing" && isRaceOver(next, now)) next = finishRace(next, now);
   if (next.phase === "waiting" || next.phase === "finished") next = dropExpiredMembers(next, now);
   return next;
@@ -307,18 +396,23 @@ function isGone(member: Member | undefined, now: number, graceMs: number): boole
   return member.presence === "disconnected" && member.disconnectedAt !== null && now - member.disconnectedAt >= graceMs;
 }
 
-/** Over at the time limit, or once every racer finished, left or stayed disconnected past the grace period. */
+/**
+ * Over at the time limit, once every racer finished, left or stayed disconnected past the grace period,
+ * or once no player is left to race the bots.
+ */
 export function isRaceOver(state: LobbyState, now: number): boolean {
   const race = state.race;
   if (!race) return false;
   if (now >= race.endsAt) return true;
+  const graceMs = state.config.reconnectGraceMs;
+  if (state.members.every((member) => member.bot !== null || isGone(member, now, graceMs))) return true;
   return race.racers.every(
     (racer) =>
       racer.typing.finishedAt !== null ||
       isGone(
         state.members.find((member) => member.id === racer.id),
         now,
-        state.config.reconnectGraceMs,
+        graceMs,
       ),
   );
 }
@@ -349,7 +443,7 @@ function finishRace(state: LobbyState, now: number): LobbyState {
     phase: "finished",
     race: { ...race, endedAt },
     result: { racers: rankRacers(racers), details },
-    members: state.members.map((member) => ({ ...member, isReady: false })),
+    members: state.members.map((member) => ({ ...member, isReady: member.bot !== null })),
   };
 }
 
@@ -397,6 +491,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       progress: progress(race.text, racer.typing.typed),
       wpm: liveWpm(racer, race, now),
       isFinished: racer.typing.finishedAt !== null,
+      isBot: racer.bot !== null,
       isConnected: state.members.some((member) => member.id === racer.id && member.presence === "connected"),
     }),
   );
@@ -438,6 +533,7 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
       isHost: member.id === state.hostId,
       isReady: member.isReady,
       isConnected: member.presence === "connected",
+      bot: member.bot,
     })),
     race: state.race ? raceView(state, state.race, userId, now) : null,
     hasResult: state.result?.details[userId] !== undefined,
