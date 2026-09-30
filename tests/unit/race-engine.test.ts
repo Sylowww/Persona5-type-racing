@@ -1,0 +1,287 @@
+import { describe, expect, it } from "vitest";
+import {
+  advance,
+  applyInput,
+  createLobby,
+  isRaceOver,
+  joinLobby,
+  leaveLobby,
+  liveOrder,
+  parseInputBatch,
+  resultFor,
+  setConnected,
+  setReady,
+  startRace,
+  viewFor,
+  type LobbyState,
+  type Outcome,
+} from "../../src/lib/race-engine";
+import type { InputEvent } from "../../src/types/race";
+
+const TEXT = "go now";
+const T0 = 1_000_000;
+const COUNTDOWN = 3_000;
+const START = T0 + COUNTDOWN;
+
+function unwrap(outcome: Outcome): LobbyState {
+  if (!outcome.ok) throw new Error(outcome.error);
+  return outcome.state;
+}
+
+function lobbyWith(...names: string[]): LobbyState {
+  const [host, ...others] = names;
+  let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: host, name: host }, now: T0 });
+  for (const name of others) state = unwrap(joinLobby(state, { id: name, name }, T0));
+  for (const name of names) state = setConnected(state, name, true, T0);
+  return state;
+}
+
+function readyAll(state: LobbyState): LobbyState {
+  return state.members.reduce((next, member) => unwrap(setReady(next, member.id, true)), state);
+}
+
+/** A lobby whose race has just started (countdown over). */
+function racing(...names: string[]): LobbyState {
+  const state = unwrap(startRace(readyAll(lobbyWith(...names)), names[0], TEXT, T0));
+  return advance(state, START);
+}
+
+function chars(text: string, delayMs = 100): InputEvent[] {
+  return [...text].map((char) => ({ type: "char", char, delayMs }));
+}
+
+describe("lobby membership", () => {
+  it("makes the creator host and adds players in join order", () => {
+    const view = viewFor(lobbyWith("ann", "bob"), "bob", T0);
+    expect(view?.players.map((player) => [player.name, player.isHost])).toEqual([
+      ["ann", true],
+      ["bob", false],
+    ]);
+    expect(view?.phase).toBe("waiting");
+    expect(view?.capacity).toBe(30);
+  });
+
+  it("joining twice keeps a single seat", () => {
+    const state = lobbyWith("ann", "bob");
+    expect(unwrap(joinLobby(state, { id: "bob", name: "bob" }, T0)).members).toHaveLength(2);
+  });
+
+  it("uses a configurable capacity sized for a class", () => {
+    let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: "p0", name: "p0" }, now: T0, config: { capacity: 30 } });
+    for (let index = 1; index < 30; index++) state = unwrap(joinLobby(state, { id: `p${index}`, name: `p${index}` }, T0));
+    expect(state.members).toHaveLength(30);
+    expect(joinLobby(state, { id: "late", name: "late" }, T0)).toEqual({ ok: false, error: "lobbyFull" });
+
+    const huge = createLobby({ code: "P5-TEST", locale: "en", host: { id: "a", name: "a" }, now: T0, config: { capacity: 500 } });
+    expect(huge.config.capacity).toBe(60);
+  });
+
+  it("refuses to join a race in progress", () => {
+    const state = unwrap(startRace(readyAll(lobbyWith("ann", "bob")), "ann", TEXT, T0));
+    expect(joinLobby(state, { id: "cid", name: "cid" }, T0)).toEqual({ ok: false, error: "raceInProgress" });
+  });
+
+  it("passes host to the next player when the host leaves", () => {
+    const state = leaveLobby(lobbyWith("ann", "bob", "cid"), "ann");
+    expect(state.hostId).toBe("bob");
+    expect(state.members.map((member) => member.id)).toEqual(["bob", "cid"]);
+  });
+});
+
+describe("starting a race", () => {
+  it("needs every player ready", () => {
+    const state = unwrap(setReady(lobbyWith("ann", "bob"), "ann", true));
+    expect(startRace(state, "ann", TEXT, T0)).toEqual({ ok: false, error: "notReady" });
+  });
+
+  it("needs at least two players", () => {
+    expect(startRace(readyAll(lobbyWith("ann")), "ann", TEXT, T0)).toEqual({ ok: false, error: "notReady" });
+  });
+
+  it("only lets the host start", () => {
+    expect(startRace(readyAll(lobbyWith("ann", "bob")), "bob", TEXT, T0)).toEqual({ ok: false, error: "notHost" });
+  });
+
+  it("runs a countdown shared by everyone, then opens the race", () => {
+    const state = unwrap(startRace(readyAll(lobbyWith("ann", "bob")), "ann", TEXT, T0));
+    expect(state.phase).toBe("countdown");
+    expect(viewFor(state, "bob", T0)?.race?.startsAt).toBe(START);
+    expect(advance(state, START - 1)).toBe(state);
+    expect(advance(state, START).phase).toBe("racing");
+  });
+});
+
+describe("typing during the race", () => {
+  it("ignores input before the start", () => {
+    const state = unwrap(startRace(readyAll(lobbyWith("ann", "bob")), "ann", TEXT, T0));
+    expect(applyInput(state, "ann", { seq: 1, events: chars("go") }, START - 10)).toBe(state);
+  });
+
+  it("tracks progress with the shared typing rules", () => {
+    let state = racing("ann", "bob");
+    state = applyInput(state, "ann", { seq: 1, events: [...chars("gx"), { type: "delete" }, ...chars("o")] }, START + 1_000);
+    const you = viewFor(state, "ann", START + 1_000)?.race?.you;
+    expect(you).toMatchObject({ typed: "go", keystrokes: 3, mistakes: 1, inputSeq: 1, place: 1 });
+    const bob = viewFor(state, "bob", START + 1_000)?.race?.racers.find((racer) => racer.id === "ann");
+    expect(bob?.progress).toBeCloseTo(2 / 6);
+  });
+
+  it("applies a repeated batch only once", () => {
+    let state = racing("ann", "bob");
+    state = applyInput(state, "ann", { seq: 1, events: chars("go") }, START + 500);
+    const again = applyInput(state, "ann", { seq: 1, events: chars("go") }, START + 600);
+    expect(again).toBe(state);
+  });
+
+  it("drops keystrokes faster than the speed limit", () => {
+    const state = applyInput(racing("ann", "bob"), "ann", { seq: 1, events: chars("go now") }, START);
+    // Budget at the start is one second of input (30 keys); raise the bar by using a tiny config instead.
+    expect(state.race?.racers[0].typing.typed).toBe("go now");
+
+    const strict = createLobby({ code: "P5-TEST", locale: "en", host: { id: "a", name: "a" }, now: T0, config: { maxKeysPerSecond: 2 } });
+    let lobby = unwrap(joinLobby(strict, { id: "b", name: "b" }, T0));
+    lobby = advance(unwrap(startRace(readyAll(lobby), "a", TEXT, T0)), START);
+    lobby = applyInput(lobby, "a", { seq: 1, events: chars("go now") }, START);
+    expect(lobby.race?.racers[0].typing.typed).toBe("go");
+  });
+
+  it("ranks finishers by finish time, then by progress", () => {
+    let state = racing("ann", "bob", "cid");
+    state = applyInput(state, "cid", { seq: 1, events: chars("go no") }, START + 1_000);
+    state = applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000);
+    state = applyInput(state, "ann", { seq: 1, events: chars(TEXT) }, START + 3_000);
+    expect(state.race && liveOrder(state.race)).toEqual(["bob", "ann", "cid"]);
+    expect(viewFor(state, "ann", START + 3_000)?.race?.you?.place).toBe(2);
+  });
+});
+
+describe("finishing a race", () => {
+  it("finishes once every racer is done and ranks the results", () => {
+    let state = racing("ann", "bob");
+    state = applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000);
+    expect(advance(state, START + 2_000).phase).toBe("racing");
+    state = applyInput(state, "ann", { seq: 1, events: [...chars("gx"), { type: "delete" }, ...chars("o now")] }, START + 3_000);
+    state = advance(state, START + 3_000);
+
+    expect(state.phase).toBe("finished");
+    expect(state.members.every((member) => !member.isReady)).toBe(true);
+    const result = resultFor(state, "ann");
+    expect(result?.racers.map((racer) => [racer.id, racer.finishMs])).toEqual([
+      ["bob", 2_000],
+      ["ann", 3_000],
+    ]);
+    expect(result?.racers[0].wpm).toBeCloseTo(6 / 5 / (2 / 60));
+    expect(result).toMatchObject({ youId: "ann", durationMs: 3_000, keystrokes: 7, mistakes: 1 });
+    expect(result?.keyStats.find((stat) => stat.key === "o")).toMatchObject({ mistakes: 1 });
+    expect(viewFor(state, "ann", START + 3_000)?.hasResult).toBe(true);
+  });
+
+  it("ends at the time limit and ranks unfinished racers as not finished", () => {
+    let state = racing("ann", "bob");
+    state = applyInput(state, "ann", { seq: 1, events: chars("go") }, START + 1_000);
+    const limit = state.race?.endsAt ?? 0;
+    expect(isRaceOver(state, limit - 1)).toBe(false);
+    state = advance(state, limit + 5_000);
+
+    const result = resultFor(state, "bob");
+    expect(state.phase).toBe("finished");
+    expect(result?.racers.map((racer) => [racer.id, racer.finishMs])).toEqual([
+      ["ann", null],
+      ["bob", null],
+    ]);
+    expect(result?.durationMs).toBe(limit - START);
+  });
+
+  it("waits for a disconnected racer during the grace period", () => {
+    let state = racing("ann", "bob");
+    state = setConnected(state, "bob", false, START + 1_000);
+    state = applyInput(state, "ann", { seq: 1, events: chars(TEXT) }, START + 2_000);
+
+    expect(advance(state, START + 20_000).phase).toBe("racing");
+    expect(advance(state, START + 31_000).phase).toBe("finished");
+  });
+
+  it("lets a racer reconnect and keep their progress", () => {
+    let state = racing("ann", "bob");
+    state = applyInput(state, "bob", { seq: 1, events: chars("go") }, START + 1_000);
+    state = setConnected(state, "bob", false, START + 1_500);
+    state = setConnected(advance(state, START + 10_000), "bob", true, START + 10_000);
+
+    expect(viewFor(state, "bob", START + 10_000)?.race?.you).toMatchObject({ typed: "go", inputSeq: 1 });
+    expect(advance(state, START + 60_000).phase).toBe("racing");
+  });
+
+  it("keeps a racer who left in the results without waiting for them", () => {
+    let state = racing("ann", "bob");
+    state = leaveLobby(state, "ann");
+    expect(state.hostId).toBe("bob");
+    expect(viewFor(state, "ann", START)).toBeNull();
+
+    state = advance(applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000), START + 2_000);
+    expect(state.phase).toBe("finished");
+    expect(resultFor(state, "bob")?.racers.map((racer) => racer.id)).toEqual(["bob", "ann"]);
+  });
+
+  it("does not depend on the host staying connected", () => {
+    let state = racing("ann", "bob");
+    state = setConnected(state, "ann", false, START);
+    state = advance(applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000), START + 2_000);
+    expect(state.phase).toBe("racing");
+    expect(advance(state, START + 30_000).phase).toBe("finished");
+  });
+});
+
+describe("after a race", () => {
+  function finished(): LobbyState {
+    let state = racing("ann", "bob");
+    state = applyInput(state, "ann", { seq: 1, events: chars(TEXT) }, START + 1_000);
+    state = applyInput(state, "bob", { seq: 1, events: chars(TEXT) }, START + 2_000);
+    return advance(state, START + 2_000);
+  }
+
+  it("goes back to the waiting room on the next ready and keeps the results", () => {
+    const state = unwrap(setReady(finished(), "bob", true));
+    expect(state.phase).toBe("waiting");
+    expect(state.race).toBeNull();
+    expect(resultFor(state, "bob")?.racers).toHaveLength(2);
+  });
+
+  it("lets new players join for the rematch", () => {
+    const state = unwrap(joinLobby(finished(), { id: "cid", name: "cid" }, START + 3_000));
+    expect(state.phase).toBe("waiting");
+    expect(state.members).toHaveLength(3);
+  });
+});
+
+describe("disconnects in the waiting room", () => {
+  it("frees the seat after the grace period and moves the host", () => {
+    let state = setConnected(lobbyWith("ann", "bob"), "ann", false, T0);
+    expect(advance(state, T0 + 29_000)).toBe(state);
+    state = advance(state, T0 + 30_000);
+    expect(state.members.map((member) => member.id)).toEqual(["bob"]);
+    expect(state.hostId).toBe("bob");
+  });
+
+  it("keeps the seat of a player who reconnects in time", () => {
+    let state = setConnected(lobbyWith("ann", "bob"), "bob", false, T0);
+    state = setConnected(state, "bob", true, T0 + 10_000);
+    expect(advance(state, T0 + 60_000).members).toHaveLength(2);
+  });
+});
+
+describe("parseInputBatch", () => {
+  it("accepts well-formed batches", () => {
+    expect(parseInputBatch({ seq: 2, events: [{ type: "char", char: "é", delayMs: 80 }, { type: "delete" }] })).toEqual({
+      seq: 2,
+      events: [{ type: "char", char: "é", delayMs: 80 }, { type: "delete" }],
+    });
+  });
+
+  it("rejects malformed batches", () => {
+    expect(parseInputBatch(null)).toBeNull();
+    expect(parseInputBatch({ seq: 0, events: [] })).toBeNull();
+    expect(parseInputBatch({ seq: 1, events: [{ type: "char", char: "ab", delayMs: 1 }] })).toBeNull();
+    expect(parseInputBatch({ seq: 1, events: [{ type: "paste", char: "a" }] })).toBeNull();
+    expect(parseInputBatch({ seq: 1, events: Array.from({ length: 201 }, () => ({ type: "delete" })) })).toBeNull();
+  });
+});

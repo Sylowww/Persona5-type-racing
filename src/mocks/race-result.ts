@@ -7,10 +7,10 @@ export const mockRaceResult: RaceResult = {
   keystrokes: 482,
   mistakes: 3,
   racers: [
-    { id: "p2", name: "SKULL_CRUSH", title: "BRAWLER SWITCH", emblem: "skull", wpm: 129, accuracy: 0.978, finishMs: 33_400 },
-    { id: "p1", name: "JOKER_KEY", title: "APEX TYPIST", emblem: "domino", wpm: 144, accuracy: 0.994, finishMs: 30_000 },
-    { id: "p4", name: "MONA_CAT", title: "STEALTH KEY", emblem: "cat", wpm: 105, accuracy: 0.961, finishMs: null },
-    { id: "p3", name: "PANTHER_VIP", title: "WHIP CLICKS", emblem: "mask", wpm: 124, accuracy: 0.981, finishMs: 34_700 },
+    { id: "p2", name: "SKULL_CRUSH", emblem: "skull", wpm: 129, accuracy: 0.978, finishMs: 33_400 },
+    { id: "p1", name: "JOKER_KEY", emblem: "domino", wpm: 144, accuracy: 0.994, finishMs: 30_000 },
+    { id: "p4", name: "MONA_CAT", emblem: "cat", wpm: 105, accuracy: 0.961, finishMs: null },
+    { id: "p3", name: "PANTHER_VIP", emblem: "mask", wpm: 124, accuracy: 0.981, finishMs: 34_700 },
   ],
   speedSamples: [
     { atMs: 0, wpm: 8 },

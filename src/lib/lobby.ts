@@ -1,4 +1,6 @@
-import type { BotDifficulty, LobbyPlayer } from "@/types/lobby";
+import type { BotDifficulty } from "@/types/lobby";
+
+type Readiness = { isReady: boolean };
 
 /** Target speed of each bot level; bots will vary around it once they exist. */
 export const botTargetWpm: Record<BotDifficulty, number> = {
@@ -7,7 +9,7 @@ export const botTargetWpm: Record<BotDifficulty, number> = {
   godspeed: 150,
 };
 
-export function countReady(players: readonly LobbyPlayer[]): number {
+export function countReady(players: readonly Readiness[]): number {
   return players.filter((player) => player.isReady).length;
 }
 
@@ -17,6 +19,6 @@ export function openSlotCount(playerCount: number, capacity: number): number {
 }
 
 /** A race needs at least two players and everyone ready. */
-export function canStartRace(players: readonly LobbyPlayer[]): boolean {
+export function canStartRace(players: readonly Readiness[]): boolean {
   return players.length >= 2 && countReady(players) === players.length;
 }

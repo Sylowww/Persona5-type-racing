@@ -5,7 +5,6 @@ import type { ResultRacer } from "../../src/types/race";
 const racer = (id: string, wpm: number, finishMs: number | null): ResultRacer => ({
   id,
   name: id,
-  title: "",
   emblem: "cat",
   wpm,
   accuracy: 1,
