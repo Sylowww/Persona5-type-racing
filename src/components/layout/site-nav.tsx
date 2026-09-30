@@ -8,7 +8,7 @@ import type { Locale } from "@/i18n/locales";
 type NavItem = keyof Dictionary["header"]["nav"];
 
 /** Pages that exist; the other entries become links once their pages are built. */
-const routes: Partial<Record<NavItem, string>> = { home: "", lobby: "/lobby" };
+const routes: Partial<Record<NavItem, string>> = { home: "", quickRace: "/race", lobby: "/lobby" };
 
 const navItems: readonly NavItem[] = ["home", "quickRace", "lobby", "training", "leaderboards"];
 

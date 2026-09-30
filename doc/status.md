@@ -5,7 +5,8 @@ Last updated: 2026-09-30.
 ## Built
 
 - Bilingual (`/fr`, `/en`) home page with the Persona 5 theme: header, calling-card banner, start-race button (Enter/Space shortcut), mode cards, join-with-code form, typing preview, player dossier (stats, radar, leaderboard, key-audio switch), footer.
-- Bilingual lobby page (`/fr/lobby`, `/en/lobby`): lobby code with copy button, ready meter, player calling cards, invite and add-bot slots, rules dossier, key-sound picker, spectators, taunt feed, action dock. Header nav links Home and Lobby.
+- Bilingual lobby page (`/fr/lobby`, `/en/lobby`): lobby code with copy button, ready meter, player calling cards, invite and add-bot slots, rules dossier, key-sound picker, spectators, taunt feed, action dock. Header nav links Home, Quick race and Lobby.
+- Bilingual live race page (`/fr/race`, `/en/race`): race timer, objective, placement badge, race track lanes, typing arena with per-character feedback, WPM, streak and accuracy. Typing logic lives in `lib/typing.ts`.
 
 ## Mocked / not wired
 
@@ -16,12 +17,16 @@ Last updated: 2026-09-30.
 - Sound and key-audio selection are UI only.
 - Avatar and logo are placeholders (icon + wordmark) until real assets exist.
 
+- Race data comes from `src/mocks/race.ts`; only the local player moves. Rivals are static and the race starts on the first key (no countdown, no server sync, no results screen yet).
+- Error mode is fixed: wrong characters stay and must be deleted; corrected mistakes still count against accuracy.
+
 ## Not started
 
-Races and real-time sync, lobbies, accounts and OAuth (GitHub, Discord), bots, stats persistence, heatmaps, database schema and migrations.
+Real-time race sync, results screen, lobbies, accounts and OAuth (GitHub, Discord), bots, stats persistence, heatmaps, database schema and migrations.
 
 ## Undecided
 
 - Light mode design.
 - Final behavior of bonuses and catch-up mechanics.
+- Bonus/overtake effects from the race mockup (showtime burst, overtake cut-in) are not built.
 - Lobby code format (placeholder `P5-XXXX`, 7 characters).
