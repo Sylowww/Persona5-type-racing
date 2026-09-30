@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
+import { PlayerAvatar } from "@/components/ui/player-avatar";
 import { signOut } from "@/features/auth/actions";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
@@ -34,17 +35,19 @@ export function AccountMenu({ locale, dictionary, user }: AccountMenuProps) {
 
   return (
     <div className="flex items-center gap-1">
-      <div className="flex items-center gap-2 bg-surface-container px-2 py-1">
-        <div className="flex size-8 items-center justify-center rounded-full bg-primary">
-          <Icon name="person" size={18} className="text-on-primary" />
-        </div>
+      <Link
+        href={`/${locale}/profile`}
+        className="flex items-center gap-2 bg-surface-container px-2 py-1 transition-colors hover:bg-surface-container-high"
+      >
+        <PlayerAvatar avatarUrl={user.avatarUrl} alt="" size={32} className="rounded-full" />
+        <span className="sr-only sm:hidden">{dictionary.profile}</span>
         <div className="hidden flex-col sm:flex">
           <span className="font-hud text-[11px] font-black uppercase leading-none tracking-widest text-secondary-fixed">
             {dictionary.registered}
           </span>
           <span className="max-w-[120px] truncate font-body text-body-md font-bold text-secondary">{user.username}</span>
         </div>
-      </div>
+      </Link>
       <form action={signOut}>
         <input type="hidden" name="locale" value={locale} />
         <button

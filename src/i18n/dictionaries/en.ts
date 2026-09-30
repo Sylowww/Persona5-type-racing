@@ -17,6 +17,7 @@ const en = {
     server: "{server} // {count} online",
     sound: "Toggle sound",
     account: {
+      profile: "My profile",
       label: "Account",
       signIn: "Sign in",
       signUp: "Join",
@@ -80,20 +81,24 @@ const en = {
     dossier: {
       tape: "Confidential // Dossier #{id}",
       avatarAlt: "Player avatar",
-      level: "LV.{level}",
       codename: "Codename",
-      rank: "Rank: {rank}",
-      syndicate: "Syndicate: {name}",
+      memberSince: "Phantom since {date}",
+      viewProfile: "View profile",
       stats: {
         record: "Record WPM",
-        recordNote: "Top {percent}%",
         accuracy: "Accuracy",
-        accuracyNote: "Razor sharp",
-        streak: "Win streak",
-        streakValue: "{count}X",
-        streakNote: "Shibuya run",
+        races: "Races",
+        empty: "No races yet",
+      },
+      guest: {
+        tape: "Unregistered",
+        title: "Unknown phantom",
+        text: "Sign in to track your speed, accuracy and keyboard heatmap.",
+        signIn: "Sign in",
+        signUp: "Create an account",
       },
       radar: {
+        empty: "Finish a race to calibrate your radar.",
         title: "Metric radar // Keyboard proficiency",
         sync: "Sync {percent}%",
         axes: {
@@ -298,6 +303,32 @@ const en = {
       eyebrow: "Queue the next race",
       rematch: "Rematch",
     },
+  },
+  profile: {
+    metaTitle: "Profile",
+    tape: "Phantom dossier // #{id}",
+    avatarAlt: "{name}'s avatar",
+    registered: "Registered phantom",
+    memberSince: "Phantom since {date}",
+    accounts: {
+      title: "Sign-in methods",
+      password: "Email & password",
+      linked: "Linked",
+    },
+    stats: {
+      title: "Combat record",
+      races: "Races",
+      record: "Record WPM",
+      average: "Average WPM",
+      accuracy: "Accuracy",
+      empty: "No races recorded yet. Your stats will appear here after your first saved race.",
+    },
+    history: {
+      title: "Race history",
+      empty: "Your races will show up here.",
+      cta: "Start a race",
+    },
+    signOut: "Sign out",
   },
   auth: {
     signIn: {

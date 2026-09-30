@@ -14,6 +14,14 @@ test("signs up, signs out and signs back in", async ({ page, context }) => {
   await expect(page).toHaveURL(/\/en$/);
   await expect(page.getByRole("banner").getByText(account.username)).toBeVisible();
 
+  // The home dossier and the profile page show the real account.
+  await expect(page.getByRole("heading", { name: account.username })).toBeVisible();
+  await page.getByRole("link", { name: "View profile" }).click();
+  await expect(page).toHaveURL(/\/en\/profile$/);
+  await expect(page.getByRole("heading", { level: 1, name: account.username })).toBeVisible();
+  await expect(page.getByText(account.email)).toBeVisible();
+  await expect(page.getByText("No races recorded yet.", { exact: false })).toBeVisible();
+
   const cookie = (await context.cookies()).find((c) => c.name === "session");
   expect(cookie?.httpOnly).toBe(true);
   expect(cookie?.sameSite).toBe("Lax");
@@ -57,4 +65,9 @@ test("rejects an OAuth callback with a forged state", async ({ page }) => {
   await page.goto("/api/auth/github/callback?code=x&state=forged");
   await expect(page).toHaveURL(/\/fr\/sign-in\?error=oauth$/);
   await expect(page.getByText("La connexion avec ce service a échoué. Réessaie.")).toBeVisible();
+});
+
+test("sends visitors from the profile page to sign in", async ({ page }) => {
+  await page.goto("/en/profile");
+  await expect(page).toHaveURL(/\/en\/sign-in$/);
 });

@@ -19,6 +19,7 @@ const fr: Dictionary = {
     server: "{server} // {count} en ligne",
     sound: "Activer ou couper le son",
     account: {
+      profile: "Mon profil",
       label: "Compte",
       signIn: "Connexion",
       signUp: "Rejoindre",
@@ -82,20 +83,24 @@ const fr: Dictionary = {
     dossier: {
       tape: "Confidentiel // Dossier #{id}",
       avatarAlt: "Avatar du joueur",
-      level: "NV.{level}",
       codename: "Nom de code",
-      rank: "Rang : {rank}",
-      syndicate: "Syndicat : {name}",
+      memberSince: "Fantôme depuis le {date}",
+      viewProfile: "Voir le profil",
       stats: {
         record: "Record MPM",
-        recordNote: "Top {percent} %",
         accuracy: "Précision",
-        accuracyNote: "Tranchant",
-        streak: "Victoires",
-        streakValue: "{count}X",
-        streakNote: "Série Shibuya",
+        races: "Courses",
+        empty: "Aucune course",
+      },
+      guest: {
+        tape: "Non inscrit",
+        title: "Fantôme inconnu",
+        text: "Connecte-toi pour suivre ta vitesse, ta précision et ta carte du clavier.",
+        signIn: "Connexion",
+        signUp: "Créer un compte",
       },
       radar: {
+        empty: "Termine une course pour calibrer ton radar.",
         title: "Radar // Maîtrise du clavier",
         sync: "Synchro {percent} %",
         axes: {
@@ -300,6 +305,32 @@ const fr: Dictionary = {
       eyebrow: "Lance la prochaine course",
       rematch: "Revanche",
     },
+  },
+  profile: {
+    metaTitle: "Profil",
+    tape: "Dossier fantôme // #{id}",
+    avatarAlt: "Avatar de {name}",
+    registered: "Fantôme inscrit",
+    memberSince: "Fantôme depuis le {date}",
+    accounts: {
+      title: "Méthodes de connexion",
+      password: "Courriel et mot de passe",
+      linked: "Lié",
+    },
+    stats: {
+      title: "Dossier de combat",
+      races: "Courses",
+      record: "Record MPM",
+      average: "MPM moyen",
+      accuracy: "Précision",
+      empty: "Aucune course enregistrée. Tes stats apparaîtront ici après ta première course sauvegardée.",
+    },
+    history: {
+      title: "Historique des courses",
+      empty: "Tes courses apparaîtront ici.",
+      cta: "Lancer une course",
+    },
+    signOut: "Déconnexion",
   },
   auth: {
     signIn: {

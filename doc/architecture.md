@@ -13,9 +13,10 @@ src/
     [locale]/race/results/page.tsx  Race results page
     [locale]/sign-in/page.tsx       Email/password sign in
     [locale]/sign-up/page.tsx       Account creation
+    [locale]/profile/page.tsx       Signed-in player's profile
   components/
     layout/                 Site-wide chrome (header, footer, wordmark)
-    ui/                     Generic, reusable primitives (Icon)
+    ui/                     Generic, reusable primitives (Icon, PlayerAvatar)
   features/<feature>/
     components/             Components used only by that feature (e.g. features/home)
     actions.ts              Server Functions for that feature (e.g. features/auth)

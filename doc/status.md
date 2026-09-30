@@ -16,7 +16,9 @@ Last updated: 2026-09-30.
 
 ## Mocked / not wired
 
-- All player stats, leaderboard and server data comes from `src/mocks/player.ts` (the header uses the real signed-in user).
+- Profile page (`/fr/profile`, `/en/profile`, registered users only): avatar, username, member since, sign-in methods, empty stats and race history. The home dossier shows the signed-in user (or a sign-in prompt) with empty stats; header chip links to the profile.
+- Stats, radar and race history are empty states until race results are persisted. `SkillRadar` is kept for when stats exist.
+- Leaderboard and server data come from `src/mocks/player.ts`; the home page hides the mock "you" row. The lobby still uses `mockPlayer`.
 - Lobby data comes from `src/mocks/lobby.ts`; there is one fixed lobby, no `/lobby/[code]` route yet.
 - Lobby buttons (add bot, settings, chat, leave, invite observer, start) do nothing; start is disabled until everyone is ready (`canStartRace` in `lib/lobby.ts`).
 - Nav items, mode cards, "Start a race" and "Join with code" do nothing yet (no pages, matchmaking or lobbies).

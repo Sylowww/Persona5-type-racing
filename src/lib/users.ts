@@ -171,3 +171,12 @@ export async function getUserBySessionToken(token: string): Promise<User | null>
 export async function deleteSession(token: string): Promise<void> {
   await getPool().query("DELETE FROM sessions WHERE token_hash = $1", [hashSessionToken(token)]);
 }
+
+/** OAuth providers linked to a user, in a stable order. */
+export async function getLinkedProviders(userId: string): Promise<OAuthProvider[]> {
+  const { rows } = await getPool().query<{ provider: OAuthProvider }>(
+    "SELECT provider FROM oauth_accounts WHERE user_id = $1 ORDER BY provider",
+    [userId],
+  );
+  return rows.map((row) => row.provider);
+}
