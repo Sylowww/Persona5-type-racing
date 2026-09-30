@@ -74,7 +74,8 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 
 | Layer | File | Role |
 | --- | --- | --- |
-| Rules | `lib/race-engine.ts` | Pure `(state, event, now) → state` functions: join, leave, ready, start, input, connect/disconnect, `advance` (time-based transitions), `viewFor` (per-player snapshot), `resultFor`. No timers, I/O or transport. |
+| Rules | `lib/race-engine.ts` | Pure `(state, event, now) → state` functions: join, leave, ready, add/remove bot, start, input, connect/disconnect, `advance` (time-based transitions and bot keystrokes), `viewFor` (per-player snapshot), `resultFor`. No timers, I/O or transport. |
+| Bots | `lib/bots.ts` | `planBotRun(text, difficulty, random)`: a bot's whole race as timed keystrokes, planned at race start. |
 | Store | `lib/lobby-store.ts` | `createLobbyStore()`: keeps lobbies in a `Map`, runs one 100 ms timer (countdown end, race end, expired seats), broadcasts to subscribers, counts connections per player. Unit tested with an injected clock. |
 | Singleton | `lib/lobby-server.ts` | Server-only `getLobbyStore()`, kept on `globalThis`. Reads `LOBBY_CAPACITY`. |
 | Transport | `app/api/lobbies/[code]/*`, `features/lobby/actions.ts` | SSE stream (`events`), keystroke batches (`input`), Server Functions for create/join/leave/ready/start. Swapping SSE for WebSockets only touches this layer. |
@@ -88,6 +89,8 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 - Input: the client diffs the hidden input into `char`/`delete` events and posts them in numbered batches (one request at a time, retried with the same number). The server replays them with `lib/typing.ts`, timed by its own clock, and ignores repeated batches, input outside the race and more than 30 keys/s. Progress, WPM, places, finish and results are computed server-side only. Client-measured key delays are used only for the heatmap.
 - Progress is broadcast at most every 100 ms per lobby; membership and phase changes are broadcast immediately.
 - End: when every racer finished, left, or stayed disconnected past the grace period, or at the 3-minute limit. Results are ranked with `rankRacers`.
+
+**Bots:** the host adds bots from the lobby (one button per difficulty, so every bot can have its own level) and removes them while no race is running. A bot is a lobby member with `bot` set to its difficulty: always connected and ready, never host, counted in the capacity. When the race starts, `planBotRun` plans each bot's keystrokes; `advance` replays the ones that are due with the same typing rules as players (progress, samples, key stats, results). Plans are human-like: target speed per difficulty (`botTargetWpm`, ±8% per race), uneven rhythm, slower capitals and punctuation, short pauses between words, and typos on neighboring QWERTY keys that are sometimes noticed a few keys late, then deleted and retyped. Easier levels make more typos and react more slowly. A single player can race bots. The race ends early once no player is left, and bots are removed when the last player leaves.
 
 **Reconnection:** a player whose stream drops keeps their seat and race progress for 30 s (`reconnectGraceMs`). `EventSource` reconnects on its own and a reload restores the typed text from the snapshot. Each page load sends input with its own client id: its first batch takes over and late batches from the previous page are ignored; when idle, the client adopts the server's copy of the typed text. Timers run on the server, so the race never depends on the host's browser.
 
