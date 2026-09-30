@@ -4,6 +4,18 @@ Competitive typing-race web app for students, inspired by Monkeytype and Kahoot.
 
 The requirements are still preliminary. Do not treat unconfirmed ideas as final requirements or implement speculative features.
 
+## Documentation
+
+Detailed docs live in [`doc/`](doc/README.md). Read the relevant file before working in that area:
+
+* [`doc/architecture.md`](doc/architecture.md): folder layout and where code belongs
+* [`doc/design-system.md`](doc/design-system.md): Persona 5 theme, tokens and UI patterns
+* [`doc/i18n.md`](doc/i18n.md): adding translated text
+* [`doc/testing.md`](doc/testing.md): checks and test conventions
+* [`doc/status.md`](doc/status.md): what is built, mocked or undecided
+
+Update the matching doc when a change makes it outdated.
+
 ## Stack
 
 * Next.js + React + TypeScript
