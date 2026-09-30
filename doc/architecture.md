@@ -8,9 +8,12 @@ src/
     globals.css             Tailwind 4 theme tokens (see design-system.md)
     [locale]/layout.tsx     <html>, fonts, icon font, site header/footer, metadata
     [locale]/page.tsx       Home page: composes feature components
-    [locale]/lobby/page.tsx Lobby page
-    [locale]/race/page.tsx  Live race page
-    [locale]/race/results/page.tsx  Race results page
+    [locale]/lobby/page.tsx Redirects to the player's current lobby (or home)
+    [locale]/lobby/[code]/page.tsx          Live lobby (or a join form for invite links)
+    [locale]/lobby/[code]/race/page.tsx     Countdown and live race
+    [locale]/lobby/[code]/results/page.tsx  Results of the lobby's last race
+    api/lobbies/[code]/events/route.ts      Server-Sent Events stream of lobby snapshots
+    api/lobbies/[code]/input/route.ts       Keystroke batches from racers
     [locale]/sign-in/page.tsx       Email/password sign in
     [locale]/sign-up/page.tsx       Account creation
     [locale]/profile/page.tsx       Signed-in player's profile
@@ -22,7 +25,7 @@ src/
     actions.ts              Server Functions for that feature (e.g. features/auth)
   i18n/                     Locales, dictionaries, message formatting
   lib/                      Framework-free logic (pure functions, db access)
-  mocks/                    Placeholder data until the server provides it
+  mocks/                    Placeholder data for features not built yet (home leaderboard, header status)
   types/                    Shared domain types
 tests/
   unit/                     Vitest, pure logic
@@ -53,7 +56,7 @@ tests/
 - Local database: `docker compose up -d` (or any Postgres), copy `.env.example` to `.env`, then `npm run db:migrate`.
 - Tables: `users` (guests and registered accounts, `kind` column), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored).
 - `lib/users.ts` is the server-only data access for accounts and sessions. Pure auth helpers (scrypt password hashing, session tokens, input validation) live in `lib/auth/` and are unit tested.
-- The server will be authoritative for race state, scores and rankings; UI values in `mocks/` are placeholders only.
+- Lobbies and races are in memory only (see Multiplayer); nothing about races is stored in PostgreSQL yet.
 
 ## Authentication
 
@@ -64,3 +67,30 @@ tests/
 - The locale layout reads the current user for the header, so every page renders dynamically. Pages without a session cookie never query the database.
 - OAuth (Google, GitHub, Discord): `app/api/auth/[provider]/route.ts` starts the flow (random `state` + PKCE verifier kept in a 10-minute HttpOnly `oauth` cookie) and `.../callback/route.ts` checks the state, exchanges the code, loads the profile and calls `findOrCreateOAuthUser`. Pure helpers (authorize URL, PKCE, profile parsing, username cleanup) are in `lib/auth/oauth.ts`; network calls in `lib/auth/oauth-client.ts`. A provider's button only shows when its `*_CLIENT_ID` and `*_CLIENT_SECRET` are set (see `.env.example`). Callback URL to register with each provider: `{APP_URL}/api/auth/{provider}/callback`.
 - To protect a page or action, call `getCurrentUser()` on the server and check `kind`. Never trust client-sent user ids.
+
+## Multiplayer
+
+Lobbies and races run on the server; clients only send keystrokes and render snapshots.
+
+| Layer | File | Role |
+| --- | --- | --- |
+| Rules | `lib/race-engine.ts` | Pure `(state, event, now) → state` functions: join, leave, ready, start, input, connect/disconnect, `advance` (time-based transitions), `viewFor` (per-player snapshot), `resultFor`. No timers, I/O or transport. |
+| Store | `lib/lobby-store.ts` | `createLobbyStore()`: keeps lobbies in a `Map`, runs one 100 ms timer (countdown end, race end, expired seats), broadcasts to subscribers, counts connections per player. Unit tested with an injected clock. |
+| Singleton | `lib/lobby-server.ts` | Server-only `getLobbyStore()`, kept on `globalThis`. Reads `LOBBY_CAPACITY`. |
+| Transport | `app/api/lobbies/[code]/*`, `features/lobby/actions.ts` | SSE stream (`events`), keystroke batches (`input`), Server Functions for create/join/leave/ready/start. Swapping SSE for WebSockets only touches this layer. |
+| Client | `features/lobby/use-lobby-stream.ts`, `features/race/use-input-sender.ts` | `EventSource` hook (auto-reconnect, server clock offset) and batched, retried keystroke sender. |
+
+**Lifecycle:** `waiting → countdown → racing → finished`, then the next ready or join reopens `waiting` (results are kept). A lobby is deleted (closed) once nobody is left.
+
+- The creator is host; if the host leaves or their seat expires, the longest-standing player takes over. Only the host starts, once at least two players are all ready (`canStartRace`).
+- Capacity defaults to 30 (a class), capped at 60, set with `LOBBY_CAPACITY`.
+- Start: the server picks a text in the lobby's language (`lib/race-texts.ts`) and sets `startsAt = now + 3 s`. Snapshots carry `serverNow` so every client shows the same countdown.
+- Input: the client diffs the hidden input into `char`/`delete` events and posts them in numbered batches (one request at a time, retried with the same number). The server replays them with `lib/typing.ts`, timed by its own clock, and ignores repeated batches, input outside the race and more than 30 keys/s. Progress, WPM, places, finish and results are computed server-side only. Client-measured key delays are used only for the heatmap.
+- Progress is broadcast at most every 100 ms per lobby; membership and phase changes are broadcast immediately.
+- End: when every racer finished, left, or stayed disconnected past the grace period, or at the 3-minute limit. Results are ranked with `rankRacers`.
+
+**Reconnection:** a player whose stream drops keeps their seat and race progress for 30 s (`reconnectGraceMs`). `EventSource` reconnects on its own and a reload restores the typed text from the snapshot. Each page load sends input with its own client id: its first batch takes over and late batches from the previous page are ignored; when idle, the client adopts the server's copy of the typed text. Timers run on the server, so the race never depends on the host's browser.
+
+**Single instance only:** all lobby state lives in the memory of one Node process. Run exactly one app instance (no serverless, no horizontal scaling, no multiple workers behind a load balancer). A restart or deploy ends every lobby. Scaling out later needs shared state (e.g. Redis) behind the same store interface.
+
+In development, editing `race-engine.ts` or `lobby-store.ts` does not update the store already created on `globalThis`: restart `next dev` after such changes.
