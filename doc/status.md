@@ -9,6 +9,8 @@ Last updated: 2026-09-30.
 - Bilingual live race page (`/fr/race`, `/en/race`): race timer, objective, placement badge, race track lanes, typing arena with per-character feedback, WPM, streak and accuracy. Typing logic lives in `lib/typing.ts`.
 - Bilingual race results page (`/fr/race/results`, `/en/race/results`): result banner, podium, speed chart, precision stats, slow keys, keyboard heatmap, back-to-lobby and rematch links. Ranking and heatmap logic lives in `lib/results.ts`.
 
+- Database foundation: migration runner, `users` / `oauth_accounts` / `sessions` schema, password hashing, session tokens, account validation and data-access functions (`lib/users.ts`). Not yet used by any page.
+
 ## Mocked / not wired
 
 - All player, leaderboard and server data comes from `src/mocks/player.ts`.
@@ -24,7 +26,7 @@ Last updated: 2026-09-30.
 
 ## Not started
 
-Real-time race sync, lobbies, accounts and OAuth (GitHub, Discord), bots, stats persistence, heatmaps, database schema and migrations.
+Real-time race sync, lobbies, sign-in/sign-up pages, session cookies, OAuth flows (GitHub, Discord), bots, stats persistence, heatmaps.
 
 ## Undecided
 
