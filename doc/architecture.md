@@ -93,4 +93,6 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 
 **Single instance only:** all lobby state lives in the memory of one Node process. Run exactly one app instance (no serverless, no horizontal scaling, no multiple workers behind a load balancer). A restart or deploy ends every lobby. Scaling out later needs shared state (e.g. Redis) behind the same store interface.
 
+**Playing on the local network (dev):** add your LAN IP to `ALLOWED_DEV_ORIGINS` in `.env` (e.g. `ALLOWED_DEV_ORIGINS=10.3.3.55`), restart `next dev`, and share the `Network:` URL. Other devices must be on the same network. Use email/password accounts: OAuth callbacks point to `APP_URL`. `next start` over plain HTTP on an IP does not work for sign-in, because the production session cookie is `Secure`.
+
 In development, editing `race-engine.ts` or `lobby-store.ts` does not update the store already created on `globalThis`: restart `next dev` after such changes.

@@ -2,7 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Playwright loads the dev server through 127.0.0.1; without this, client scripts are blocked and nothing hydrates.
-  allowedDevOrigins: ["127.0.0.1"],
+  // ALLOWED_DEV_ORIGINS adds hosts for playing from other devices on the network (e.g. "10.3.3.55").
+  allowedDevOrigins: [
+    "127.0.0.1",
+    ...(process.env.ALLOWED_DEV_ORIGINS ?? "").split(",").map((host) => host.trim()).filter(Boolean),
+  ],
   // Avatars from OAuth providers.
   images: {
     remotePatterns: [
