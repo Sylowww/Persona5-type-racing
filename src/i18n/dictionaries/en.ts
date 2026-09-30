@@ -159,6 +159,9 @@ const en = {
       copied: "Code copied!",
     },
     bots: {
+      slot: "Bot // P{slot}",
+      targetWpm: "Target speed",
+      remove: "Remove {name}",
       badge: "AI simulator",
       title: "+ Add phantom bot",
       subtitle: "Select synthetic difficulty",

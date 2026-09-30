@@ -161,6 +161,9 @@ const fr: Dictionary = {
       copied: "Code copié!",
     },
     bots: {
+      slot: "Bot // J{slot}",
+      targetWpm: "Vitesse cible",
+      remove: "Retirer {name}",
       badge: "Simulateur IA",
       title: "+ Ajouter un bot",
       subtitle: "Choisis la difficulté",

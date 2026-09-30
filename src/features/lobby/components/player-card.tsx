@@ -1,18 +1,30 @@
+import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import { botTargetWpm } from "@/lib/lobby";
 import type { LobbyMember } from "@/types/lobby";
 import { PlayerEmblem } from "./player-emblem";
 
 type PlayerCardProps = {
   dictionary: Dictionary["lobby"]["roster"];
+  botDictionary: Dictionary["lobby"]["bots"];
   player: LobbyMember;
   slot: number;
   isYou: boolean;
+  /** Set for bots the viewer (host) may remove. */
+  onRemove: (() => void) | null;
+  isPending: boolean;
 };
 
-// Level, title and best speed come later with persistent stats.
-export function PlayerCard({ dictionary, player, slot, isYou }: PlayerCardProps) {
-  const presence = !player.isConnected ? dictionary.reconnecting : isYou ? dictionary.you : dictionary.online;
+// Level, title and best speed come later with persistent stats. Bots show their difficulty and target speed.
+export function PlayerCard({ dictionary, botDictionary, player, slot, isYou, onRemove, isPending }: PlayerCardProps) {
+  const presence = player.bot
+    ? botDictionary.difficulties[player.bot]
+    : !player.isConnected
+      ? dictionary.reconnecting
+      : isYou
+        ? dictionary.you
+        : dictionary.online;
   const tilt = slot % 2 === 0 ? "rotate-1" : "-rotate-1";
   const backing = !player.isReady
     ? "bg-error-container"
@@ -31,7 +43,7 @@ export function PlayerCard({ dictionary, player, slot, isYou }: PlayerCardProps)
                 player.isHost ? "bg-secondary-fixed text-on-secondary-fixed shadow-hard-xs" : "bg-surface-bright text-secondary"
               }`}
             >
-              {formatMessage(player.isHost ? dictionary.host : dictionary.player, { slot })}
+              {formatMessage(player.isHost ? dictionary.host : player.bot ? botDictionary.slot : dictionary.player, { slot })}
             </span>
             <h3 className="mt-1 truncate font-hud text-headline-sm font-black uppercase italic text-secondary">{player.name}</h3>
             <span
@@ -58,15 +70,31 @@ export function PlayerCard({ dictionary, player, slot, isYou }: PlayerCardProps)
           <PlayerEmblem emblem={player.emblem} />
         </div>
 
-        <div className="z-10 w-3/4 -skew-x-6 bg-surface-container-lowest/90 p-2 backdrop-blur-sm">
-          <div className="flex skew-x-6 items-baseline justify-between gap-2">
-            <span className="font-hud text-[11px] font-black uppercase text-on-surface-variant">{dictionary.bestWpm}</span>
-            <span
-              className={`font-display text-headline-md italic leading-none ${player.isHost ? "text-primary-container" : "text-secondary"}`}
-            >
-              {dictionary.noRecord}
-            </span>
+        <div className="z-10 flex items-end justify-between gap-2">
+          <div className="w-3/4 -skew-x-6 bg-surface-container-lowest/90 p-2 backdrop-blur-sm">
+            <div className="flex skew-x-6 items-baseline justify-between gap-2">
+              <span className="font-hud text-[11px] font-black uppercase text-on-surface-variant">
+                {player.bot ? botDictionary.targetWpm : dictionary.bestWpm}
+              </span>
+              <span
+                className={`font-display text-headline-md italic leading-none ${player.isHost ? "text-primary-container" : "text-secondary"}`}
+              >
+                {player.bot ? formatMessage(dictionary.wpm, { wpm: botTargetWpm[player.bot] }) : dictionary.noRecord}
+              </span>
+            </div>
           </div>
+          {onRemove && (
+            <button
+              type="button"
+              onClick={onRemove}
+              disabled={isPending}
+              aria-label={formatMessage(botDictionary.remove, { name: player.name })}
+              title={formatMessage(botDictionary.remove, { name: player.name })}
+              className="flex size-9 shrink-0 items-center justify-center bg-surface-container-highest text-on-surface transition-colors hover:bg-error-container hover:text-on-error-container disabled:opacity-60"
+            >
+              <Icon name="close" size={20} />
+            </button>
+          )}
         </div>
       </article>
     </li>

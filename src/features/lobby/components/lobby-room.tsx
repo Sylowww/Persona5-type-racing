@@ -6,7 +6,7 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import { canStartRace, countReady, currentRaceSettings } from "@/lib/lobby";
 import type { LobbyView } from "@/types/lobby";
-import { leaveLobby, setLobbyReady, startLobbyRace } from "../actions";
+import { addLobbyBot, leaveLobby, removeLobbyBot, setLobbyReady, startLobbyRace } from "../actions";
 import { useLobbyStream } from "../use-lobby-stream";
 import { LobbyActions } from "./lobby-actions";
 import { LobbyHeader } from "./lobby-header";
@@ -50,7 +50,17 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
 
       <div className="grid grid-cols-1 items-start gap-7 xl:grid-cols-12">
         <div className="xl:col-span-8">
-          <LobbyRoster dictionary={dictionary} code={code} capacity={view.capacity} players={players} youId={view.youId} />
+          <LobbyRoster
+            dictionary={dictionary}
+            code={code}
+            capacity={view.capacity}
+            players={players}
+            youId={view.youId}
+            canManageBots={isHost && view.phase !== "countdown" && view.phase !== "racing"}
+            isPending={isPending}
+            onAddBot={(difficulty) => startTransition(async () => void (await addLobbyBot(code, difficulty)))}
+            onRemoveBot={(botId) => startTransition(async () => void (await removeLobbyBot(code, botId)))}
+          />
         </div>
         <div className="flex flex-col gap-4 xl:col-span-4">
           <RulesDossier dictionary={dictionary.rules} settings={currentRaceSettings(view.locale)} spectators={[]} />

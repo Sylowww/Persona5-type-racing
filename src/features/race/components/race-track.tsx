@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
@@ -77,6 +78,7 @@ export function RaceTrack({ dictionary, locale, racers, youId }: RaceTrackProps)
                   <span className="skew-x-12 font-hud text-[16px] font-black uppercase tracking-widest text-secondary">
                     {racer.name}
                   </span>
+                  {racer.isBot && <Icon name="smart_toy" size={16} className="skew-x-12 text-outline" />}
                   {isYou && (
                     <span className="skew-x-12 bg-secondary-fixed px-1 font-hud text-[10px] font-black uppercase text-on-secondary-fixed">
                       {dictionary.you}

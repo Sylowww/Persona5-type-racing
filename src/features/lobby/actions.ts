@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { isLocale, type Locale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
+import { isBotDifficulty } from "@/lib/bots";
 import { normalizeLobbyCode } from "@/lib/lobby-code";
 import { getLobbyStore } from "@/lib/lobby-server";
 import type { StoreError } from "@/lib/lobby-store";
@@ -66,4 +67,14 @@ export async function setLobbyReady(code: string, isReady: boolean): Promise<Sto
 
 export async function startLobbyRace(code: string): Promise<StoreError | null> {
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().start(lobby, userId));
+}
+
+export async function addLobbyBot(code: string, difficulty: string): Promise<StoreError | null> {
+  if (!isBotDifficulty(difficulty)) return "wrongPhase";
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().addBot(lobby, userId, difficulty));
+}
+
+export async function removeLobbyBot(code: string, botId: string): Promise<StoreError | null> {
+  if (typeof botId !== "string") return "notMember";
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().removeBot(lobby, userId, botId));
 }
