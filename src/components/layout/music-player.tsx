@@ -26,10 +26,24 @@ function writeStorage(key: string, value: string) {
   }
 }
 
+type MusicWindow = Window & { __typeStrikeMusic?: HTMLAudioElement };
+
+// One audio element for the whole tab, kept on window: a playing element keeps playing after React
+// unmounts it, so a remounted header (server redirect, hot reload) would otherwise start a second track.
+function getMusic(): HTMLAudioElement {
+  const musicWindow = window as MusicWindow;
+  if (!musicWindow.__typeStrikeMusic) {
+    const audio = new Audio();
+    audio.loop = true;
+    audio.volume = volume;
+    musicWindow.__typeStrikeMusic = audio;
+  }
+  return musicWindow.__typeStrikeMusic;
+}
+
 /** Background music for the whole site: race theme on the race page, the chosen home theme elsewhere. */
 export function MusicPlayer({ dictionary }: { dictionary: Dictionary["header"]["music"] }) {
   const pathname = usePathname();
-  const audioRef = useRef<HTMLAudioElement>(null);
   const [muted, setMuted] = useState(false);
   const [theme, setTheme] = useState<HomeTheme>(defaultHomeTheme);
   const [loaded, setLoaded] = useState(false);
@@ -49,13 +63,10 @@ export function MusicPlayer({ dictionary }: { dictionary: Dictionary["header"]["
   const source = musicSourceFor(pathname, theme);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !loaded) return;
+    if (!loaded) return;
+    const audio = getMusic();
 
-    if (!audio.src.endsWith(source)) {
-      audio.src = source;
-      audio.volume = volume;
-    }
+    if (!audio.src.endsWith(source)) audio.src = source;
     if (muted) {
       audio.pause();
       return;
@@ -108,8 +119,6 @@ export function MusicPlayer({ dictionary }: { dictionary: Dictionary["header"]["
 
   return (
     <div ref={menuRef} className="relative flex items-center gap-1">
-      <audio ref={audioRef} loop preload="none" />
-
       <button
         type="button"
         aria-haspopup="menu"
