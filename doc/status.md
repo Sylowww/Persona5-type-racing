@@ -19,7 +19,7 @@ Last updated: 2026-09-30.
 
 ## Mocked / not wired
 
-- Profile page (`/fr/profile`, `/en/profile`, registered users only): avatar, username, member since, sign-in methods, empty stats and race history. The home dossier shows the signed-in user (or a sign-in prompt) with empty stats; header chip links to the profile.
+- Profile page (`/fr/profile`, `/en/profile`, registered users only): avatar, username, member since, character picker (Joker or Mona, used from the next lobby joined), sign-in methods, empty stats and race history. The home dossier shows the signed-in user (or a sign-in prompt) with empty stats; header chip links to the profile.
 - Stats, radar and race history are empty states until race results are persisted. `SkillRadar` is kept for when stats exist.
 - Leaderboard and server data come from `src/mocks/player.ts`; the home page hides the mock "you" row. `mockPlayer` (with radar values) is no longer used by any page.
 - Lobby buttons for settings, chat and invite observer do nothing; the rules dossier shows the fixed rules races use today; the taunt feed and spectators are empty. Player cards show `-- WPM` as best speed until stats are stored.
