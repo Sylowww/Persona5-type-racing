@@ -67,6 +67,17 @@ Each racer on the race track is an animated character running along their lane (
 - `components/ui/sprite-frames.tsx` plays one animation of a sheet at any size; the race runner and the profile roster both use it.
 - **Profile roster** (`features/profile/components/character-picker.tsx`): a large animated showcase of the chosen character on a tilted red panel, next to a 3×3 grid of tilted cards. Cards play their idle animation on hover or focus; the chosen one is red with a yellow name tag.
 
+## Palace collapse (race page)
+
+The race page feels like escaping a collapsing palace (`features/race/components/palace-collapse.tsx`, pure logic in `lib/palace-collapse.ts`). It is decorative only and never changes the race.
+
+- **Intensity follows time only**: 0 → 0.3 over the 3 s countdown (with a rumble on 3, 2, 1 and a stronger one at the start), then up to 1 at the time limit (square-root curve so short races still escalate).
+- **Behind the panels** (canvas at `-z-10`): red-lit cracks opening from the top edge and falling dust and stone chunks, with bursts on each rumble.
+- **In front** (canvas at `z-40`): only light grit, plus a pulsing red alarm vignette at the screen edges. Nothing covers the typing text with solid shapes.
+- **Rumbles**: short, uneven shakes of the race content (1 to 5 px), more frequent as intensity rises.
+- **Final collapse**: once the server ends the race (everyone finished or time ran out), debris and shards pour down for `FINAL_COLLAPSE_MS` (2.2 s), black diagonal wedges slam shut with a red seam, then the page opens the results.
+- **Reduced motion**: no shake, no falling debris; cracks and the vignette stay static and the wedges fade in.
+
 ## Responsive
 
 - The race itself targets desktop; other pages must work on phones without horizontal scroll.
