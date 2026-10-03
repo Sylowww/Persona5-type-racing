@@ -62,8 +62,22 @@ test("two players race from lobby creation to results", async ({ browser }) => {
   await expect(guest.getByRole("listitem", { name: new RegExp(`^${hostName}: (4|5)\\d\\s?% of the text`) })).toBeVisible();
 
   // The guest reloads mid-race and gets back the progress the server recorded.
+  // Keystrokes are sent in batches; the reload waits for the last one so the restored text is final
+  // (a batch still in flight would land after the reload and add letters the test would type again).
+  let pendingInput = 0;
+  guest.on("request", (request) => {
+    if (request.url().endsWith("/input")) pendingInput += 1;
+  });
+  const settled = (request: { url: () => string }) => {
+    if (request.url().endsWith("/input")) pendingInput -= 1;
+  };
+  guest.on("requestfinished", settled);
+  guest.on("requestfailed", settled);
   await guestInput.pressSequentially(text.slice(0, 10), { delay: KEY_DELAY_MS });
   await expect(host.getByRole("listitem", { name: new RegExp(`^${guestName}: [1-9]\\d?\\s?% of the text`) })).toBeVisible();
+  // The page waits 50 ms before sending a batch, so give the last one time to start before checking.
+  await guest.waitForTimeout(300);
+  await expect.poll(() => pendingInput).toBe(0);
   await guest.reload();
   const restored = await guest.getByLabel("Type the text").inputValue();
   expect(restored.length).toBeGreaterThan(0);
