@@ -261,6 +261,14 @@ const en = {
       finished: "Finished!",
       mistakes: "Mistakes: {count}",
     },
+    cutIn: {
+      speaker: "Mona",
+      lines: [
+        "We got the Treasure! Now move it, this whole place is coming down!",
+        "No time to turn into a bus! Everyone, RUN!",
+        "The Palace is collapsing! Make for the exit, Phantom Thieves!",
+      ],
+    },
     stats: {
       speed: "Speedometer",
       wpm: "WPM",

@@ -263,6 +263,14 @@ const fr: Dictionary = {
       finished: "Terminé !",
       mistakes: "Erreurs : {count}",
     },
+    cutIn: {
+      speaker: "Mona",
+      lines: [
+        "On a le trésor ! Maintenant on file, tout le palais s'écroule !",
+        "Pas le temps de me transformer en bus ! Tout le monde, COUREZ !",
+        "Le palais s'effondre ! Tous vers la sortie, Voleurs fantômes !",
+      ],
+    },
     stats: {
       speed: "Compteur de vitesse",
       wpm: "MPM",

@@ -140,3 +140,26 @@ export function playReveal() {
   noiseBurst({ duration: 0.55, volume: 0.35, filter: "bandpass", frequency: 300, endFrequency: 2400 });
   thump({ volume: 0.3, from: 60, to: 40, duration: 0.3 });
 }
+
+/** A short, high "talking" blip played while a cut-in line is typed out. */
+export function playVoiceBlip() {
+  const sound = engine();
+  if (!sound) return;
+  const { context, master } = sound;
+  const start = context.currentTime;
+  const oscillator = context.createOscillator();
+  oscillator.type = "square";
+  oscillator.frequency.setValueAtTime(820 + Math.random() * 260, start);
+  const gain = context.createGain();
+  gain.gain.setValueAtTime(0.05, start);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.045);
+  oscillator.connect(gain).connect(master);
+  oscillator.start(start);
+  oscillator.stop(start + 0.06);
+}
+
+/** The cut-in band slamming onto the screen. */
+export function playCutInSwoosh() {
+  noiseBurst({ duration: 0.25, volume: 0.3, filter: "bandpass", frequency: 2600, endFrequency: 500 });
+  thump({ delay: 0.12, volume: 0.25, from: 140, to: 60, duration: 0.18 });
+}
