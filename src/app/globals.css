@@ -96,3 +96,90 @@
     transform: translate(var(--runner-end), var(--runner-row));
   }
 }
+
+/* Race page: collapsing-palace atmosphere (see features/race/components/palace-collapse.tsx). */
+.palace-alarm {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    color-mix(in srgb, var(--color-primary-container) 35%, transparent) 100%
+  );
+}
+
+.palace-wedge-top {
+  clip-path: polygon(0 0, 100% 0, 100% 44%, 0 58%);
+  animation: palace-fade 600ms ease-in 800ms both;
+}
+
+.palace-wedge-bottom {
+  clip-path: polygon(0 56%, 100% 42%, 100% 100%, 0 100%);
+  animation: palace-fade 600ms ease-in 800ms both;
+}
+
+.palace-seam {
+  animation: palace-fade 300ms ease-out 1300ms both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .palace-alarm {
+    animation: palace-alarm 1.8s ease-in-out infinite;
+  }
+
+  .palace-wedge-top {
+    animation: palace-slam-top 450ms cubic-bezier(0.7, 0, 0.9, 0.4) 900ms both;
+  }
+
+  .palace-wedge-bottom {
+    animation: palace-slam-bottom 450ms cubic-bezier(0.7, 0, 0.9, 0.4) 900ms both;
+  }
+
+  .palace-seam {
+    animation: palace-seam 250ms cubic-bezier(0.2, 0.8, 0.2, 1) 1300ms both;
+  }
+}
+
+@keyframes palace-alarm {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes palace-slam-top {
+  from {
+    transform: translateY(-105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes palace-slam-bottom {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes palace-seam {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes palace-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
