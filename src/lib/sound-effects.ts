@@ -201,3 +201,11 @@ export function playVoiceLine(src: string) {
   audio.addEventListener("error", restore);
   audio.play().catch(restore);
 }
+
+/** Plays a recorded sound effect (a file in `public/sfx/`), unless sound is muted. */
+export function playSoundFile(src: string, volume = 0.8) {
+  if (typeof window === "undefined" || (window as SoundWindow).__typeStrikeMuted) return;
+  const audio = new Audio(src);
+  audio.volume = volume;
+  audio.play().catch(() => undefined);
+}
