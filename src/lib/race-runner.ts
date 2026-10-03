@@ -8,7 +8,8 @@ export const RUNNER_OBSTACLES = [0.25, 0.5, 0.75] as const;
 /** A runner whose progress has not increased for this long stands still. */
 export const RUNNER_IDLE_AFTER_MS = 800;
 
-export const RUNNER_JUMP_MS = 500;
+/** A little longer than the jump animation, so its landing frame shows even though the race clock ticks every 100 ms. */
+export const RUNNER_JUMP_MS = 600;
 
 export type RunnerState = {
   progress: number;
@@ -48,14 +49,6 @@ export function runnerAnimation(state: RunnerState, isFinished: boolean, now: nu
   if (state.jumpEndsAt !== null && now < state.jumpEndsAt) return "jump";
   if (state.movedAt !== null && now - state.movedAt < RUNNER_IDLE_AFTER_MS) return "run";
   return "idle";
-}
-
-/** Next moment the animation changes on its own (a jump ends or the runner stops); null if none is due. */
-export function nextRunnerChangeAt(state: RunnerState, now: number): number | null {
-  const times = [state.jumpEndsAt, state.movedAt === null ? null : state.movedAt + RUNNER_IDLE_AFTER_MS].filter(
-    (time): time is number => time !== null && time > now,
-  );
-  return times.length === 0 ? null : Math.min(...times);
 }
 
 /**

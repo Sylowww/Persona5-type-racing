@@ -159,7 +159,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
         racerCount={racers.length}
       />
 
-      <RaceTrack dictionary={dictionary.track} locale={locale} racers={racers} youId={view.youId} />
+      <RaceTrack dictionary={dictionary.track} locale={locale} racers={racers} youId={view.youId} now={now} />
 
       <section
         aria-label={dictionary.arena.label}

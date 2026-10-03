@@ -19,6 +19,8 @@ export type CharacterSprite = {
   frameSize: number;
   columns: number;
   rows: number;
+  /** Horizontal position of the character's head in every frame, in px; obstacles line up with it. */
+  anchorX: number;
   animations: Record<RunnerAnimation, SpriteAnimation>;
 };
 
@@ -30,6 +32,7 @@ export const characters = {
     frameSize: 128,
     columns: 8,
     rows: 4,
+    anchorX: 84,
     animations: {
       idle: { row: 0, frames: 8, fps: 8, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },

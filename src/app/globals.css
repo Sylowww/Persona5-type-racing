@@ -74,3 +74,25 @@
   }
 }
 
+
+/* Race runner sprite: the strip slides one frame at a time inside a frame-sized window (see race-runner.tsx). */
+@layer components {
+  .runner-frames {
+    transform: translate(0, var(--runner-row));
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .runner-frames:not(.runner-frames-still) {
+      animation: runner-frames var(--runner-duration) var(--runner-timing) var(--runner-iterations) both;
+    }
+  }
+}
+
+@keyframes runner-frames {
+  from {
+    transform: translate(0, var(--runner-row));
+  }
+  to {
+    transform: translate(var(--runner-end), var(--runner-row));
+  }
+}

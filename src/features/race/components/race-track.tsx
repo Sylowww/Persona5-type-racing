@@ -2,18 +2,26 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
+import { RUNNER_OBSTACLES } from "@/lib/race-runner";
 import type { RaceRacer } from "@/types/race";
+import { characters } from "../characters";
+import { RaceRunner, RUNNER_SIZE } from "./race-runner";
 
 type RaceTrackProps = {
   dictionary: Dictionary["race"]["track"];
   locale: Locale;
   racers: readonly RaceRacer[];
   youId: string;
+  /** Race clock, used only to animate the runners. */
+  now: number;
 };
 
 const quarterMarks = [0, 0.25, 0.5, 0.75] as const;
 
-export function RaceTrack({ dictionary, locale, racers, youId }: RaceTrackProps) {
+// Every racer is Joker for now; later the emblem can pick a character.
+const anchor = (characters.joker.anchorX / characters.joker.frameSize) * RUNNER_SIZE;
+
+export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackProps) {
   const percent = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
 
@@ -49,46 +57,61 @@ export function RaceTrack({ dictionary, locale, racers, youId }: RaceTrackProps)
             <li
               key={racer.id}
               aria-label={label}
-              className={`relative flex h-11 items-center overflow-hidden bg-surface-container-highest px-2 ${racer.isConnected ? "" : "opacity-50"}`}
+              className={`flex h-[76px] items-stretch bg-surface-container-highest ${racer.isConnected ? "" : "opacity-50"}`}
             >
-              <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex justify-between opacity-20">
-                {quarterMarks.map((mark) => (
-                  <div key={mark} className="h-full w-px bg-on-surface" />
-                ))}
-              </div>
-              <div
-                aria-hidden="true"
-                className={`absolute inset-y-0 left-0 transition-[width] duration-300 ${
-                  isYou
-                    ? "bg-gradient-to-r from-primary-container/20 via-primary-container/60 to-primary-container"
-                    : "bg-gradient-to-r from-primary-container/5 via-primary-container/25 to-primary-container/45"
-                }`}
-                style={{ width }}
-              />
-              <div
-                aria-hidden="true"
-                className="absolute flex items-center gap-1 transition-[left,translate] duration-300"
-                style={{ left: width, translate: `-${width}` }}
-              >
+              {/* The course: everything here is decorative and placed from progress only. */}
+              <div aria-hidden="true" className="@container relative flex-1 overflow-hidden">
                 <div
-                  className={`flex -skew-x-12 items-center gap-1 px-2 py-0.5 ${
-                    isYou ? "bg-primary-container shadow-hard-sm shadow-secondary-fixed" : "bg-surface-container-lowest shadow-hard-xs"
+                  className={`absolute inset-y-0 left-0 transition-[width] duration-300 ${
+                    isYou
+                      ? "bg-gradient-to-r from-primary-container/5 via-primary-container/25 to-primary-container/50"
+                      : "bg-gradient-to-r from-primary-container/0 via-primary-container/10 to-primary-container/25"
                   }`}
+                  style={{ width }}
+                />
+                <div className="absolute inset-x-0 bottom-1 h-px bg-on-surface/25" />
+                {RUNNER_OBSTACLES.map((obstacle) => (
+                  <div
+                    key={obstacle}
+                    className="absolute bottom-1 h-3 w-2.5 -translate-x-1/2 -skew-x-12 bg-primary-container shadow-hard-xs"
+                    style={{ left: `calc(${obstacle} * (100% - ${RUNNER_SIZE}px) + ${anchor}px)` }}
+                  />
+                ))}
+                <div
+                  className="absolute top-1 left-0 flex -skew-x-12 items-center gap-1 px-2 py-0.5 transition-[left,translate] duration-300 motion-reduce:transition-none"
+                  style={{ left: width, translate: `-${width}` }}
                 >
-                  <span className="skew-x-12 font-hud text-[16px] font-black uppercase tracking-widest text-secondary">
+                  <span
+                    className={`skew-x-12 font-hud text-[13px] font-black uppercase tracking-widest ${
+                      isYou ? "text-secondary-fixed" : "text-secondary"
+                    }`}
+                  >
                     {racer.name}
                   </span>
-                  {racer.isBot && <Icon name="smart_toy" size={16} className="skew-x-12 text-outline" />}
+                  {racer.isBot && <Icon name="smart_toy" size={14} className="skew-x-12 text-outline" />}
                   {isYou && (
                     <span className="skew-x-12 bg-secondary-fixed px-1 font-hud text-[10px] font-black uppercase text-on-secondary-fixed">
                       {dictionary.you}
                     </span>
                   )}
                 </div>
-                {isYou && <div className="h-6 w-2.5 skew-x-12 bg-secondary-fixed motion-safe:animate-pulse" />}
+                <div
+                  className="absolute bottom-0 left-0 transition-[translate] duration-300 ease-linear motion-reduce:transition-none"
+                  style={{ translate: `calc(${racer.progress} * (100cqw - 100%)) 0` }}
+                >
+                  <RaceRunner
+                    character={characters.joker}
+                    progress={racer.progress}
+                    wpm={racer.wpm}
+                    isFinished={racer.isFinished}
+                    isYou={isYou}
+                    now={now}
+                  />
+                </div>
               </div>
 
-              <div aria-hidden="true" className="pointer-events-none relative z-10 flex w-full items-center justify-end gap-4 pr-1">
+              {/* Fixed width so every lane's course has the same length. */}
+              <div aria-hidden="true" className="flex w-52 shrink-0 items-center justify-end gap-4 px-3">
                 <span className="font-hud text-[17px] font-black tracking-widest text-secondary">
                   {formatMessage(dictionary.wpmValue, { wpm: number.format(racer.wpm) })}
                 </span>

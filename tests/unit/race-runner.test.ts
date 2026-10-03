@@ -4,7 +4,6 @@ import {
   RUNNER_JUMP_MS,
   crossesObstacle,
   initialRunnerState,
-  nextRunnerChangeAt,
   runSpeed,
   runnerAnimation,
   updateRunner,
@@ -81,19 +80,6 @@ describe("runner", () => {
     const jumping = updateRunner(initialRunnerState(0.74), 0.76, 1000);
     expect(runnerAnimation(jumping, true, 1000)).toBe("victory");
     expect(runnerAnimation(updateRunner(initialRunnerState(0.9), 1, 1000), false, 5000)).toBe("victory");
-  });
-});
-
-describe("nextRunnerChangeAt", () => {
-  it("is null for a runner standing still", () => {
-    expect(nextRunnerChangeAt(initialRunnerState(0), 0)).toBeNull();
-  });
-
-  it("is the earliest of the jump end and the moment the runner stops", () => {
-    const state = updateRunner(initialRunnerState(0.24), 0.26, 1000);
-    expect(nextRunnerChangeAt(state, 1000)).toBe(1000 + RUNNER_JUMP_MS);
-    expect(nextRunnerChangeAt(state, 1000 + RUNNER_JUMP_MS)).toBe(1000 + RUNNER_IDLE_AFTER_MS);
-    expect(nextRunnerChangeAt(state, 1000 + RUNNER_IDLE_AFTER_MS)).toBeNull();
   });
 });
 
