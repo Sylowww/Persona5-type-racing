@@ -10,9 +10,11 @@ import { ResultsActions } from "@/features/results/components/results-actions";
 import { ResultsBanner } from "@/features/results/components/results-banner";
 import { ResultsCutIn } from "@/features/results/components/results-cut-in";
 import { ResultsPodium } from "@/features/results/components/results-podium";
+import { SaveGuestRace } from "@/features/results/components/save-guest-race";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
 import { resultsVerdict } from "@/lib/cut-in";
+import { recordFromResult } from "@/lib/race-history";
 import { rankRacers } from "@/lib/results";
 
 type Params = { params: Promise<{ locale: string; code: string }> };
@@ -37,6 +39,8 @@ export default async function RaceResultsPage({ params }: Params) {
   const place = ranked.findIndex((racer) => racer.id === result.youId) + 1;
   const you = ranked[place - 1];
   if (!you) notFound();
+  // Registered players' results are saved by the server when the race ends; guests keep theirs in this tab.
+  const guestRecord = user.kind === "guest" ? recordFromResult(result) : null;
 
   return (
     <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
@@ -53,6 +57,7 @@ export default async function RaceResultsPage({ params }: Params) {
           </div>
           <ResultsActions dictionary={dictionary.actions} lobbyHref={lobbyHref} />
           {view && <LobbyPresence locale={locale} initialView={view} />}
+          {guestRecord && <SaveGuestRace record={guestRecord} />}
         </div>
       </div>
     </main>

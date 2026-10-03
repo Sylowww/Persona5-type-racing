@@ -5,21 +5,25 @@ import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import type { LeaderboardEntry } from "@/types/player";
+import type { PlayerStats } from "@/types/race";
 import type { User } from "@/types/user";
+import { DossierStats } from "./dossier-stats";
+import { GuestDossierStats } from "./guest-dossier-stats";
 import { KeyAudioToggle } from "./key-audio-toggle";
 import { RivalLeaderboard } from "./rival-leaderboard";
-import { StatTile } from "./stat-tile";
 
 type PlayerDossierProps = {
   locale: Locale;
   dictionary: Dictionary["home"]["dossier"];
   /** Signed-in registered user, or null for visitors and guests. */
   user: User | null;
+  /** Saved stats of the registered user; guests' stats are read from their browser tab. */
+  stats: PlayerStats | null;
   leaderboard: readonly LeaderboardEntry[];
 };
 
-// Race results are not persisted yet, so every stat shows its empty state.
-export function PlayerDossier({ locale, dictionary, user, leaderboard }: PlayerDossierProps) {
+// The radar stays empty until it is computed from saved races.
+export function PlayerDossier({ locale, dictionary, user, stats, leaderboard }: PlayerDossierProps) {
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
 
   return (
@@ -85,11 +89,11 @@ export function PlayerDossier({ locale, dictionary, user, leaderboard }: PlayerD
           )}
         </div>
 
-        <dl className="grid grid-cols-3 gap-1">
-          <StatTile label={dictionary.stats.record} value="—" note={dictionary.stats.empty} valueColor="text-primary-container" noteColor="text-on-surface-variant" />
-          <StatTile label={dictionary.stats.accuracy} value="—" note={dictionary.stats.empty} valueColor="text-secondary" noteColor="text-on-surface-variant" />
-          <StatTile label={dictionary.stats.races} value="0" note={dictionary.stats.empty} valueColor="text-secondary-fixed" noteColor="text-on-surface-variant" />
-        </dl>
+        {user && stats ? (
+          <DossierStats dictionary={dictionary.stats} stats={stats} />
+        ) : (
+          <GuestDossierStats dictionary={dictionary.stats} sessionNote={dictionary.guest.sessionNote} />
+        )}
 
         <section className="flex flex-col gap-2 bg-surface-container-lowest p-4 shadow-hard-sm shadow-surface-container-high">
           <h3 className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary">{dictionary.radar.title}</h3>
