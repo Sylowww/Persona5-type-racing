@@ -6,6 +6,17 @@ export type Random = () => number;
 /** Intensity reached when the countdown ends; the race then climbs from here to 1 at the time limit. */
 export const COUNTDOWN_PEAK = 0.3;
 
+/** Leader progress (share of the text) at which the palace falls into total chaos. */
+export const CHAOS_PROGRESS = 0.5;
+
+/** How much more debris falls once in chaos. */
+const CHAOS_SPAWN_FACTOR = 2.5;
+
+/** True once the leading racer reached the middle of the text; it stays true for the rest of the race. */
+export function isChaos(leaderProgress: number): boolean {
+  return leaderProgress >= CHAOS_PROGRESS;
+}
+
 /** Length of the final collapse played before showing the results. */
 export const FINAL_COLLAPSE_MS = 2200;
 
@@ -25,15 +36,15 @@ export function collapseIntensity(now: number, startsAt: number, endsAt: number,
   return COUNTDOWN_PEAK + (1 - COUNTDOWN_PEAK) * Math.sqrt(elapsed);
 }
 
-/** Delay until the next rumble: rare and gentle at first, more frequent as the palace gives way. */
-export function nextRumbleDelayMs(intensity: number, random: Random): number {
-  const base = 9000 - 6500 * clamp01(intensity);
+/** Delay until the next rumble: rare and gentle at first, more frequent as the palace gives way, constant in chaos. */
+export function nextRumbleDelayMs(intensity: number, random: Random, chaos = false): number {
+  const base = chaos ? 1300 : 9000 - 6500 * clamp01(intensity);
   return base * (0.6 + 0.8 * random());
 }
 
-/** Shake amplitude in px; kept small so the text stays easy to read. */
-export function rumbleAmplitude(intensity: number): number {
-  return 1 + 4 * clamp01(intensity);
+/** Shake amplitude in px; small so the text stays easy to read, stronger in chaos. */
+export function rumbleAmplitude(intensity: number, chaos = false): number {
+  return chaos ? 6 + 2 * clamp01(intensity) : 1 + 4 * clamp01(intensity);
 }
 
 export type Rumble = { startedAt: number; durationMs: number; amplitude: number };
@@ -132,23 +143,27 @@ export function stepDebris(debris: readonly Debris[], dtMs: number, floor: numbe
   return next;
 }
 
-/** Average new pieces per second for each layer at a given intensity. */
-export function spawnRates(intensity: number): {
+/** Average new pieces per second for each layer at a given intensity (much more in chaos). */
+export function spawnRates(
+  intensity: number,
+  chaos = false,
+): {
   dust: number;
   chunk: number;
   grit: number;
   frontChunk: number;
   stream: number;
 } {
-  const i = clamp01(intensity);
+  const i = chaos ? 1 : clamp01(intensity);
+  const factor = chaos ? CHAOS_SPAWN_FACTOR : 1;
   return {
-    dust: 12 + 45 * i,
-    chunk: 1 + 6 * i,
-    grit: 3 + 10 * i,
+    dust: (12 + 45 * i) * factor,
+    chunk: (1 + 6 * i) * factor,
+    grit: (3 + 10 * i) * factor,
     /** Small chunks drawn in front of the panels. */
-    frontChunk: 0.2 + 1.6 * i,
+    frontChunk: (0.2 + 1.6 * i) * factor,
     /** Dust pouring from each crack's tip. */
-    stream: 4 + 14 * i,
+    stream: (4 + 14 * i) * factor,
   };
 }
 

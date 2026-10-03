@@ -159,7 +159,13 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
             : dictionary.arena.waiting;
 
   return (
-    <PalaceCollapse now={now} startsAt={startsAt} endsAt={race?.endsAt ?? startsAt} collapsing={resultsHref !== null}>
+    <PalaceCollapse
+      now={now}
+      startsAt={startsAt}
+      endsAt={race?.endsAt ?? startsAt}
+      leaderProgress={Math.max(0, ...racers.map((racer) => racer.progress))}
+      collapsing={resultsHref !== null}
+    >
       <div className="flex flex-col gap-4">
         <RaceHud
           dictionary={dictionary.hud}

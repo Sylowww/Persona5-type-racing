@@ -3,9 +3,11 @@ import {
   COUNTDOWN_PEAK,
   collapseIntensity,
   crackTip,
+  isChaos,
   createDebris,
   generateCrack,
   nextRumbleDelayMs,
+  rumbleAmplitude,
   rumbleOffset,
   spawnCount,
   spawnRates,
@@ -47,6 +49,20 @@ describe("rumbles", () => {
     expect(Math.abs(offset.y)).toBeLessThanOrEqual(4);
     expect(rumbleOffset(rumble, 400)).toEqual({ x: 0, y: 0 });
     expect(rumbleOffset(null, 50)).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe("chaos", () => {
+  it("starts when the leader reaches the middle of the text", () => {
+    expect(isChaos(0.49)).toBe(false);
+    expect(isChaos(0.5)).toBe(true);
+    expect(isChaos(1)).toBe(true);
+  });
+
+  it("brings more debris, stronger and more frequent rumbles", () => {
+    expect(spawnRates(0.4, true).chunk).toBeGreaterThan(spawnRates(1).chunk);
+    expect(rumbleAmplitude(0.4, true)).toBeGreaterThan(rumbleAmplitude(1));
+    expect(nextRumbleDelayMs(0.4, () => 0.5, true)).toBeLessThan(nextRumbleDelayMs(1, () => 0.5));
   });
 });
 

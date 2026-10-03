@@ -6,6 +6,7 @@ import {
   crackTip,
   createDebris,
   generateCrack,
+  isChaos,
   nextRumbleDelayMs,
   rumbleAmplitude,
   rumbleOffset,
@@ -24,14 +25,18 @@ type PalaceCollapseProps = {
   now: number;
   startsAt: number;
   endsAt: number;
+  /** Progress of the leading racer, from 0 to 1: total chaos from the middle of the text. */
+  leaderProgress: number;
   /** True once the race is over: plays the final collapse (the page navigates afterwards). */
   collapsing: boolean;
   children: ReactNode;
 };
 
 const CRACK_COUNT = 7;
-const MAX_BACK = 360;
-const MAX_FRONT = 300;
+const MAX_BACK = 700;
+const MAX_FRONT = 450;
+/** Rumble amplitude that marks the palace falling into chaos. */
+const CHAOS_ONSET = 9;
 /** When the final wedges finish closing (see .palace-wedge-* in globals.css). */
 const SLAM_MS = 1350;
 
@@ -101,22 +106,33 @@ function drawCrack(context: CanvasRenderingContext2D, crack: Crack, intensity: n
 
 /**
  * Decorative collapsing-palace atmosphere around the race: cracks and debris behind the panels, light grit in
- * front, an alarm vignette and short rumbles that grow with the elapsed time, then a final collapse.
+ * front, an alarm vignette and short rumbles that grow with the elapsed time, total chaos once the leader is halfway,
+ * then a final collapse.
  * Everything is aria-hidden and ignores pointer events; reduced motion keeps only the static cracks and vignette.
  */
-export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: PalaceCollapseProps) {
+export function PalaceCollapse({ now, startsAt, endsAt, leaderProgress, collapsing, children }: PalaceCollapseProps) {
   const backRef = useRef<HTMLCanvasElement>(null);
   const frontRef = useRef<HTMLCanvasElement>(null);
   const shakeRef = useRef<HTMLDivElement>(null);
-  const intensity = collapsing ? 1 : collapseIntensity(now, startsAt, endsAt);
+  const chaos = !collapsing && isChaos(leaderProgress);
+  const intensity = collapsing || chaos ? 1 : collapseIntensity(now, startsAt, endsAt);
   const intensityRef = useRef(intensity);
+  const chaosRef = useRef(chaos);
   const collapsingRef = useRef(collapsing);
   const pendingRumbleRef = useRef<number | null>(null);
 
   useEffect(() => {
     intensityRef.current = intensity;
+    chaosRef.current = chaos;
     collapsingRef.current = collapsing;
-  }, [intensity, collapsing]);
+  }, [intensity, chaos, collapsing]);
+
+  // The palace gives way the moment the leader reaches the middle (not on a reload that is already past it).
+  const wasChaosRef = useRef(chaos);
+  useEffect(() => {
+    if (chaos && !wasChaosRef.current) pendingRumbleRef.current = CHAOS_ONSET;
+    wasChaosRef.current = chaos;
+  }, [chaos]);
 
   // A rumble on each countdown second (3, 2, 1) and a stronger one at the start.
   const secondsLeft = now < startsAt ? Math.ceil((startsAt - now) / 1000) : 0;
@@ -186,6 +202,7 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
       const dt = Math.min(50, time - last);
       last = time;
       const level = intensityRef.current;
+      const inChaos = chaosRef.current;
       const isCollapsing = collapsingRef.current;
       if (isCollapsing && collapseStartedAt === null) {
         collapseStartedAt = time;
@@ -194,7 +211,7 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
 
       let offset = { x: 0, y: 0 };
       if (!reducedMotion) {
-        const rates = spawnRates(level);
+        const rates = spawnRates(level, inChaos);
         spawn(backDebris, "dust", rates.dust, dt, MAX_BACK);
         spawn(backDebris, "chunk", rates.chunk, dt, MAX_BACK);
         spawn(frontDebris, "dust", rates.grit, dt, MAX_FRONT);
@@ -215,12 +232,13 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
         } else if (pending !== null || time >= nextRumbleAt) {
           rumble = {
             startedAt: time,
-            durationMs: 350 + 300 * level,
-            amplitude: pending ?? rumbleAmplitude(level),
+            durationMs: pending === CHAOS_ONSET ? 1400 : 350 + 300 * level + (inChaos ? 300 : 0),
+            amplitude: pending ?? rumbleAmplitude(level, inChaos),
           };
           playRumble(rumble.amplitude / 5, rumble.durationMs);
-          burst(pending !== null && pending >= 5 ? 14 : 4 + Math.round(level * 8));
-          nextRumbleAt = time + nextRumbleDelayMs(level, random);
+          if (pending === CHAOS_ONSET) for (let index = 0; index < 4; index++) burst(14);
+          else burst(pending !== null && pending >= 5 ? 14 : 4 + Math.round(level * 8) + (inChaos ? 8 : 0));
+          nextRumbleAt = time + nextRumbleDelayMs(level, random, inChaos);
         }
         pendingRumbleRef.current = null;
 
@@ -265,9 +283,9 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-40 transition-opacity duration-1000"
-        style={{ opacity: 0.15 + 0.6 * intensity }}
+        style={{ opacity: chaos ? 1 : 0.15 + 0.6 * intensity }}
       >
-        <div className="palace-alarm size-full" />
+        <div className={`palace-alarm size-full ${chaos ? "palace-alarm-chaos" : ""}`} />
       </div>
       <canvas ref={frontRef} aria-hidden="true" className="pointer-events-none fixed inset-0 z-40 size-full" />
       {collapsing && (

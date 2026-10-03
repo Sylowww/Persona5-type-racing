@@ -72,6 +72,7 @@ Each racer on the race track is an animated character running along their lane (
 The race page feels like escaping a collapsing palace (`features/race/components/palace-collapse.tsx`, pure logic in `lib/palace-collapse.ts`). It is decorative only and never changes the race.
 
 - **Intensity follows time only**: 0 → 0.3 over the 3 s countdown (with a rumble on 3, 2, 1 and a stronger one at the start), then up to 1 at the time limit (square-root curve so short races still escalate).
+- **Total chaos** once the leading racer reaches half of the text (`CHAOS_PROGRESS`): a long, heavy rumble with rubble pouring from the ceiling, then 2.5× more debris, strong rumbles (6 to 8 px) every second or so, cracks fully open and a fast, full-strength alarm. It lasts until the final collapse; a reload past the middle resumes the chaos without replaying the onset.
 - **Behind the panels** (canvas at `-z-10`): red-lit cracks opening from the top edge with dust pouring from their tips, falling dust and stone chunks, and bursts of rubble on each rumble.
 - **In front** (canvas at `z-40`): light grit and a few small stones, plus a pulsing red alarm vignette at the screen edges. No large shapes cross the typing text during the race.
 - **Rumbles**: short, uneven shakes of the race content (1 to 5 px), more frequent as intensity rises.
