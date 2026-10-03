@@ -1,12 +1,16 @@
+import type { CharacterId } from "./character";
 import type { PlayerEmblem } from "./lobby";
 
 export type RaceRacer = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
+  character: CharacterId;
   /** Share of the text completed, from 0 to 1. */
   progress: number;
   wpm: number;
+  /** Mistakes made so far; only used to animate the runner. */
+  mistakes: number;
   isFinished: boolean;
   isBot: boolean;
   isConnected: boolean;

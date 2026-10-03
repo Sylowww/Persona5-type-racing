@@ -3,7 +3,7 @@
 | Command | What |
 | --- | --- |
 | `npm run lint` | ESLint |
-| `npm run typecheck` | `tsc --noEmit` (strict) |
+| `npm run typecheck` | `next typegen` (route types such as `RouteContext`), then `tsc --noEmit` (strict) |
 | `npm test` | Vitest unit tests in `tests/unit/` |
 | `npm run build` | Production build |
 | `npm run test:e2e` | Playwright tests in `tests/e2e/` (run `npx playwright install chromium` once) |

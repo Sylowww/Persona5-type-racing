@@ -4,6 +4,8 @@ import { getPool } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { generateSessionToken, hashSessionToken, sessionExpiry } from "@/lib/auth/session-token";
 import { guestUsername, normalizeEmail } from "@/lib/auth/validation";
+import { DEFAULT_CHARACTER, isCharacterId } from "@/lib/characters";
+import type { CharacterId } from "@/types/character";
 import type { OAuthProvider, User } from "@/types/user";
 
 type UserRow = {
@@ -13,10 +15,11 @@ type UserRow = {
   email: string | null;
   avatar_url: string | null;
   locale: User["locale"];
+  character_id: string;
   created_at: Date;
 };
 
-const USER_COLUMNS = "id, kind, username, email, avatar_url, locale, created_at";
+const USER_COLUMNS = "id, kind, username, email, avatar_url, locale, character_id, created_at";
 
 function toUser(row: UserRow): User {
   return {
@@ -26,6 +29,8 @@ function toUser(row: UserRow): User {
     email: row.email,
     avatarUrl: row.avatar_url,
     locale: row.locale,
+    // A character removed from the game falls back to the default.
+    character: isCharacterId(row.character_id) ? row.character_id : DEFAULT_CHARACTER,
     createdAt: row.created_at,
   };
 }
@@ -179,4 +184,8 @@ export async function getLinkedProviders(userId: string): Promise<OAuthProvider[
     [userId],
   );
   return rows.map((row) => row.provider);
+}
+
+export async function setUserCharacter(userId: string, character: CharacterId): Promise<void> {
+  await getPool().query("UPDATE users SET character_id = $1, updated_at = now() WHERE id = $2", [character, userId]);
 }
