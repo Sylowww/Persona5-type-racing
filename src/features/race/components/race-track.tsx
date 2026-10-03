@@ -2,7 +2,7 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import { characters } from "@/lib/characters";
+import { characterSprite } from "@/lib/characters";
 import { RUNNER_OBSTACLES } from "@/lib/race-runner";
 import type { RaceRacer } from "@/types/race";
 import { RaceRunner, RUNNER_SIZE } from "./race-runner";
@@ -44,7 +44,7 @@ export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackP
       <ol className="flex flex-col gap-1.5">
         {racers.map((racer, index) => {
           const isYou = racer.id === youId;
-          const character = characters[racer.character];
+          const character = characterSprite(racer.character);
           const anchor = (character.anchorX / character.frameSize) * RUNNER_SIZE;
           const width = `${racer.progress * 100}%`;
           const label = formatMessage(dictionary.progress, {

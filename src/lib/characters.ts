@@ -77,6 +77,11 @@ export function isCharacterId(value: unknown): value is CharacterId {
   return typeof value === "string" && Object.hasOwn(characters, value);
 }
 
+/** Sprite for a character id; an unknown id (e.g. a page older than the server) falls back to the default. */
+export function characterSprite(id: string): CharacterSprite {
+  return isCharacterId(id) ? characters[id] : characters[DEFAULT_CHARACTER];
+}
+
 /** Bots get a random character. */
 export function randomCharacter(random: () => number): CharacterId {
   return characterIds[Math.min(Math.floor(random() * characterIds.length), characterIds.length - 1)];
