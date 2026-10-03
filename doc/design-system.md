@@ -72,10 +72,12 @@ Each racer on the race track is an animated character running along their lane (
 The race page feels like escaping a collapsing palace (`features/race/components/palace-collapse.tsx`, pure logic in `lib/palace-collapse.ts`). It is decorative only and never changes the race.
 
 - **Intensity follows time only**: 0 → 0.3 over the 3 s countdown (with a rumble on 3, 2, 1 and a stronger one at the start), then up to 1 at the time limit (square-root curve so short races still escalate).
-- **Behind the panels** (canvas at `-z-10`): red-lit cracks opening from the top edge and falling dust and stone chunks, with bursts on each rumble.
-- **In front** (canvas at `z-40`): only light grit, plus a pulsing red alarm vignette at the screen edges. Nothing covers the typing text with solid shapes.
+- **Behind the panels** (canvas at `-z-10`): red-lit cracks opening from the top edge with dust pouring from their tips, falling dust and stone chunks, and bursts of rubble on each rumble.
+- **In front** (canvas at `z-40`): light grit and a few small stones, plus a pulsing red alarm vignette at the screen edges. No large shapes cross the typing text during the race.
 - **Rumbles**: short, uneven shakes of the race content (1 to 5 px), more frequent as intensity rises.
 - **Final collapse**: once the server ends the race (everyone finished or time ran out), debris and shards pour down for `FINAL_COLLAPSE_MS` (2.2 s), black diagonal wedges slam shut with a red seam, then the page opens the results.
+- **Results reveal** (`features/results/components/collapse-reveal.tsx`): the results page starts with the same wedges closed, then splits them apart (pure CSS, so there is no flash before hydration). It plays on every load of the results page.
+- **Sound effects** (`lib/sound-effects.ts`): synthesized with the Web Audio API, no audio files. A deep rumble with falling stones on each rumble (louder as intensity rises), a crash and a slam for the final collapse, a whoosh for the results reveal. The header's mute button silences music and effects together.
 - **Reduced motion**: no shake, no falling debris; cracks and the vignette stay static and the wedges fade in.
 
 ## Responsive
