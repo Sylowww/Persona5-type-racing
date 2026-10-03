@@ -88,12 +88,21 @@ function shardShape(random: Random): [number, number][] {
   ];
 }
 
-/** One piece of debris just above the top edge (or at `x`, `y` for a burst). */
-export function createDebris(kind: DebrisKind, width: number, random: Random, at?: { x: number; y: number }): Debris {
-  const size = kind === "dust" ? 1 + random() * 2 : kind === "chunk" ? 4 + random() * 10 : 8 + random() * 22;
+/**
+ * One piece of debris just above the top edge, or around `at` (a burst or a dust stream; `spread` is its width).
+ * `scale` shrinks or enlarges it, e.g. small chunks falling in front of the panels.
+ */
+export function createDebris(
+  kind: DebrisKind,
+  width: number,
+  random: Random,
+  options: { at?: { x: number; y: number }; spread?: number; scale?: number } = {},
+): Debris {
+  const { at, spread = 80, scale = 1 } = options;
+  const size = scale * (kind === "dust" ? 1 + random() * 2.5 : kind === "chunk" ? 5 + random() * 17 : 8 + random() * 22);
   return {
     kind,
-    x: at ? at.x + (random() - 0.5) * 80 : random() * width,
+    x: at ? at.x + (random() - 0.5) * spread : random() * width,
     y: at ? at.y + random() * 20 : -size * 2,
     vx: (random() - 0.5) * (kind === "dust" ? 20 : 90),
     vy: kind === "dust" ? 15 + random() * 35 : 40 + random() * 160,
@@ -124,9 +133,23 @@ export function stepDebris(debris: readonly Debris[], dtMs: number, floor: numbe
 }
 
 /** Average new pieces per second for each layer at a given intensity. */
-export function spawnRates(intensity: number): { dust: number; chunk: number; grit: number } {
+export function spawnRates(intensity: number): {
+  dust: number;
+  chunk: number;
+  grit: number;
+  frontChunk: number;
+  stream: number;
+} {
   const i = clamp01(intensity);
-  return { dust: 6 + 30 * i, chunk: 0.3 + 2.7 * i, grit: 1 + 5 * i };
+  return {
+    dust: 12 + 45 * i,
+    chunk: 1 + 6 * i,
+    grit: 3 + 10 * i,
+    /** Small chunks drawn in front of the panels. */
+    frontChunk: 0.2 + 1.6 * i,
+    /** Dust pouring from each crack's tip. */
+    stream: 4 + 14 * i,
+  };
 }
 
 /** How many pieces to spawn this frame for an average `perSecond` rate (random rounding keeps the average). */
@@ -150,6 +173,11 @@ export function generateCrack(width: number, height: number, random: Random): Cr
     points.push([x, y]);
   }
   return points;
+}
+
+/** End of the visible part of a crack, where dust pours from; null while the crack is closed. */
+export function crackTip(crack: Crack, intensity: number): readonly [number, number] | null {
+  return visibleCrack(crack, intensity).at(-1) ?? null;
 }
 
 /** Part of a crack visible at an intensity: cracks open as the palace weakens. */

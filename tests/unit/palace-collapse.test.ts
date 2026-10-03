@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   COUNTDOWN_PEAK,
   collapseIntensity,
+  crackTip,
   createDebris,
   generateCrack,
   nextRumbleDelayMs,
@@ -58,6 +59,13 @@ describe("debris", () => {
     expect(stepDebris([{ ...chunk, y: 1000 }], 16, 600)).toEqual([]);
   });
 
+  it("starts around a burst point, scaled", () => {
+    const piece = createDebris("chunk", 800, () => 0.5, { at: { x: 100, y: 50 }, scale: 0.5 });
+    expect(piece.x).toBe(100);
+    expect(piece.y).toBeGreaterThanOrEqual(50);
+    expect(piece.size).toBeLessThan(createDebris("chunk", 800, () => 0.5).size);
+  });
+
   it("spawns more as intensity rises, keeping the average rate", () => {
     expect(spawnRates(1).chunk).toBeGreaterThan(spawnRates(0).chunk);
     expect(spawnCount(10, 1000, () => 0.9)).toBe(10);
@@ -75,5 +83,7 @@ describe("cracks", () => {
     expect(visibleCrack(crack, 0)).toEqual([]);
     expect(visibleCrack(crack, 0.5).length).toBeLessThan(crack.length);
     expect(visibleCrack(crack, 1)).toEqual(crack);
+    expect(crackTip(crack, 0)).toBeNull();
+    expect(crackTip(crack, 1)).toEqual(crack.at(-1));
   });
 });

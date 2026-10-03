@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import {
   collapseIntensity,
+  crackTip,
   createDebris,
   generateCrack,
   nextRumbleDelayMs,
@@ -16,6 +17,7 @@ import {
   type Debris,
   type Rumble,
 } from "@/lib/palace-collapse";
+import { playFinalCollapse, playRumble } from "@/lib/sound-effects";
 
 type PalaceCollapseProps = {
   /** Server-aligned race clock. */
@@ -28,8 +30,10 @@ type PalaceCollapseProps = {
 };
 
 const CRACK_COUNT = 7;
-const MAX_BACK = 160;
-const MAX_FRONT = 220;
+const MAX_BACK = 360;
+const MAX_FRONT = 300;
+/** When the final wedges finish closing (see .palace-wedge-* in globals.css). */
+const SLAM_MS = 1350;
 
 type Palette = { dust: string; stone: string; stoneLight: string; red: string; black: string };
 
@@ -162,13 +166,20 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
 
     const burst = (count: number) => {
       const at = { x: random() * width, y: -10 };
-      for (let index = 0; index < count; index++) backDebris.push(createDebris("chunk", width, random, at));
-      for (let index = 0; index < count * 4; index++) backDebris.push(createDebris("dust", width, random, at));
+      for (let index = 0; index < count; index++) backDebris.push(createDebris("chunk", width, random, { at, spread: 140 }));
+      for (let index = 0; index < count * 6; index++) backDebris.push(createDebris("dust", width, random, { at, spread: 140 }));
     };
 
-    const spawn = (list: Debris[], kind: Debris["kind"], perSecond: number, dt: number, max: number) => {
+    const spawn = (
+      list: Debris[],
+      kind: Debris["kind"],
+      perSecond: number,
+      dt: number,
+      max: number,
+      options?: Parameters<typeof createDebris>[3],
+    ) => {
       const count = spawnCount(perSecond, dt, random);
-      for (let index = 0; index < count && list.length < max; index++) list.push(createDebris(kind, width, random));
+      for (let index = 0; index < count && list.length < max; index++) list.push(createDebris(kind, width, random, options));
     };
 
     const render = (time: number) => {
@@ -176,7 +187,10 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
       last = time;
       const level = intensityRef.current;
       const isCollapsing = collapsingRef.current;
-      if (isCollapsing && collapseStartedAt === null) collapseStartedAt = time;
+      if (isCollapsing && collapseStartedAt === null) {
+        collapseStartedAt = time;
+        playFinalCollapse(SLAM_MS);
+      }
 
       let offset = { x: 0, y: 0 };
       if (!reducedMotion) {
@@ -184,10 +198,15 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
         spawn(backDebris, "dust", rates.dust, dt, MAX_BACK);
         spawn(backDebris, "chunk", rates.chunk, dt, MAX_BACK);
         spawn(frontDebris, "dust", rates.grit, dt, MAX_FRONT);
+        spawn(frontDebris, "chunk", rates.frontChunk, dt, MAX_FRONT, { scale: 0.45 });
+        for (const crack of cracks) {
+          const tip = crackTip(crack, level);
+          if (tip) spawn(backDebris, "dust", rates.stream, dt, MAX_BACK, { at: { x: tip[0], y: tip[1] }, spread: 8 });
+        }
         if (isCollapsing) {
-          spawn(backDebris, "chunk", 14, dt, MAX_BACK);
-          spawn(frontDebris, "chunk", 26, dt, MAX_FRONT);
-          spawn(frontDebris, "shard", 16, dt, MAX_FRONT);
+          spawn(backDebris, "chunk", 30, dt, MAX_BACK);
+          spawn(frontDebris, "chunk", 34, dt, MAX_FRONT);
+          spawn(frontDebris, "shard", 20, dt, MAX_FRONT);
         }
 
         const pending = pendingRumbleRef.current;
@@ -199,7 +218,8 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
             durationMs: 350 + 300 * level,
             amplitude: pending ?? rumbleAmplitude(level),
           };
-          burst(pending !== null && pending >= 5 ? 8 : 2 + Math.round(level * 4));
+          playRumble(rumble.amplitude / 5, rumble.durationMs);
+          burst(pending !== null && pending >= 5 ? 14 : 4 + Math.round(level * 8));
           nextRumbleAt = time + nextRumbleDelayMs(level, random);
         }
         pendingRumbleRef.current = null;
@@ -213,12 +233,12 @@ export function PalaceCollapse({ now, startsAt, endsAt, collapsing, children }: 
       backContext.clearRect(0, 0, width, height);
       backContext.save();
       backContext.translate(offset.x * 0.5, offset.y * 0.5);
-      for (const crack of cracks) drawCrack(backContext!, crack, level, palette);
-      for (const piece of backDebris) drawDebris(backContext!, piece, palette);
+      for (const crack of cracks) drawCrack(backContext, crack, level, palette);
+      for (const piece of backDebris) drawDebris(backContext, piece, palette);
       backContext.restore();
 
       frontContext.clearRect(0, 0, width, height);
-      for (const piece of frontDebris) drawDebris(frontContext!, piece, palette);
+      for (const piece of frontDebris) drawDebris(frontContext, piece, palette);
       if (collapseStartedAt !== null) {
         frontContext.globalAlpha = Math.min(0.55, (time - collapseStartedAt) / 2000);
         frontContext.fillStyle = palette.black;
