@@ -123,9 +123,10 @@ describe("character ids", () => {
   it("picks a random character, even at the edge of the range", () => {
     expect(randomCharacter(() => 0)).toBe("joker");
     expect(randomCharacter(() => 0.2)).toBe("mona");
-    expect(randomCharacter(() => 0.5)).toBe("panther");
-    expect(randomCharacter(() => 0.7)).toBe("skull");
-    expect(randomCharacter(() => 0.99)).toBe("fox");
-    expect(randomCharacter(() => 1)).toBe("fox");
+    expect(randomCharacter(() => 0.4)).toBe("panther");
+    expect(randomCharacter(() => 0.55)).toBe("skull");
+    expect(randomCharacter(() => 0.7)).toBe("fox");
+    expect(randomCharacter(() => 0.99)).toBe("queen");
+    expect(randomCharacter(() => 1)).toBe("queen");
   });
 });

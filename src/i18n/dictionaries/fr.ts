@@ -335,7 +335,7 @@ const fr: Dictionary = {
       title: "Voleur fantôme",
       hint: "Le personnage avec lequel tu cours. Le changement s'applique au prochain lobby que tu rejoins.",
       selected: "Choisi",
-      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox" },
+      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen" },
     },
     accounts: {
       title: "Méthodes de connexion",
