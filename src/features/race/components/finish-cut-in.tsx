@@ -13,7 +13,7 @@ type FinishCutInProps = {
 
 /**
  * "All-Out Attack" style freeze frame when the local player reaches the exit: a red slash across a black
- * screen with their character's silhouette. Shown briefly by the race page; decorative and aria-hidden.
+ * screen with their character in their victory pose. Shown briefly by the race page; decorative and aria-hidden.
  */
 export function FinishCutIn({ dictionary, character }: FinishCutInProps) {
   // The ref keeps the sound from playing twice when development mode runs effects twice.
@@ -30,7 +30,7 @@ export function FinishCutIn({ dictionary, character }: FinishCutInProps) {
       <div className="finish-slash absolute inset-x-[-10%] top-[22%] h-[56%] -rotate-6 bg-primary-container" />
       <div className="finish-slash absolute inset-x-[-10%] top-[22%] h-3 -rotate-6 bg-secondary" />
       <div className="relative flex h-full items-center justify-center gap-6 px-4">
-        <div className="finish-pop [filter:brightness(0)_drop-shadow(6px_6px_0_var(--color-secondary))] max-md:scale-75">
+        <div className="finish-pop [filter:drop-shadow(0_0_2px_var(--color-surface-container-lowest))_drop-shadow(6px_6px_0_var(--color-surface-container-lowest))] max-md:scale-75">
           <SpriteFrames character={character} animation="victory" size={300} />
         </div>
         <div className="finish-pop flex flex-col items-start gap-2">
