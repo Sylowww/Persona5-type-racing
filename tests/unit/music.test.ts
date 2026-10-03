@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { isHomeTheme, musicSourceFor } from "../../src/lib/music";
 
 describe("musicSourceFor", () => {
-  it("plays the race theme on the race page", () => {
-    expect(musicSourceFor("/fr/lobby/P5-ABCD/race", "home-2")).toBe("/music/race.mp3");
-    expect(musicSourceFor("/en/lobby/P5-ABCD/race/", "home-1")).toBe("/music/race.mp3");
+  it("plays the race theme from 25 s on the race page", () => {
+    expect(musicSourceFor("/fr/lobby/P5-ABCD/race", "home-2")).toBe("/music/race.mp3#t=25");
+    expect(musicSourceFor("/en/lobby/P5-ABCD/race/", "home-1")).toBe("/music/race.mp3#t=25");
   });
 
   it("plays the chosen home theme everywhere else", () => {
