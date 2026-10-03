@@ -28,6 +28,11 @@ test("two players race from lobby creation to results", async ({ browser }) => {
   await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
   await expect(guest.getByRole("heading", { name: hostName })).toBeVisible();
 
+  // The dev server compiles a page on its first visit; warm up the race and results pages now so the
+  // compile does not eat the 3 s countdown (both requests redirect back to the lobby).
+  await host.request.get(`/en/lobby/${code}/race`, { maxRedirects: 0 });
+  await host.request.get(`/en/lobby/${code}/results`, { maxRedirects: 0 });
+
   // Only the host can start, once everyone is ready.
   const start = host.getByRole("button", { name: /Start the race/i });
   await host.getByRole("button", { name: "Ready up" }).click();
