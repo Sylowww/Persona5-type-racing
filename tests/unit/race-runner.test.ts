@@ -126,7 +126,8 @@ describe("character ids", () => {
     expect(randomCharacter(() => 0.4)).toBe("panther");
     expect(randomCharacter(() => 0.55)).toBe("skull");
     expect(randomCharacter(() => 0.7)).toBe("fox");
-    expect(randomCharacter(() => 0.99)).toBe("queen");
-    expect(randomCharacter(() => 1)).toBe("queen");
+    expect(randomCharacter(() => 0.8)).toBe("queen");
+    expect(randomCharacter(() => 0.99)).toBe("oracle");
+    expect(randomCharacter(() => 1)).toBe("oracle");
   });
 });
