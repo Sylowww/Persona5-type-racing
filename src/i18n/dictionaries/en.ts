@@ -286,6 +286,7 @@ const en = {
       speaker: "Mona",
       portraitAlt: "Mona",
       escaped: "Looking cool, Joker! We made it out of the Palace!",
+      last: "Dead last?! Seriously, Joker?! Even a cat could type faster than that... and I'm NOT a cat!",
       training: "That was way too slow... You need more training. We should go to bed early tonight.",
     },
     banner: {

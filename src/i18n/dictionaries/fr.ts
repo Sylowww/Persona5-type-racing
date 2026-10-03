@@ -288,6 +288,7 @@ const fr: Dictionary = {
       speaker: "Mona",
       portraitAlt: "Mona",
       escaped: "Trop la classe, Joker ! On est sortis du palais !",
+      last: "Dernier ?! Sérieux, Joker ?! Même un chat taperait plus vite que ça... et je ne suis PAS un chat !",
       training: "Beaucoup trop lent... Tu dois t'entraîner. On devrait aller se coucher tôt ce soir.",
     },
     banner: {

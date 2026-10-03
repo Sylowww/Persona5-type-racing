@@ -22,6 +22,18 @@ export const RESULTS_CUT_IN_TIMELINE = {
   endsAt: 4650,
 } as const satisfies CutInTimeline & { delay: number };
 
+/** Mona's verdict on the results page. */
+export type ResultsVerdict = "escaped" | "last" | "training";
+
+/**
+ * `escaped` when the player finished the text, `last` when they finished but behind every other racer,
+ * `training` when they did not finish before the race ended.
+ */
+export function resultsVerdict(finished: boolean, place: number, racerCount: number): ResultsVerdict {
+  if (!finished) return "training";
+  return racerCount > 1 && place === racerCount ? "last" : "escaped";
+}
+
 /** Margin kept before the race starts, so the cut-in never hides the start. */
 const START_MARGIN_MS = 100;
 

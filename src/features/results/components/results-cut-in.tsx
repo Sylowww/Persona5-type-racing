@@ -3,24 +3,24 @@
 import Image from "next/image";
 import { CutInBand, useCutInClock } from "@/components/ui/cut-in";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import { RESULTS_CUT_IN_TIMELINE, revealedLength } from "@/lib/cut-in";
+import { RESULTS_CUT_IN_TIMELINE, revealedLength, type ResultsVerdict } from "@/lib/cut-in";
 
-/** Mona's portraits in `public/portraits/` (440 px tall): proud when the player escaped, worried otherwise. */
-const portraits = {
+/** Mona's portraits in `public/portraits/` (440 px tall), one per verdict. */
+const portraits: Record<ResultsVerdict, { src: string; width: number; height: number }> = {
   escaped: { src: "/portraits/mona-proud.webp", width: 345, height: 440 },
+  last: { src: "/portraits/mona-shocked.webp", width: 402, height: 440 },
   training: { src: "/portraits/mona-worried.webp", width: 451, height: 440 },
-} as const;
+};
 
 type ResultsCutInProps = {
   dictionary: Dictionary["results"]["cutIn"];
-  /** True when the player finished the text before the race ended (escaped the Palace). */
-  escaped: boolean;
+  verdict: ResultsVerdict;
 };
 
-/** Once the collapse wedges open, Mona congratulates the player for escaping, or tells them to train. */
-export function ResultsCutIn({ dictionary, escaped }: ResultsCutInProps) {
-  const line = escaped ? dictionary.escaped : dictionary.training;
-  const portrait = portraits[escaped ? "escaped" : "training"];
+/** Once the collapse wedges open, Mona congratulates the player, scolds them for finishing last, or tells them to train. */
+export function ResultsCutIn({ dictionary, verdict }: ResultsCutInProps) {
+  const line = dictionary[verdict];
+  const portrait = portraits[verdict];
   const elapsed = useCutInClock(true, line, RESULTS_CUT_IN_TIMELINE, RESULTS_CUT_IN_TIMELINE.delay);
 
   const image = (className: string) => (
