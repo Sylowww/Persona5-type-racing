@@ -1,3 +1,5 @@
+import type { CharacterId } from "./character";
+
 export type UserKind = "guest" | "registered";
 
 export type User = {
@@ -7,6 +9,7 @@ export type User = {
   email: string | null;
   avatarUrl: string | null;
   locale: "fr" | "en";
+  character: CharacterId;
   createdAt: Date;
 };
 

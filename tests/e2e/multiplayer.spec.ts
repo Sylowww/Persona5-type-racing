@@ -28,6 +28,11 @@ test("two players race from lobby creation to results", async ({ browser }) => {
   await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
   await expect(guest.getByRole("heading", { name: hostName })).toBeVisible();
 
+  // The dev server compiles a page on its first visit; warm up the race and results pages now so the
+  // compile does not eat the 3 s countdown (both requests redirect back to the lobby).
+  await host.request.get(`/en/lobby/${code}/race`, { maxRedirects: 0 });
+  await host.request.get(`/en/lobby/${code}/results`, { maxRedirects: 0 });
+
   // Only the host can start, once everyone is ready.
   const start = host.getByRole("button", { name: /Start the race/i });
   await host.getByRole("button", { name: "Ready up" }).click();
@@ -62,12 +67,28 @@ test("two players race from lobby creation to results", async ({ browser }) => {
   await expect(guest.getByRole("listitem", { name: new RegExp(`^${hostName}: (4|5)\\d\\s?% of the text`) })).toBeVisible();
 
   // The guest reloads mid-race and gets back the progress the server recorded.
+  // Keystrokes are sent in batches; the reload waits for the last one so the restored text is final
+  // (a batch still in flight would land after the reload and add letters the test would type again).
+  let pendingInput = 0;
+  guest.on("request", (request) => {
+    if (request.url().endsWith("/input")) pendingInput += 1;
+  });
+  const settled = (request: { url: () => string }) => {
+    if (request.url().endsWith("/input")) pendingInput -= 1;
+  };
+  guest.on("requestfinished", settled);
+  guest.on("requestfailed", settled);
   await guestInput.pressSequentially(text.slice(0, 10), { delay: KEY_DELAY_MS });
   await expect(host.getByRole("listitem", { name: new RegExp(`^${guestName}: [1-9]\\d?\\s?% of the text`) })).toBeVisible();
+  // The page waits 50 ms before sending a batch, so give the last one time to start before checking.
+  await guest.waitForTimeout(300);
+  await expect.poll(() => pendingInput).toBe(0);
   await guest.reload();
   const restored = await guest.getByLabel("Type the text").inputValue();
   expect(restored.length).toBeGreaterThan(0);
   expect(text.startsWith(restored)).toBe(true);
+  // The input opens once the page is hydrated (keys typed before would be dropped).
+  await expect(guest.getByLabel("Type the text")).toBeEditable();
 
   await Promise.all([
     hostInput.pressSequentially(text.slice(half), { delay: KEY_DELAY_MS }),
