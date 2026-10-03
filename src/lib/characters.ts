@@ -33,7 +33,7 @@ export const characters = {
     rows: 4,
     anchorX: 84,
     animations: {
-      idle: { row: 0, frames: 8, fps: 8, loop: true },
+      idle: { row: 0, frames: 8, fps: 4, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },
       jump: { row: 2, frames: 6, fps: 12, loop: false },
       // A single held pose for now.
@@ -47,7 +47,7 @@ export const characters = {
     rows: 4,
     anchorX: 82,
     animations: {
-      idle: { row: 0, frames: 8, fps: 8, loop: true },
+      idle: { row: 0, frames: 8, fps: 4, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },
       jump: { row: 2, frames: 6, fps: 12, loop: false },
       victory: { row: 3, frames: 3, fps: 6, loop: false },
@@ -60,7 +60,7 @@ export const characters = {
     rows: 4,
     anchorX: 71,
     animations: {
-      idle: { row: 0, frames: 6, fps: 8, loop: true },
+      idle: { row: 0, frames: 6, fps: 4, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },
       jump: { row: 2, frames: 6, fps: 12, loop: false },
       victory: { row: 3, frames: 3, fps: 6, loop: false },
@@ -73,7 +73,7 @@ export const characters = {
     rows: 4,
     anchorX: 81,
     animations: {
-      idle: { row: 0, frames: 8, fps: 8, loop: true },
+      idle: { row: 0, frames: 8, fps: 4, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },
       jump: { row: 2, frames: 7, fps: 12, loop: false },
       victory: { row: 3, frames: 4, fps: 6, loop: false },
@@ -86,7 +86,7 @@ export const characters = {
     rows: 4,
     anchorX: 76,
     animations: {
-      idle: { row: 0, frames: 8, fps: 8, loop: true },
+      idle: { row: 0, frames: 8, fps: 4, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },
       jump: { row: 2, frames: 6, fps: 12, loop: false },
       victory: { row: 3, frames: 3, fps: 6, loop: false },
@@ -99,7 +99,7 @@ export const characters = {
     rows: 4,
     anchorX: 78,
     animations: {
-      idle: { row: 0, frames: 8, fps: 8, loop: true },
+      idle: { row: 0, frames: 8, fps: 4, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },
       jump: { row: 2, frames: 6, fps: 12, loop: false },
       victory: { row: 3, frames: 2, fps: 4, loop: false },
@@ -112,7 +112,7 @@ export const characters = {
     rows: 4,
     anchorX: 69,
     animations: {
-      idle: { row: 0, frames: 7, fps: 8, loop: true },
+      idle: { row: 0, frames: 7, fps: 4, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },
       jump: { row: 2, frames: 6, fps: 12, loop: false },
       victory: { row: 3, frames: 2, fps: 4, loop: false },
@@ -125,7 +125,7 @@ export const characters = {
     rows: 4,
     anchorX: 78,
     animations: {
-      idle: { row: 0, frames: 7, fps: 8, loop: true },
+      idle: { row: 0, frames: 7, fps: 4, loop: true },
       run: { row: 1, frames: 7, fps: 12, loop: true },
       jump: { row: 2, frames: 6, fps: 12, loop: false },
       victory: { row: 3, frames: 2, fps: 4, loop: false },
@@ -138,7 +138,7 @@ export const characters = {
     rows: 4,
     anchorX: 91,
     animations: {
-      idle: { row: 0, frames: 6, fps: 8, loop: true },
+      idle: { row: 0, frames: 6, fps: 4, loop: true },
       run: { row: 1, frames: 8, fps: 12, loop: true },
       jump: { row: 2, frames: 6, fps: 12, loop: false },
       victory: { row: 3, frames: 2, fps: 4, loop: false },
