@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { CUT_IN_TIMELINE, cutInLineIndex, revealedLength, shouldPlayCutIn } from "../../src/lib/countdown-cut-in";
+import { CUT_IN_TIMELINE, RESULTS_CUT_IN_TIMELINE, cutInLineIndex, revealedLength, shouldPlayCutIn } from "../../src/lib/cut-in";
 
-describe("countdown cut-in", () => {
+describe("cut-ins", () => {
   it("plays only when the whole cut-in fits before the start", () => {
     expect(shouldPlayCutIn(3000)).toBe(true);
     expect(shouldPlayCutIn(CUT_IN_TIMELINE.endsAt)).toBe(false);
@@ -20,5 +20,10 @@ describe("countdown cut-in", () => {
     const middle = (CUT_IN_TIMELINE.typingStartsAt + CUT_IN_TIMELINE.typingEndsAt) / 2;
     expect(revealedLength(middle, 40)).toBe(20);
     expect(revealedLength(CUT_IN_TIMELINE.typingEndsAt + 500, 40)).toBe(40);
+  });
+
+  it("follows the given timeline", () => {
+    expect(revealedLength(RESULTS_CUT_IN_TIMELINE.typingStartsAt, 20, RESULTS_CUT_IN_TIMELINE)).toBe(0);
+    expect(revealedLength(RESULTS_CUT_IN_TIMELINE.typingEndsAt, 20, RESULTS_CUT_IN_TIMELINE)).toBe(20);
   });
 });
