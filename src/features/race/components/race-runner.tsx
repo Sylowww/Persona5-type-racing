@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
+import { SpriteFrames } from "@/components/ui/sprite-frames";
 import { initialRunnerState, runSpeed, runnerAnimation, updateRunner } from "@/lib/race-runner";
 import type { CharacterSprite } from "@/lib/characters";
 
@@ -24,32 +25,14 @@ export function RaceRunner({ character, progress, wpm, isFinished, isYou, now }:
   if (progress !== runner.progress) setRunner(updateRunner(runner, progress, now));
 
   const name = runnerAnimation(runner, isFinished, now);
-  const animation = character.animations[name];
-  const speed = name === "run" ? runSpeed(wpm) : 1;
-  const style = {
-    width: character.columns * RUNNER_SIZE,
-    height: character.rows * RUNNER_SIZE,
-    backgroundImage: `url(${character.src})`,
-    backgroundSize: "100% 100%",
-    "--runner-row": `${-animation.row * RUNNER_SIZE}px`,
-    "--runner-end": `${-(animation.loop ? animation.frames : animation.frames - 1) * RUNNER_SIZE}px`,
-    "--runner-duration": `${animation.frames / animation.fps / speed}s`,
-    "--runner-timing": animation.loop ? `steps(${animation.frames})` : `steps(${Math.max(animation.frames, 2)}, jump-none)`,
-    "--runner-iterations": animation.loop ? "infinite" : "1",
-  } as CSSProperties;
 
   return (
-    <div
-      aria-hidden="true"
-      className={`relative overflow-hidden ${
-        isYou
-          ? "drop-shadow-[0_0_3px_var(--color-secondary-fixed)]"
-          : "drop-shadow-[0_0_1px_var(--color-on-surface)]"
-      }`}
-      style={{ width: RUNNER_SIZE, height: RUNNER_SIZE }}
-    >
-      {/* Keyed by animation so each one starts from its first frame. */}
-      <div key={name} className={`runner-frames bg-no-repeat ${animation.frames > 1 ? "" : "runner-frames-still"}`} style={style} />
-    </div>
+    <SpriteFrames
+      character={character}
+      animation={name}
+      size={RUNNER_SIZE}
+      speed={name === "run" ? runSpeed(wpm) : 1}
+      className={isYou ? "drop-shadow-[0_0_3px_var(--color-secondary-fixed)]" : "drop-shadow-[0_0_1px_var(--color-on-surface)]"}
+    />
   );
 }

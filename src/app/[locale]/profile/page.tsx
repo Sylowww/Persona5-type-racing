@@ -35,15 +35,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
 
         <div className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 py-10 md:px-10">
           <ProfileCard locale={locale} dictionary={profile} user={user} />
+          <CharacterPicker dictionary={profile.character} selected={user.character} />
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
             <div className="flex flex-col gap-6 lg:col-span-2">
               <ProfileStats dictionary={profile.stats} />
               <RaceHistory locale={locale} dictionary={profile.history} />
             </div>
-            <div className="flex flex-col gap-6">
-              <CharacterPicker dictionary={profile.character} selected={user.character} />
-              <SignInMethods dictionary={profile.accounts} email={user.email} providers={providers} />
-            </div>
+            <SignInMethods dictionary={profile.accounts} email={user.email} providers={providers} />
           </div>
         </div>
       </div>

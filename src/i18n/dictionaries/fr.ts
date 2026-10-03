@@ -332,9 +332,10 @@ const fr: Dictionary = {
     registered: "Fantôme inscrit",
     memberSince: "Fantôme depuis le {date}",
     character: {
-      title: "Voleur fantôme",
-      hint: "Le personnage avec lequel tu cours. Le changement s'applique au prochain lobby que tu rejoins.",
+      title: "Voleurs fantômes",
+      hint: "Choisis le voleur avec lequel tu cours. Le changement s'applique au prochain lobby que tu rejoins.",
       selected: "Choisi",
+      codename: "Nom de code",
       names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow" },
     },
     accounts: {
