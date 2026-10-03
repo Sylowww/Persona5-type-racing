@@ -499,6 +499,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       character: racer.character,
       progress: progress(race.text, racer.typing.typed),
       wpm: liveWpm(racer, race, now),
+      mistakes: racer.typing.mistakes,
       isFinished: racer.typing.finishedAt !== null,
       isBot: racer.bot !== null,
       isConnected: state.members.some((member) => member.id === racer.id && member.presence === "connected"),

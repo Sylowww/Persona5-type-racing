@@ -9,6 +9,8 @@ export type RaceRacer = {
   /** Share of the text completed, from 0 to 1. */
   progress: number;
   wpm: number;
+  /** Mistakes made so far; only used to animate the runner. */
+  mistakes: number;
   isFinished: boolean;
   isBot: boolean;
   isConnected: boolean;

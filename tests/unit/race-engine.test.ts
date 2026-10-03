@@ -126,6 +126,7 @@ describe("typing during the race", () => {
     expect(you).toMatchObject({ typed: "go", keystrokes: 3, mistakes: 1, inputSeq: 1, place: 1 });
     const bob = viewFor(state, "bob", START + 1_000)?.race?.racers.find((racer) => racer.id === "ann");
     expect(bob?.progress).toBeCloseTo(2 / 6);
+    expect(bob?.mistakes).toBe(1);
   });
 
   it("applies a repeated batch only once", () => {
