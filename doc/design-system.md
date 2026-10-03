@@ -88,7 +88,7 @@ During the 3 s countdown, Mona slides in on a tilted black band (`features/race/
 - Lines are original, written in Mona's voice, in `race.cutIn.lines` (both languages). The line depends on the race start time, so every racer sees the same one.
 - Skipped when the countdown has less time left than the cut-in needs (e.g. a reload late in the countdown).
 - It sits outside the shaking palace wrapper and never covers the countdown number. Reduced motion: it fades in and out without sliding or running.
-- **Results** (`features/results/components/results-cut-in.tsx`): once the collapse wedges open, the band returns lower on the screen with a large Mona portrait rising above it, for about 4.5 s. A player who finished the text gets the proud portrait and the "escaped" line ("Looking cool, Joker!"); one who did not finish before the time limit gets the worried portrait and the "training" line. Lines are in `results.cutIn`.
+- **Results** (`features/results/components/results-cut-in.tsx`): once the collapse wedges open, the band returns lower on the screen with a large Mona portrait rising above it, for about 4.5 s. The verdict comes from `resultsVerdict` (`lib/cut-in.ts`): a player who finished gets the proud portrait and the "escaped" line ("Looking cool, Joker!"); one who finished but last of several racers gets the shocked portrait and the "last" line ("...and I'm NOT a cat!"); one who did not finish before the time limit gets the worried portrait and the "training" line. Lines are in `results.cutIn`.
 - Portraits live in `public/portraits/` (transparent WebP, 440 px tall, cropped from the game's bust art).
 
 ## Responsive
