@@ -55,6 +55,16 @@ Always use tokens; never hardcode hex colors in components (SVG included: use `f
 - Decorative graphics are `aria-hidden`; icons are always decorative (label the control).
 - The text players type must stay calm and readable: no rotation or decoration on the typing text itself during a race.
 
+## Race runners
+
+Each racer on the race track is an animated character running along their lane (`features/race/components/race-runner.tsx`).
+
+- **Position comes only from `progress`** (0 = start, 1 = finish line). The animation never changes progress, WPM or results.
+- **Animation** is picked by `lib/race-runner.ts` from how progress changes over the race clock: `idle` (no progress for 800 ms, countdown, after a reload), `run` (cycle speed follows WPM, 0.8× to 1.4×), `jump` (when progress crosses a decorative obstacle at 25 %, 50 % or 75 %, never while near one), `victory` (finished).
+- **Sprite sheets** live in `public/sprites/`, described in `features/race/characters.ts`: 128×128 px frames with no gap, one row per animation (idle, run, jump, victory), facing right, feet at y = 120, head at the same x in every frame, transparent background. Shown at 64 px. Every racer is Joker for now; the racer's `emblem` can choose a character later.
+- The local player gets a yellow glow and the `YOU` badge; others get a thin light outline so the dark sprite stays visible on the lane.
+- With reduced motion, runners show the first frame of their animation and move without transitions.
+
 ## Responsive
 
 - The race itself targets desktop; other pages must work on phones without horizontal scroll.

@@ -27,6 +27,8 @@ src/
   lib/                      Framework-free logic (pure functions, db access)
   mocks/                    Placeholder data for features not built yet (home leaderboard, header status)
   types/                    Shared domain types
+public/
+  sprites/                  Race runner sprite sheets (see design-system.md)
 tests/
   unit/                     Vitest, pure logic
   e2e/                      Playwright, rendered pages
