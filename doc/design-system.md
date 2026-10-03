@@ -81,6 +81,14 @@ The race page feels like escaping a collapsing palace (`features/race/components
 - **Sound effects** (`lib/sound-effects.ts`): synthesized with the Web Audio API, no audio files. A deep rumble with falling stones on each rumble (louder as intensity rises), a crash and a slam for the final collapse, a whoosh for the results reveal. The header's mute button silences music and effects together.
 - **Reduced motion**: no shake, no falling debris; cracks and the vignette stay static and the wedges fade in.
 
+## Countdown cut-in (race page)
+
+During the 3 s countdown, Mona slides in on a tilted black band (`features/race/components/countdown-cut-in.tsx`, timeline in `lib/countdown-cut-in.ts`): her victory pose on a red panel, a yellow name tag and a white jagged speech bubble where her line is typed out with small "voice" blips. She then switches to her run animation and dashes off as the band leaves, about 2.3 s after it appeared, before the start.
+
+- Lines are original, written in Mona's voice, in `race.cutIn.lines` (both languages). The line depends on the race start time, so every racer sees the same one.
+- Skipped when the countdown has less time left than the cut-in needs (e.g. a reload late in the countdown).
+- It sits outside the shaking palace wrapper and never covers the countdown number. Reduced motion: it fades in and out without sliding or running.
+
 ## Responsive
 
 - The race itself targets desktop; other pages must work on phones without horizontal scroll.
