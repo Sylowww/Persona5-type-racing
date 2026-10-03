@@ -91,6 +91,21 @@ During the 3 s countdown, Mona slides in on a tilted black band (`features/race/
 - **Results** (`features/results/components/results-cut-in.tsx`): once the collapse wedges open, the band returns lower on the screen with a large Mona portrait rising above it, for about 4.5 s. The verdict comes from `resultsVerdict` (`lib/cut-in.ts`): a player who finished gets the proud portrait and the "escaped" line; one who finished but last of several racers gets the shocked portrait and the "last" line; one who did not finish before the time limit gets the worried portrait and the "training" line. Lines are in `results.cutIn`.
 - Portraits live in `public/portraits/` (transparent WebP, 440 px tall, cropped from the game's bust art).
 
+## Race immersion
+
+Presentation-only layers on the race page; the server still decides places, finish and results. Moment detection is pure and tested in `lib/race-moments.ts`; highlight hooks are in `features/race/use-race-highlights.ts`.
+
+- **Calling card**: at the start of the countdown, a red calling card ("Take their words!") flips in for 600 ms before Mona's cut-in (`countdownIntro` in `lib/cut-in.ts` skips the card, then Mona, when too little countdown time is left).
+- **Mona's comments** (`mona-comms.tsx`): a small corner box with her portrait, a bubble and a recorded line when the player passes someone ("Nice one, keep it up!"), gets passed ("Hey, come on! Wake up!"), keeps a 40-key streak ("Nice going!"), makes 3 mistakes within 2 s ("Ugh... that's not good!"), enters the last 10 % ("One more! This is it!"), when the chaos starts ("Don't panic! Stay cool and blaze through them!") and on finishing ("Well done!"). The most important moment wins, with a 3.5 s gap between comments (finish and chaos may interrupt). Texts: `race.comms`.
+- **Overtake flash**: the lane of a racer who just passed the player flashes red.
+- **Stumble**: a runner tilts for 350 ms after each mistake (the race view carries each racer's `mistakes`).
+- **Exit light**: a yellow light at the end of every lane, brighter (then pulsing) as the leader nears the finish (`exitGlow`).
+- **Chaos extras**: stones fall and bounce on the lanes, a red alarm light sweeps the room and the palace alarm sounds once.
+- **Finish frame** (`finish-cut-in.tsx`): an "All-Out Attack" style frame (red slash, the player's black silhouette, "Escaped!") for 1.5 s when the player finishes; if that ends the race, the collapse wedges close over it.
+- **Winner cut-in** (`winner-cut-in.tsx`): the other racers see the first finisher's character in a band ("{name} reached the exit first!").
+- **Recorded sounds** in `public/sfx/` (from the game's sound files, played with `playSoundFile`): `calling-card.mp3`, `alarm.mp3`, `all-out-attack.mp3`, `winner.mp3`. They were picked by category and shape, not by ear; swap a file to change a sound.
+- Reduced motion: no falling stones or sweeping light; overlays appear without sliding.
+
 ## Responsive
 
 - The race itself targets desktop; other pages must work on phones without horizontal scroll.
