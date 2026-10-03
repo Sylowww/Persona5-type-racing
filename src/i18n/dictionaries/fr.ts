@@ -18,8 +18,8 @@ const fr: Dictionary = {
     },
     server: "{server} // {count} en ligne",
     music: {
-      mute: "Couper la musique",
-      unmute: "Activer la musique",
+      mute: "Couper le son",
+      unmute: "Activer le son",
       theme: "Thème d'accueil",
       themes: {
         "home-1": "Thème I",

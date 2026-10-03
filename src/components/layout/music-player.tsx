@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { defaultHomeTheme, homeThemes, isHomeTheme, musicSourceFor, type HomeTheme } from "@/lib/music";
+import { setSoundMuted } from "@/lib/sound-effects";
 
 const mutedKey = "music:muted";
 const themeKey = "music:home-theme";
@@ -41,7 +42,7 @@ function getMusic(): HTMLAudioElement {
   return musicWindow.__typeStrikeMusic;
 }
 
-/** Background music for the whole site: race theme on the race page, the chosen home theme elsewhere. */
+/** Background music for the whole site (race theme on the race page, the chosen home theme elsewhere); its mute also silences sound effects. */
 export function MusicPlayer({ dictionary }: { dictionary: Dictionary["header"]["music"] }) {
   const pathname = usePathname();
   const [muted, setMuted] = useState(false);
@@ -64,6 +65,7 @@ export function MusicPlayer({ dictionary }: { dictionary: Dictionary["header"]["
 
   useEffect(() => {
     if (!loaded) return;
+    setSoundMuted(muted);
     const audio = getMusic();
 
     if (!audio.src.endsWith(source)) audio.src = source;

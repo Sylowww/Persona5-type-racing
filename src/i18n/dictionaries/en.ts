@@ -16,8 +16,8 @@ const en = {
     },
     server: "{server} // {count} online",
     music: {
-      mute: "Mute music",
-      unmute: "Play music",
+      mute: "Mute sound",
+      unmute: "Turn sound on",
       theme: "Home theme",
       themes: {
         "home-1": "Theme I",
