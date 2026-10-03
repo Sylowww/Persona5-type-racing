@@ -110,20 +110,21 @@ describe("characters", () => {
 describe("character ids", () => {
   it("only accepts known characters", () => {
     expect(isCharacterId("mona")).toBe(true);
-    expect(isCharacterId("skull")).toBe(false);
+    expect(isCharacterId("nobody")).toBe(false);
     expect(isCharacterId("toString")).toBe(false);
     expect(isCharacterId(null)).toBe(false);
   });
 
   it("falls back to Joker for an unknown character", () => {
     expect(characterSprite("mona")).toBe(characters.mona);
-    expect(characterSprite("skull")).toBe(characters.joker);
+    expect(characterSprite("nobody")).toBe(characters.joker);
   });
 
   it("picks a random character, even at the edge of the range", () => {
     expect(randomCharacter(() => 0)).toBe("joker");
-    expect(randomCharacter(() => 0.5)).toBe("mona");
-    expect(randomCharacter(() => 0.99)).toBe("panther");
-    expect(randomCharacter(() => 1)).toBe("panther");
+    expect(randomCharacter(() => 0.3)).toBe("mona");
+    expect(randomCharacter(() => 0.5)).toBe("panther");
+    expect(randomCharacter(() => 0.99)).toBe("skull");
+    expect(randomCharacter(() => 1)).toBe("skull");
   });
 });

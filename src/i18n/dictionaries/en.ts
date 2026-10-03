@@ -333,7 +333,7 @@ const en = {
       title: "Phantom Thief",
       hint: "The character you race as. Changes apply from the next lobby you join.",
       selected: "Selected",
-      names: { joker: "Joker", mona: "Mona", panther: "Panther" },
+      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull" },
     },
     accounts: {
       title: "Sign-in methods",

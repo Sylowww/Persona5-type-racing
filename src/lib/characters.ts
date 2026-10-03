@@ -66,6 +66,19 @@ export const characters = {
       victory: { row: 3, frames: 3, fps: 6, loop: false },
     },
   },
+  skull: {
+    src: "/sprites/skull.webp",
+    frameSize: 128,
+    columns: 8,
+    rows: 4,
+    anchorX: 81,
+    animations: {
+      idle: { row: 0, frames: 8, fps: 8, loop: true },
+      run: { row: 1, frames: 8, fps: 12, loop: true },
+      jump: { row: 2, frames: 7, fps: 12, loop: false },
+      victory: { row: 3, frames: 4, fps: 6, loop: false },
+    },
+  },
 } satisfies Record<CharacterId, CharacterSprite>;
 
 export const characterIds = Object.keys(characters) as CharacterId[];
