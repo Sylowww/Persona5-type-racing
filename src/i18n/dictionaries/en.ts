@@ -15,7 +15,15 @@ const en = {
       leaderboards: "Leaderboards",
     },
     server: "{server} // {count} online",
-    sound: "Toggle sound",
+    music: {
+      mute: "Mute sound",
+      unmute: "Turn sound on",
+      theme: "Home theme",
+      themes: {
+        "home-1": "Theme I",
+        "home-2": "Theme II",
+      },
+    },
     account: {
       profile: "My profile",
       label: "Account",
@@ -257,6 +265,32 @@ const en = {
       finished: "Finished!",
       mistakes: "Mistakes: {count}",
     },
+    cutIn: {
+      speaker: "Mona",
+      line: "Okay, let's go!",
+    },
+    comms: {
+      speaker: "Mona",
+      overtook: "Nice one, keep it up!",
+      overtaken: "Hey, come on! Wake up!",
+      streak: "Nice going!",
+      finalStretch: "One more! This is it!",
+      chaos: "Don't panic! Stay cool and blaze through them!",
+      finished: "Well done!",
+      fumble: "Ugh... that's not good!",
+    },
+    callingCard: {
+      kicker: "Calling card",
+      title: "Take their words!",
+    },
+    finish: {
+      title: "Escaped!",
+      subtitle: "Waiting for the others...",
+    },
+    winner: {
+      tag: "First out",
+      line: "{name} reached the exit first!",
+    },
     stats: {
       speed: "Speedometer",
       wpm: "WPM",
@@ -270,6 +304,13 @@ const en = {
   },
   results: {
     title: "Race results",
+    cutIn: {
+      speaker: "Mona",
+      portraitAlt: "Mona",
+      escaped: "That was amazing.",
+      last: "Not bad, not great, but not bad.",
+      training: "Let's go to bed.",
+    },
     banner: {
       eyebrow: "Race complete",
       victory: "Mission accomplished // Victory!",
@@ -333,6 +374,13 @@ const en = {
     avatarAlt: "{name}'s avatar",
     registered: "Registered phantom",
     memberSince: "Phantom since {date}",
+    character: {
+      title: "Phantom Thieves",
+      hint: "Pick the thief you race as. Changes apply from the next lobby you join.",
+      selected: "Selected",
+      codename: "Codename",
+      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow" },
+    },
     accounts: {
       title: "Sign-in methods",
       password: "Email & password",

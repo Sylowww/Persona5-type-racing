@@ -175,7 +175,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     },
 
     addBot(code: string, userId: string, difficulty: BotDifficulty): StoreError | null {
-      return updateOutcome(code, (state) => addBot(state, userId, difficulty));
+      return updateOutcome(code, (state) => addBot(state, userId, difficulty, random));
     },
 
     removeBot(code: string, userId: string, botId: string): StoreError | null {
