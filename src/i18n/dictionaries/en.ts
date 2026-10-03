@@ -263,11 +263,7 @@ const en = {
     },
     cutIn: {
       speaker: "Mona",
-      lines: [
-        "We got the Treasure! Now move it, this whole place is coming down!",
-        "No time to turn into a bus! Everyone, RUN!",
-        "The Palace is collapsing! Make for the exit, Phantom Thieves!",
-      ],
+      line: "Okay, let's go!",
     },
     stats: {
       speed: "Speedometer",
@@ -285,9 +281,9 @@ const en = {
     cutIn: {
       speaker: "Mona",
       portraitAlt: "Mona",
-      escaped: "Looking cool, Joker! We made it out of the Palace!",
-      last: "Dead last?! Seriously, Joker?! Even a cat could type faster than that... and I'm NOT a cat!",
-      training: "That was way too slow... You need more training. We should go to bed early tonight.",
+      escaped: "That was amazing.",
+      last: "Not bad, not great, but not bad.",
+      training: "Let's go to bed.",
     },
     banner: {
       eyebrow: "Race complete",

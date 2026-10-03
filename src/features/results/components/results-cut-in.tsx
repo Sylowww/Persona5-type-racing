@@ -5,11 +5,11 @@ import { CutInBand, useCutInClock } from "@/components/ui/cut-in";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { RESULTS_CUT_IN_TIMELINE, revealedLength, type ResultsVerdict } from "@/lib/cut-in";
 
-/** Mona's portraits in `public/portraits/` (440 px tall), one per verdict. */
-const portraits: Record<ResultsVerdict, { src: string; width: number; height: number }> = {
-  escaped: { src: "/portraits/mona-proud.webp", width: 345, height: 440 },
-  last: { src: "/portraits/mona-shocked.webp", width: 402, height: 440 },
-  training: { src: "/portraits/mona-worried.webp", width: 451, height: 440 },
+/** Mona's portrait (`public/portraits/`, 440 px tall) and recorded line (`public/voices/`) for each verdict. */
+const portraits: Record<ResultsVerdict, { src: string; width: number; height: number; voice: string }> = {
+  escaped: { src: "/portraits/mona-proud.webp", width: 345, height: 440, voice: "/voices/mona/amazing.mp3" },
+  last: { src: "/portraits/mona-shocked.webp", width: 402, height: 440, voice: "/voices/mona/not-bad.mp3" },
+  training: { src: "/portraits/mona-worried.webp", width: 451, height: 440, voice: "/voices/mona/go-to-bed.mp3" },
 };
 
 type ResultsCutInProps = {
@@ -21,7 +21,10 @@ type ResultsCutInProps = {
 export function ResultsCutIn({ dictionary, verdict }: ResultsCutInProps) {
   const line = dictionary[verdict];
   const portrait = portraits[verdict];
-  const elapsed = useCutInClock(true, line, RESULTS_CUT_IN_TIMELINE, RESULTS_CUT_IN_TIMELINE.delay);
+  const elapsed = useCutInClock(true, line, RESULTS_CUT_IN_TIMELINE, {
+    delayMs: RESULTS_CUT_IN_TIMELINE.delay,
+    voice: portrait.voice,
+  });
 
   const image = (className: string) => (
     // Eager: the band starts off-screen, where a lazy image would wait (and keep a zero width).

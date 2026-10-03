@@ -5,9 +5,11 @@ import { CutInBand, useCutInClock } from "@/components/ui/cut-in";
 import { SpriteFrames } from "@/components/ui/sprite-frames";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { characterSprite } from "@/lib/characters";
-import { CUT_IN_TIMELINE, cutInLineIndex, revealedLength, shouldPlayCutIn } from "@/lib/cut-in";
+import { CUT_IN_TIMELINE, revealedLength, shouldPlayCutIn } from "@/lib/cut-in";
 
 const mona = characterSprite("mona");
+/** Mona's recorded line, matching `race.cutIn.line`. */
+const VOICE = "/voices/mona/lets-go.mp3";
 
 type CountdownCutInProps = {
   dictionary: Dictionary["race"]["cutIn"];
@@ -20,8 +22,8 @@ type CountdownCutInProps = {
 export function CountdownCutIn({ dictionary, now, startsAt }: CountdownCutInProps) {
   // Decided once, from the first render, so the same markup renders on the server and the client.
   const [play] = useState(() => shouldPlayCutIn(startsAt - now));
-  const line = dictionary.lines[cutInLineIndex(startsAt, dictionary.lines.length)] ?? "";
-  const elapsed = useCutInClock(play, line, CUT_IN_TIMELINE);
+  const line = dictionary.line;
+  const elapsed = useCutInClock(play, line, CUT_IN_TIMELINE, { voice: VOICE });
 
   if (elapsed === null || elapsed >= CUT_IN_TIMELINE.endsAt) return null;
   const runsOff = elapsed >= CUT_IN_TIMELINE.runsOffAt;

@@ -6,12 +6,17 @@ const MASTER_VOLUME = 0.6;
 type SoundWindow = Window & {
   __typeStrikeSound?: { context: AudioContext; master: GainNode; noise: AudioBuffer };
   __typeStrikeMuted?: boolean;
+  /** Background music element, owned by the header's music player. */
+  __typeStrikeMusic?: HTMLAudioElement;
+  /** Voice line playing now, and the music volume to restore once it ends. */
+  __typeStrikeVoice?: { audio: HTMLAudioElement; musicVolume: number | null };
 };
 
 /** Called by the mute button; effects already playing fade out with it. */
 export function setSoundMuted(muted: boolean) {
   const soundWindow = window as SoundWindow;
   soundWindow.__typeStrikeMuted = muted;
+  if (muted) soundWindow.__typeStrikeVoice?.audio.pause();
   const engine = soundWindow.__typeStrikeSound;
   if (engine) engine.master.gain.setTargetAtTime(muted ? 0 : MASTER_VOLUME, engine.context.currentTime, 0.05);
 }
@@ -162,4 +167,37 @@ export function playVoiceBlip() {
 export function playCutInSwoosh() {
   noiseBurst({ duration: 0.25, volume: 0.3, filter: "bandpass", frequency: 2600, endFrequency: 500 });
   thump({ delay: 0.12, volume: 0.25, from: 140, to: 60, duration: 0.18 });
+}
+
+const VOICE_VOLUME = 1;
+/** Music volume while a voice line plays, so the line is easy to hear. */
+const DUCKED_MUSIC_VOLUME = 0.1;
+
+/** Plays a recorded voice line (a file in `public/voices/`), lowering the background music while it plays. */
+export function playVoiceLine(src: string) {
+  if (typeof window === "undefined") return;
+  const soundWindow = window as SoundWindow;
+  if (soundWindow.__typeStrikeMuted) return;
+
+  const music = soundWindow.__typeStrikeMusic;
+  const previous = soundWindow.__typeStrikeVoice;
+  previous?.audio.pause();
+  // A line cut short by a new one keeps the volume from before the first line.
+  const musicVolume = previous ? previous.musicVolume : (music?.volume ?? null);
+
+  const audio = new Audio(src);
+  audio.volume = VOICE_VOLUME;
+  const voice = { audio, musicVolume };
+  soundWindow.__typeStrikeVoice = voice;
+  if (music && musicVolume !== null) music.volume = Math.min(musicVolume, DUCKED_MUSIC_VOLUME);
+
+  const restore = () => {
+    if (soundWindow.__typeStrikeVoice !== voice) return;
+    soundWindow.__typeStrikeVoice = undefined;
+    if (music && musicVolume !== null) music.volume = musicVolume;
+  };
+  audio.addEventListener("ended", restore);
+  audio.addEventListener("pause", restore);
+  audio.addEventListener("error", restore);
+  audio.play().catch(restore);
 }

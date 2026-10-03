@@ -2,15 +2,22 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { revealedLength, type CutInTimeline } from "@/lib/cut-in";
-import { playCutInSwoosh, playVoiceBlip } from "@/lib/sound-effects";
+import { playCutInSwoosh, playVoiceBlip, playVoiceLine } from "@/lib/sound-effects";
 
 const TICK_MS = 30;
 
 /**
  * Clock of a cut-in: milliseconds since it appeared (null before `delayMs` or when `play` is false).
- * Plays the swoosh when it appears and a "voice" blip every other letter while the line is typed out.
+ * Plays the swoosh when it appears, then the recorded `voice` line if there is one, otherwise a "voice" blip
+ * every other letter while the line is typed out.
  */
-export function useCutInClock(play: boolean, line: string, timeline: CutInTimeline, delayMs = 0): number | null {
+export function useCutInClock(
+  play: boolean,
+  line: string,
+  timeline: CutInTimeline,
+  options: { delayMs?: number; voice?: string } = {},
+): number | null {
+  const { delayMs = 0, voice } = options;
   const [elapsed, setElapsed] = useState<number | null>(null);
   const shownRef = useRef(0);
 
@@ -19,12 +26,13 @@ export function useCutInClock(play: boolean, line: string, timeline: CutInTimeli
     let timer = 0;
     const delay = window.setTimeout(() => {
       playCutInSwoosh();
+      if (voice) playVoiceLine(voice);
       const start = performance.now();
       timer = window.setInterval(() => {
         const ms = performance.now() - start;
         setElapsed(ms);
         const shown = revealedLength(ms, line.length, timeline);
-        if (Math.floor(shown / 2) > Math.floor(shownRef.current / 2) && line[shown - 1] !== " ") playVoiceBlip();
+        if (!voice && Math.floor(shown / 2) > Math.floor(shownRef.current / 2) && line[shown - 1] !== " ") playVoiceBlip();
         shownRef.current = shown;
         if (ms >= timeline.endsAt) window.clearInterval(timer);
       }, TICK_MS);
@@ -33,7 +41,7 @@ export function useCutInClock(play: boolean, line: string, timeline: CutInTimeli
       window.clearTimeout(delay);
       window.clearInterval(timer);
     };
-  }, [play, line, timeline, delayMs]);
+  }, [play, line, timeline, delayMs, voice]);
 
   return elapsed;
 }

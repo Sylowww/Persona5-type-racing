@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   CUT_IN_TIMELINE,
   RESULTS_CUT_IN_TIMELINE,
-  cutInLineIndex,
   resultsVerdict,
   revealedLength,
   shouldPlayCutIn,
@@ -13,12 +12,6 @@ describe("cut-ins", () => {
     expect(shouldPlayCutIn(3000)).toBe(true);
     expect(shouldPlayCutIn(CUT_IN_TIMELINE.endsAt)).toBe(false);
     expect(shouldPlayCutIn(800)).toBe(false);
-  });
-
-  it("picks the same line for a race and stays in range", () => {
-    expect(cutInLineIndex(1_700_000_002_500, 3)).toBe(cutInLineIndex(1_700_000_002_900, 3));
-    expect(cutInLineIndex(1_700_000_003_000, 3)).not.toBe(cutInLineIndex(1_700_000_002_000, 3));
-    expect(cutInLineIndex(123_456, 0)).toBe(0);
   });
 
   it("types the line out between its start and end", () => {

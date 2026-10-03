@@ -265,11 +265,7 @@ const fr: Dictionary = {
     },
     cutIn: {
       speaker: "Mona",
-      lines: [
-        "On a le trésor ! Maintenant on file, tout le palais s'écroule !",
-        "Pas le temps de me transformer en bus ! Tout le monde, COUREZ !",
-        "Le palais s'effondre ! Tous vers la sortie, Voleurs fantômes !",
-      ],
+      line: "OK, on y va !",
     },
     stats: {
       speed: "Compteur de vitesse",
@@ -287,9 +283,9 @@ const fr: Dictionary = {
     cutIn: {
       speaker: "Mona",
       portraitAlt: "Mona",
-      escaped: "Trop la classe, Joker ! On est sortis du palais !",
-      last: "Dernier ?! Sérieux, Joker ?! Même un chat taperait plus vite que ça... et je ne suis PAS un chat !",
-      training: "Beaucoup trop lent... Tu dois t'entraîner. On devrait aller se coucher tôt ce soir.",
+      escaped: "C'était incroyable.",
+      last: "Pas mal, pas génial, mais pas mal.",
+      training: "Allons nous coucher.",
     },
     banner: {
       eyebrow: "Course terminée",

@@ -42,12 +42,6 @@ export function shouldPlayCutIn(remainingMs: number): boolean {
   return remainingMs >= CUT_IN_TIMELINE.endsAt + START_MARGIN_MS;
 }
 
-/** Same line for every racer of a race, changing from race to race. */
-export function cutInLineIndex(startsAt: number, lineCount: number): number {
-  if (lineCount <= 0) return 0;
-  return Math.floor(startsAt / 1000) % lineCount;
-}
-
 /** Number of characters of the line shown at `elapsedMs` (typewriter effect). */
 export function revealedLength(elapsedMs: number, length: number, timeline: CutInTimeline = CUT_IN_TIMELINE): number {
   const { typingStartsAt, typingEndsAt } = timeline;
