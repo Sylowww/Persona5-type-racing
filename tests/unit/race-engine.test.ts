@@ -126,6 +126,7 @@ describe("typing during the race", () => {
     expect(you).toMatchObject({ typed: "go", keystrokes: 3, mistakes: 1, inputSeq: 1, place: 1 });
     const bob = viewFor(state, "bob", START + 1_000)?.race?.racers.find((racer) => racer.id === "ann");
     expect(bob?.progress).toBeCloseTo(2 / 6);
+    expect(bob?.mistakes).toBe(1);
   });
 
   it("applies a repeated batch only once", () => {
@@ -278,6 +279,22 @@ describe("disconnects in the waiting room", () => {
     let state = setConnected(lobbyWith("ann", "bob"), "bob", false, T0);
     state = setConnected(state, "bob", true, T0 + 10_000);
     expect(advance(state, T0 + 60_000).members).toHaveLength(2);
+  });
+});
+
+describe("characters", () => {
+  it("races each player as their character, Joker by default", () => {
+    let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: "ann", name: "ann", character: "mona" }, now: T0 });
+    state = unwrap(joinLobby(state, { id: "bob", name: "bob" }, T0));
+    state = advance(unwrap(startRace(readyAll(state), "ann", TEXT, T0)), START);
+    const racers = viewFor(state, "bob", START)?.race?.racers ?? [];
+    expect(racers.map((racer) => racer.character)).toEqual(["mona", "joker"]);
+  });
+
+  it("gives bots a random character", () => {
+    let state = unwrap(addBot(lobbyWith("ann"), "ann", "rookie", () => 0));
+    state = unwrap(addBot(state, "ann", "rookie", () => 0.99));
+    expect(state.members.slice(1).map((member) => member.character)).toEqual(["joker", "crow"]);
   });
 });
 

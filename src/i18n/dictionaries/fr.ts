@@ -17,7 +17,15 @@ const fr: Dictionary = {
       leaderboards: "Classements",
     },
     server: "{server} // {count} en ligne",
-    sound: "Activer ou couper le son",
+    music: {
+      mute: "Couper le son",
+      unmute: "Activer le son",
+      theme: "Thème d'accueil",
+      themes: {
+        "home-1": "Thème I",
+        "home-2": "Thème II",
+      },
+    },
     account: {
       profile: "Mon profil",
       label: "Compte",
@@ -259,6 +267,32 @@ const fr: Dictionary = {
       finished: "Terminé !",
       mistakes: "Erreurs : {count}",
     },
+    cutIn: {
+      speaker: "Mona",
+      line: "OK, on y va !",
+    },
+    comms: {
+      speaker: "Mona",
+      overtook: "Bien joué, continue comme ça !",
+      overtaken: "Hé, allez ! Réveille-toi !",
+      streak: "Bien joué !",
+      finalStretch: "Encore un ! C'est le moment !",
+      chaos: "Pas de panique ! Garde ton calme et fonce !",
+      finished: "Bravo !",
+      fumble: "Aïe... ça sent mauvais !",
+    },
+    callingCard: {
+      kicker: "Carte d'appel",
+      title: "Vole leurs mots !",
+    },
+    finish: {
+      title: "Évadé !",
+      subtitle: "En attente des autres...",
+    },
+    winner: {
+      tag: "Premier dehors",
+      line: "{name} a atteint la sortie en premier !",
+    },
     stats: {
       speed: "Compteur de vitesse",
       wpm: "MPM",
@@ -272,6 +306,13 @@ const fr: Dictionary = {
   },
   results: {
     title: "Résultats de la course",
+    cutIn: {
+      speaker: "Mona",
+      portraitAlt: "Mona",
+      escaped: "C'était incroyable.",
+      last: "Pas mal, pas génial, mais pas mal.",
+      training: "Allons nous coucher.",
+    },
     banner: {
       eyebrow: "Course terminée",
       victory: "Mission accomplie // Victoire !",
@@ -335,6 +376,13 @@ const fr: Dictionary = {
     avatarAlt: "Avatar de {name}",
     registered: "Fantôme inscrit",
     memberSince: "Fantôme depuis le {date}",
+    character: {
+      title: "Voleurs fantômes",
+      hint: "Choisis le voleur avec lequel tu cours. Le changement s'applique au prochain lobby que tu rejoins.",
+      selected: "Choisi",
+      codename: "Nom de code",
+      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow" },
+    },
     accounts: {
       title: "Méthodes de connexion",
       password: "Courriel et mot de passe",

@@ -18,6 +18,7 @@ export const iconNames = [
   "mail",
   "military_tech",
   "model_training",
+  "music_note",
   "north_east",
   "person",
   "person_add",
@@ -33,6 +34,7 @@ export const iconNames = [
   "timer",
   "tune",
   "visibility",
+  "volume_off",
   "volume_up",
   "warning",
 ] as const;
