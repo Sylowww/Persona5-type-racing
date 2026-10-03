@@ -29,6 +29,7 @@ src/
   types/                    Shared domain types
 public/
   sprites/                  Race runner sprite sheets (see design-system.md)
+  music/                    Background music (home themes, race theme); picked by lib/music.ts
 tests/
   unit/                     Vitest, pure logic
   e2e/                      Playwright, rendered pages

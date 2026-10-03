@@ -10,6 +10,7 @@ Last updated: 2026-09-30.
 - Race page (`/{locale}/lobby/{code}/race`): countdown overlay, timer, live place from the server, race track where every racer is an animated runner (idle, run, jump over decorative obstacles, victory; dimmed while disconnected), typing arena, WPM, streak and accuracy. Typing logic lives in `lib/typing.ts` and runs on both client and server.
 - Results page (`/{locale}/lobby/{code}/results`): banner, podium, speed chart, precision stats, slow keys and keyboard heatmap from the real race; back-to-lobby and rematch return to the same lobby.
 - Bots: the host adds bots of any difficulty (rookie ~60, master ~120, godspeed ~150 WPM), each with its own level, and removes them in the lobby. They race with the same rules as players, with a human-like rhythm and typos they correct (see architecture.md, Bots). One player plus bots is enough to start.
+- Background music (`components/layout/music-player.tsx`, tracks in `public/music/`): the race page plays the race theme, every other page the home theme chosen in the header (Theme I or II). Header buttons pick the theme and mute; both choices are saved in `localStorage`. Playback starts on the first click or key press when the browser blocks autoplay.
 - Reconnection: 30 s grace period for a lost connection in the lobby and during a race; reloading the race page restores progress.
 
 - Database foundation: migration runner, `users` / `oauth_accounts` / `sessions` schema, password hashing, session tokens, account validation and data-access functions (`lib/users.ts`). Used by email/password auth.
@@ -24,7 +25,7 @@ Last updated: 2026-09-30.
 - Leaderboard and server data come from `src/mocks/player.ts`; the home page hides the mock "you" row. `mockPlayer` (with radar values) is no longer used by any page.
 - Lobby buttons for settings, chat and invite observer do nothing; the rules dossier shows the fixed rules races use today; the taunt feed and spectators are empty. Player cards show `-- WPM` as best speed until stats are stored.
 - Nav items other than Home and Lobby, and the mode cards, do nothing yet. "Start a race" opens a new lobby (no matchmaking).
-- Sound and key-audio selection are UI only.
+- Key-audio selection is UI only (no key sounds yet).
 - Avatar and logo are placeholders (icon + wordmark) until real assets exist.
 
 - Race texts are a small built-in list per language (`lib/race-texts.ts`); countdown (3 s), time limit (3 min), grace period (30 s) and speed limit (30 keys/s) are fixed defaults in `lib/race-engine.ts`.
