@@ -1,0 +1,2 @@
+/** Phantom Thief a player races as; registered players choose theirs on the profile page. */
+export type CharacterId = "joker" | "mona";

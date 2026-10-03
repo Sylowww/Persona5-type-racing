@@ -1,9 +1,11 @@
 // Authoritative lobby and race rules. Pure functions of (state, event, now): no timers, no I/O and no
 // transport, so the same rules work behind SSE today and any other transport later.
 import type { Locale } from "@/i18n/locales";
+import type { CharacterId } from "@/types/character";
 import type { BotDifficulty, LobbyPhase, LobbyView, PlayerEmblem } from "@/types/lobby";
 import type { InputBatch, InputEvent, KeyStat, RaceRacer, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
 import { planBotRun, type BotStep } from "./bots";
+import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { canStartRace } from "./lobby";
 import { rankRacers } from "./results";
 import {
@@ -54,6 +56,7 @@ export type Member = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
+  character: CharacterId;
   isReady: boolean;
   presence: Presence;
   /** When the connection was lost; null while connected. */
@@ -68,6 +71,7 @@ export type Racer = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
+  character: CharacterId;
   typing: TypingState;
   /** Page currently sending this racer's input, and its last applied batch. */
   inputClient: string | null;
@@ -114,7 +118,8 @@ export type LobbyError = "lobbyFull" | "raceInProgress" | "notMember" | "notHost
 
 export type Outcome = { ok: true; state: LobbyState } | { ok: false; error: LobbyError };
 
-export type Player = { id: string; name: string };
+/** A joining player; their character defaults to Joker. */
+export type Player = { id: string; name: string; character?: CharacterId };
 
 const ok = (state: LobbyState): Outcome => ({ ok: true, state });
 const fail = (error: LobbyError): Outcome => ({ ok: false, error });
@@ -147,6 +152,7 @@ function newMember(player: Player, joinIndex: number, now: number): Member {
     id: player.id,
     name: player.name,
     emblem: emblems[joinIndex % emblems.length],
+    character: player.character ?? DEFAULT_CHARACTER,
     isReady: false,
     presence: "disconnected",
     disconnectedAt: now,
@@ -201,8 +207,8 @@ export function joinLobby(state: LobbyState, player: Player, now: number): Outco
   });
 }
 
-/** The host adds a bot of the chosen difficulty while the lobby is waiting. */
-export function addBot(state: LobbyState, userId: string, difficulty: BotDifficulty): Outcome {
+/** The host adds a bot of the chosen difficulty while the lobby is waiting. `random` picks its character. */
+export function addBot(state: LobbyState, userId: string, difficulty: BotDifficulty, random: () => number = Math.random): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
   if (state.hostId !== userId) return fail("notHost");
   const open = reopen(state);
@@ -213,6 +219,7 @@ export function addBot(state: LobbyState, userId: string, difficulty: BotDifficu
     id: `bot-${open.joinCount}`,
     name: botName(open),
     emblem: emblems[open.joinCount % emblems.length],
+    character: randomCharacter(random),
     isReady: true,
     presence: "connected",
     disconnectedAt: null,
@@ -277,6 +284,7 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         id: member.id,
         name: member.name,
         emblem: member.emblem,
+        character: member.character,
         typing: initialTypingState,
         inputClient: null,
         inputSeq: 0,
@@ -488,6 +496,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       id: racer.id,
       name: racer.name,
       emblem: racer.emblem,
+      character: racer.character,
       progress: progress(race.text, racer.typing.typed),
       wpm: liveWpm(racer, race, now),
       isFinished: racer.typing.finishedAt !== null,

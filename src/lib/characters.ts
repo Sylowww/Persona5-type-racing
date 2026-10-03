@@ -1,4 +1,5 @@
-import type { RunnerAnimation } from "@/lib/race-runner";
+import type { CharacterId } from "@/types/character";
+import type { RunnerAnimation } from "./race-runner";
 
 /** One row of a sprite sheet. */
 export type SpriteAnimation = {
@@ -24,8 +25,6 @@ export type CharacterSprite = {
   animations: Record<RunnerAnimation, SpriteAnimation>;
 };
 
-export type CharacterId = "joker";
-
 export const characters = {
   joker: {
     src: "/sprites/joker.webp",
@@ -41,4 +40,31 @@ export const characters = {
       victory: { row: 3, frames: 1, fps: 1, loop: false },
     },
   },
+  mona: {
+    src: "/sprites/mona.webp",
+    frameSize: 128,
+    columns: 8,
+    rows: 4,
+    anchorX: 82,
+    animations: {
+      idle: { row: 0, frames: 8, fps: 8, loop: true },
+      run: { row: 1, frames: 8, fps: 12, loop: true },
+      jump: { row: 2, frames: 6, fps: 12, loop: false },
+      victory: { row: 3, frames: 3, fps: 6, loop: false },
+    },
+  },
 } satisfies Record<CharacterId, CharacterSprite>;
+
+export const characterIds = Object.keys(characters) as CharacterId[];
+
+/** Every player is Joker until they choose another character. */
+export const DEFAULT_CHARACTER: CharacterId = "joker";
+
+export function isCharacterId(value: unknown): value is CharacterId {
+  return typeof value === "string" && Object.hasOwn(characters, value);
+}
+
+/** Bots get a random character. */
+export function randomCharacter(random: () => number): CharacterId {
+  return characterIds[Math.min(Math.floor(random() * characterIds.length), characterIds.length - 1)];
+}

@@ -329,6 +329,12 @@ const en = {
     avatarAlt: "{name}'s avatar",
     registered: "Registered phantom",
     memberSince: "Phantom since {date}",
+    character: {
+      title: "Phantom Thief",
+      hint: "The character you race as. Changes apply from the next lobby you join.",
+      selected: "Selected",
+      names: { joker: "Joker", mona: "Mona" },
+    },
     accounts: {
       title: "Sign-in methods",
       password: "Email & password",

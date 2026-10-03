@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { initialRunnerState, runSpeed, runnerAnimation, updateRunner } from "@/lib/race-runner";
-import type { CharacterSprite } from "../characters";
+import type { CharacterSprite } from "@/lib/characters";
 
 /** Shown size of one frame, in px; the sheet is drawn at twice this for sharp high-DPI screens. */
 export const RUNNER_SIZE = 64;

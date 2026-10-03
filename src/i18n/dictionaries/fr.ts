@@ -331,6 +331,12 @@ const fr: Dictionary = {
     avatarAlt: "Avatar de {name}",
     registered: "Fantôme inscrit",
     memberSince: "Fantôme depuis le {date}",
+    character: {
+      title: "Voleur fantôme",
+      hint: "Le personnage avec lequel tu cours. Le changement s'applique au prochain lobby que tu rejoins.",
+      selected: "Choisi",
+      names: { joker: "Joker", mona: "Mona" },
+    },
     accounts: {
       title: "Méthodes de connexion",
       password: "Courriel et mot de passe",

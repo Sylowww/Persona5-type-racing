@@ -8,7 +8,7 @@ import {
   runnerAnimation,
   updateRunner,
 } from "../../src/lib/race-runner";
-import { characters, type CharacterSprite } from "../../src/features/race/characters";
+import { characters, isCharacterId, randomCharacter, type CharacterSprite } from "../../src/lib/characters";
 
 describe("crossesObstacle", () => {
   it("detects passing an obstacle, including landing exactly on it", () => {
@@ -104,5 +104,20 @@ describe("characters", () => {
       expect(animation.frames).toBeLessThanOrEqual(character.columns);
       expect(animation.fps).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("character ids", () => {
+  it("only accepts known characters", () => {
+    expect(isCharacterId("mona")).toBe(true);
+    expect(isCharacterId("skull")).toBe(false);
+    expect(isCharacterId("toString")).toBe(false);
+    expect(isCharacterId(null)).toBe(false);
+  });
+
+  it("picks a random character, even at the edge of the range", () => {
+    expect(randomCharacter(() => 0)).toBe("joker");
+    expect(randomCharacter(() => 0.99)).toBe("mona");
+    expect(randomCharacter(() => 1)).toBe("mona");
   });
 });

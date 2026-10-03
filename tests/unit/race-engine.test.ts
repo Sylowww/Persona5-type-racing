@@ -281,6 +281,22 @@ describe("disconnects in the waiting room", () => {
   });
 });
 
+describe("characters", () => {
+  it("races each player as their character, Joker by default", () => {
+    let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: "ann", name: "ann", character: "mona" }, now: T0 });
+    state = unwrap(joinLobby(state, { id: "bob", name: "bob" }, T0));
+    state = advance(unwrap(startRace(readyAll(state), "ann", TEXT, T0)), START);
+    const racers = viewFor(state, "bob", START)?.race?.racers ?? [];
+    expect(racers.map((racer) => racer.character)).toEqual(["mona", "joker"]);
+  });
+
+  it("gives bots a random character", () => {
+    let state = unwrap(addBot(lobbyWith("ann"), "ann", "rookie", () => 0));
+    state = unwrap(addBot(state, "ann", "rookie", () => 0.99));
+    expect(state.members.slice(1).map((member) => member.character)).toEqual(["joker", "mona"]);
+  });
+});
+
 describe("bots", () => {
   /** Always the middle of the range: plans are reproducible. */
   const steady = () => 0.5;

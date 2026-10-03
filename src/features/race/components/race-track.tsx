@@ -2,9 +2,9 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
+import { characters } from "@/lib/characters";
 import { RUNNER_OBSTACLES } from "@/lib/race-runner";
 import type { RaceRacer } from "@/types/race";
-import { characters } from "../characters";
 import { RaceRunner, RUNNER_SIZE } from "./race-runner";
 
 type RaceTrackProps = {
@@ -18,8 +18,6 @@ type RaceTrackProps = {
 
 const quarterMarks = [0, 0.25, 0.5, 0.75] as const;
 
-// Every racer is Joker for now; later the emblem can pick a character.
-const anchor = (characters.joker.anchorX / characters.joker.frameSize) * RUNNER_SIZE;
 
 export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackProps) {
   const percent = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
@@ -46,6 +44,8 @@ export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackP
       <ol className="flex flex-col gap-1.5">
         {racers.map((racer, index) => {
           const isYou = racer.id === youId;
+          const character = characters[racer.character];
+          const anchor = (character.anchorX / character.frameSize) * RUNNER_SIZE;
           const width = `${racer.progress * 100}%`;
           const label = formatMessage(dictionary.progress, {
             name: racer.name,
@@ -100,7 +100,7 @@ export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackP
                   style={{ translate: `calc(${racer.progress} * (100cqw - 100%)) 0` }}
                 >
                   <RaceRunner
-                    character={characters.joker}
+                    character={character}
                     progress={racer.progress}
                     wpm={racer.wpm}
                     isFinished={racer.isFinished}

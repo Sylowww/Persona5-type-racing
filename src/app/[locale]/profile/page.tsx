@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
+import { CharacterPicker } from "@/features/profile/components/character-picker";
 import { ProfileCard } from "@/features/profile/components/profile-card";
 import { ProfileStats } from "@/features/profile/components/profile-stats";
 import { RaceHistory } from "@/features/profile/components/race-history";
@@ -39,7 +40,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
               <ProfileStats dictionary={profile.stats} />
               <RaceHistory locale={locale} dictionary={profile.history} />
             </div>
-            <SignInMethods dictionary={profile.accounts} email={user.email} providers={providers} />
+            <div className="flex flex-col gap-6">
+              <CharacterPicker dictionary={profile.character} selected={user.character} />
+              <SignInMethods dictionary={profile.accounts} email={user.email} providers={providers} />
+            </div>
           </div>
         </div>
       </div>

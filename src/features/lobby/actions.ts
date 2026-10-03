@@ -20,7 +20,7 @@ function toLocale(value: unknown): Locale {
 async function requirePlayer(locale: Locale) {
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/sign-in`);
-  return { id: user.id, name: user.username };
+  return { id: user.id, name: user.username, character: user.character };
 }
 
 export async function createLobby(localeValue: string): Promise<void> {
