@@ -282,6 +282,12 @@ const en = {
   },
   results: {
     title: "Race results",
+    cutIn: {
+      speaker: "Mona",
+      portraitAlt: "Mona",
+      escaped: "Looking cool, Joker! We made it out of the Palace!",
+      training: "That was way too slow... You need more training. We should go to bed early tonight.",
+    },
     banner: {
       eyebrow: "Race complete",
       victory: "Mission accomplished // Victory!",

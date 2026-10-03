@@ -8,6 +8,7 @@ import { CombatDossier } from "@/features/results/components/combat-dossier";
 import { KeyboardHeatmap } from "@/features/results/components/keyboard-heatmap";
 import { ResultsActions } from "@/features/results/components/results-actions";
 import { ResultsBanner } from "@/features/results/components/results-banner";
+import { ResultsCutIn } from "@/features/results/components/results-cut-in";
 import { ResultsPodium } from "@/features/results/components/results-podium";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
@@ -39,6 +40,7 @@ export default async function RaceResultsPage({ params }: Params) {
   return (
     <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
       <CollapseReveal />
+      <ResultsCutIn dictionary={dictionary.cutIn} escaped={you.finishMs !== null} />
       <div className="relative flex w-full flex-col">
         <HalftoneBackdrop />
         <div className="relative z-10 mx-auto w-full max-w-7xl space-y-6 px-4 py-4 md:px-10">

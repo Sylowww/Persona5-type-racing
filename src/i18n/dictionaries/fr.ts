@@ -284,6 +284,12 @@ const fr: Dictionary = {
   },
   results: {
     title: "Résultats de la course",
+    cutIn: {
+      speaker: "Mona",
+      portraitAlt: "Mona",
+      escaped: "Trop la classe, Joker ! On est sortis du palais !",
+      training: "Beaucoup trop lent... Tu dois t'entraîner. On devrait aller se coucher tôt ce soir.",
+    },
     banner: {
       eyebrow: "Course terminée",
       victory: "Mission accomplie // Victoire !",
