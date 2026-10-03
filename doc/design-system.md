@@ -2,7 +2,7 @@
 
 Visual direction: **Persona 5–inspired** "calling card" style. Red / black / white / yellow, tilted comic panels, hard offset shadows, halftone backdrops, loud condensed italic type.
 
-Use only original assets: no Atlus logos, character art or fonts.
+Use only original assets: no Atlus logos, character art or fonts. Exception: the runner sprite sheets in `public/sprites/` are Persona fan art used for the class prototype; replace them with original or licensed art before any public release.
 
 ## Tokens (`src/app/globals.css`)
 
@@ -64,6 +64,8 @@ Each racer on the race track is an animated character running along their lane (
 - **Sprite sheets** live in `public/sprites/`, described in `lib/characters.ts`: 128×128 px frames with no gap, one row per animation (idle, run, jump, victory), facing right, feet at y = 120, head at the same x in every frame, transparent background. Shown at 64 px. Characters: Joker, Mona, Panther, Skull, Fox, Queen, Oracle, Noir and Crow. Players choose theirs on the profile page (Joker by default); bots get a random one. Adding a character = a sheet in `public/sprites/`, an entry in `lib/characters.ts`, a name in `profile.character.names` and the id in `types/character.ts`.
 - The local player gets a yellow glow and the `YOU` badge; others get a thin light outline so the dark sprite stays visible on the lane.
 - With reduced motion, runners show the first frame of their animation and move without transitions.
+- `components/ui/sprite-frames.tsx` plays one animation of a sheet at any size; the race runner and the profile roster both use it.
+- **Profile roster** (`features/profile/components/character-picker.tsx`): a large animated showcase of the chosen character on a tilted red panel, next to a 3×3 grid of tilted cards. Cards play their idle animation on hover or focus; the chosen one is red with a yellow name tag.
 
 ## Responsive
 
