@@ -82,6 +82,8 @@ test("two players race from lobby creation to results", async ({ browser }) => {
   const restored = await guest.getByLabel("Type the text").inputValue();
   expect(restored.length).toBeGreaterThan(0);
   expect(text.startsWith(restored)).toBe(true);
+  // The input opens once the page is hydrated (keys typed before would be dropped).
+  await expect(guest.getByLabel("Type the text")).toBeEditable();
 
   await Promise.all([
     hostInput.pressSequentially(text.slice(half), { delay: KEY_DELAY_MS }),

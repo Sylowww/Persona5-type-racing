@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent } from "react";
 import { useLobbyStream } from "@/features/lobby/use-lobby-stream";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -35,6 +35,17 @@ import { TypingText } from "./typing-text";
 import { WinnerCutIn } from "./winner-cut-in";
 
 const TICK_MS = 100;
+
+const noSubscription = () => () => {};
+
+/** False in the server render and during hydration, true once React runs in the browser. */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
+}
 
 /** Typing always continues at the end, even after a reload restored earlier progress. */
 function keepCaretAtEnd(input: HTMLInputElement) {
@@ -111,7 +122,9 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
 
   const finished = isFinished(typing);
   const isCountdown = now < startsAt;
-  const isOpen = race !== null && !isCountdown && !finished && view.phase !== "finished";
+  // Keys typed before hydration would be dropped when React takes over the input, so it opens only after.
+  const hydrated = useHydrated();
+  const isOpen = hydrated && race !== null && !isCountdown && !finished && view.phase !== "finished";
 
   // autoFocus can run before hydration, so place the caret here too.
   useEffect(() => {
