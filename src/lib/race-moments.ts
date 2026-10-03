@@ -21,7 +21,7 @@ const URGENT: ReadonlySet<RaceMoment> = new Set(["finished", "chaos"]);
 export const COMMENT_COOLDOWN_MS = 3500;
 
 /** A streak comment every this many correct keys in a row. */
-export const STREAK_STEP = 40;
+export const STREAK_STEP = 90;
 
 /** Share of the text where the final stretch starts. */
 export const FINAL_STRETCH = 0.9;
