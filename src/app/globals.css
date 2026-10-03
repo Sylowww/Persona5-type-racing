@@ -120,6 +120,21 @@
   animation: palace-fade 300ms ease-out 1300ms both;
 }
 
+/* Results page: the same wedges, closed on arrival, then opening. */
+.palace-reveal-top {
+  clip-path: polygon(0 0, 100% 0, 100% 44%, 0 58%);
+  animation: palace-fade 500ms ease-out 150ms reverse both;
+}
+
+.palace-reveal-bottom {
+  clip-path: polygon(0 56%, 100% 42%, 100% 100%, 0 100%);
+  animation: palace-fade 500ms ease-out 150ms reverse both;
+}
+
+.palace-reveal-seam {
+  animation: palace-fade 200ms ease-out reverse both;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .palace-alarm {
     animation: palace-alarm 1.8s ease-in-out infinite;
@@ -135,6 +150,18 @@
 
   .palace-seam {
     animation: palace-seam 250ms cubic-bezier(0.2, 0.8, 0.2, 1) 1300ms both;
+  }
+
+  .palace-reveal-top {
+    animation: palace-slam-top 650ms cubic-bezier(0.5, 0, 0.2, 1) 250ms reverse both;
+  }
+
+  .palace-reveal-bottom {
+    animation: palace-slam-bottom 650ms cubic-bezier(0.5, 0, 0.2, 1) 250ms reverse both;
+  }
+
+  .palace-reveal-seam {
+    animation: palace-seam 220ms cubic-bezier(0.6, 0, 0.8, 0.4) 50ms reverse both;
   }
 }
 

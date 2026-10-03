@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
 import { LobbyPresence } from "@/features/lobby/components/lobby-presence";
 import { loadLobby } from "@/features/lobby/load-lobby";
+import { CollapseReveal } from "@/features/results/components/collapse-reveal";
 import { CombatDossier } from "@/features/results/components/combat-dossier";
 import { KeyboardHeatmap } from "@/features/results/components/keyboard-heatmap";
 import { ResultsActions } from "@/features/results/components/results-actions";
@@ -37,6 +38,7 @@ export default async function RaceResultsPage({ params }: Params) {
 
   return (
     <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
+      <CollapseReveal />
       <div className="relative flex w-full flex-col">
         <HalftoneBackdrop />
         <div className="relative z-10 mx-auto w-full max-w-7xl space-y-6 px-4 py-4 md:px-10">
