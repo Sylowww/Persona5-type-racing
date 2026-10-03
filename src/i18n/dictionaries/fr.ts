@@ -17,7 +17,15 @@ const fr: Dictionary = {
       leaderboards: "Classements",
     },
     server: "{server} // {count} en ligne",
-    sound: "Activer ou couper le son",
+    music: {
+      mute: "Couper la musique",
+      unmute: "Activer la musique",
+      theme: "Thème d'accueil",
+      themes: {
+        "home-1": "Thème I",
+        "home-2": "Thème II",
+      },
+    },
     account: {
       profile: "Mon profil",
       label: "Compte",

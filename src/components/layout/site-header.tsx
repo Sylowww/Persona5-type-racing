@@ -1,7 +1,7 @@
 import { AccountMenu } from "@/components/layout/account-menu";
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
+import { MusicPlayer } from "@/components/layout/music-player";
 import { SiteNav } from "@/components/layout/site-nav";
-import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
@@ -41,13 +41,7 @@ export function SiteHeader({ locale, dictionary, user, server }: SiteHeaderProps
             </span>
           </div>
 
-          <button
-            type="button"
-            aria-label={dictionary.sound}
-            className="flex size-9 items-center justify-center bg-surface-container text-on-surface-variant transition-colors hover:text-on-surface"
-          >
-            <Icon name="volume_up" size={20} />
-          </button>
+          <MusicPlayer dictionary={dictionary.music} />
 
           <AccountMenu locale={locale} dictionary={dictionary.account} user={user} />
         </div>

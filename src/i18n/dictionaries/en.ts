@@ -15,7 +15,15 @@ const en = {
       leaderboards: "Leaderboards",
     },
     server: "{server} // {count} online",
-    sound: "Toggle sound",
+    music: {
+      mute: "Mute music",
+      unmute: "Play music",
+      theme: "Home theme",
+      themes: {
+        "home-1": "Theme I",
+        "home-2": "Theme II",
+      },
+    },
     account: {
       profile: "My profile",
       label: "Account",
