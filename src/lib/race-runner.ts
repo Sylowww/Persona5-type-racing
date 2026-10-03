@@ -58,7 +58,10 @@ export function nextRunnerChangeAt(state: RunnerState, now: number): number | nu
   return times.length === 0 ? null : Math.min(...times);
 }
 
-/** Run cycle speed for a WPM: 1 at 60 WPM, kept between 0.8 and 1.4 so it never looks frozen or frantic. */
+/**
+ * Run cycle speed for a WPM: 1 at 60 WPM, kept between 0.8 and 1.4 so it never looks frozen or frantic.
+ * Rounded to 0.1 so the cycle is not restarted on every small WPM change.
+ */
 export function runSpeed(wpm: number): number {
-  return Math.min(Math.max(wpm / 60, 0.8), 1.4);
+  return Math.round(Math.min(Math.max(wpm / 60, 0.8), 1.4) * 10) / 10;
 }

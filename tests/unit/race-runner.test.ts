@@ -98,9 +98,10 @@ describe("nextRunnerChangeAt", () => {
 });
 
 describe("runSpeed", () => {
-  it("is 1 at 60 WPM and stays between 0.8 and 1.4", () => {
+  it("is 1 at 60 WPM, stays between 0.8 and 1.4 and is rounded to 0.1", () => {
     expect(runSpeed(60)).toBe(1);
-    expect(runSpeed(72)).toBeCloseTo(1.2);
+    expect(runSpeed(72)).toBe(1.2);
+    expect(runSpeed(74)).toBe(1.2);
     expect(runSpeed(0)).toBe(0.8);
     expect(runSpeed(200)).toBe(1.4);
   });
