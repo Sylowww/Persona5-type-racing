@@ -105,6 +105,9 @@ const fr: Dictionary = {
         accuracy: "Précision",
         races: "Courses",
         empty: "Aucune course",
+        best: "Meilleure course",
+        average: "Moyenne",
+        played: "Jouées",
       },
       guest: {
         tape: "Non inscrit",
@@ -112,6 +115,7 @@ const fr: Dictionary = {
         text: "Connecte-toi pour suivre ta vitesse, ta précision et ta carte du clavier.",
         signIn: "Connexion",
         signUp: "Créer un compte",
+        sessionNote: "Les courses d'invité sont gardées jusqu'à la fermeture de cet onglet.",
       },
       radar: {
         empty: "Termine une course pour calibrer ton radar.",
@@ -396,6 +400,10 @@ const fr: Dictionary = {
       title: "Historique des courses",
       empty: "Tes courses apparaîtront ici.",
       cta: "Lancer une course",
+      place: "{place}/{total}",
+      wpm: "{wpm} MPM",
+      accuracy: "{percent} % de précision",
+      notFinished: "Non terminée",
     },
     signOut: "Déconnexion",
   },

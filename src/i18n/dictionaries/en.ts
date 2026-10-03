@@ -103,6 +103,9 @@ const en = {
         accuracy: "Accuracy",
         races: "Races",
         empty: "No races yet",
+        best: "Best race",
+        average: "Average",
+        played: "Played",
       },
       guest: {
         tape: "Unregistered",
@@ -110,6 +113,7 @@ const en = {
         text: "Sign in to track your speed, accuracy and keyboard heatmap.",
         signIn: "Sign in",
         signUp: "Create an account",
+        sessionNote: "Guest races are kept until you close this tab.",
       },
       radar: {
         empty: "Finish a race to calibrate your radar.",
@@ -394,6 +398,10 @@ const en = {
       title: "Race history",
       empty: "Your races will show up here.",
       cta: "Start a race",
+      place: "{place}/{total}",
+      wpm: "{wpm} WPM",
+      accuracy: "{percent}% accuracy",
+      notFinished: "Did not finish",
     },
     signOut: "Sign out",
   },

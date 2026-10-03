@@ -1,13 +1,14 @@
 import { Icon } from "@/components/ui/icon";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import type { PlayerStats } from "@/types/race";
 
-// Race results are not persisted yet, so the record is always empty for now.
-export function ProfileStats({ dictionary }: { dictionary: Dictionary["profile"]["stats"] }) {
+export function ProfileStats({ dictionary, stats }: { dictionary: Dictionary["profile"]["stats"]; stats: PlayerStats }) {
+  const empty = stats.races === 0;
   const tiles = [
-    { label: dictionary.races, value: "0" },
-    { label: dictionary.record, value: "—" },
-    { label: dictionary.average, value: "—" },
-    { label: dictionary.accuracy, value: "—" },
+    { label: dictionary.races, value: String(stats.races) },
+    { label: dictionary.record, value: empty ? "—" : String(Math.round(stats.bestWpm)) },
+    { label: dictionary.average, value: empty ? "—" : String(Math.round(stats.averageWpm)) },
+    { label: dictionary.accuracy, value: empty ? "—" : `${Math.round(stats.accuracy * 100)}%` },
   ];
 
   return (
@@ -21,10 +22,12 @@ export function ProfileStats({ dictionary }: { dictionary: Dictionary["profile"]
           </div>
         ))}
       </dl>
-      <p className="flex items-center gap-2 text-on-surface-variant">
-        <Icon name="analytics" size={22} className="text-primary-container" />
-        {dictionary.empty}
-      </p>
+      {empty && (
+        <p className="flex items-center gap-2 text-on-surface-variant">
+          <Icon name="analytics" size={22} className="text-primary-container" />
+          {dictionary.empty}
+        </p>
+      )}
     </section>
   );
 }
