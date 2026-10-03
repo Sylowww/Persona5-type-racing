@@ -117,7 +117,8 @@ describe("character ids", () => {
 
   it("picks a random character, even at the edge of the range", () => {
     expect(randomCharacter(() => 0)).toBe("joker");
-    expect(randomCharacter(() => 0.99)).toBe("mona");
-    expect(randomCharacter(() => 1)).toBe("mona");
+    expect(randomCharacter(() => 0.5)).toBe("mona");
+    expect(randomCharacter(() => 0.99)).toBe("panther");
+    expect(randomCharacter(() => 1)).toBe("panther");
   });
 });
