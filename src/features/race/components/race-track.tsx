@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -14,12 +15,41 @@ type RaceTrackProps = {
   youId: string;
   /** Race clock, used only to animate the runners. */
   now: number;
+  /** Racers who just passed the local player; their lane flashes. */
+  overtakerIds?: ReadonlySet<string>;
+  /** How strongly the exit glows at the end of every lane, from 0 to 1. */
+  exitGlow?: number;
+  /** Total chaos: stones fall onto the lanes. */
+  chaos?: boolean;
 };
+
+/** Stones falling on a lane during the chaos: position and timing, fixed per lane so they do not jump around. */
+function laneStones(lane: number) {
+  return [0, 1, 2].map((stone) => {
+    const seed = Math.sin((lane + 1) * 12.9898 + stone * 78.233) * 43758.5453;
+    const random = seed - Math.floor(seed);
+    return {
+      left: `${12 + ((random * 997) % 1) * 70}%`,
+      size: 5 + Math.round(random * 6),
+      duration: `${2.2 + random * 1.4}s`,
+      delay: `${(stone * 1.1 + random * 0.9).toFixed(2)}s`,
+    };
+  });
+}
 
 const quarterMarks = [0, 0.25, 0.5, 0.75] as const;
 
 
-export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackProps) {
+export function RaceTrack({
+  dictionary,
+  locale,
+  racers,
+  youId,
+  now,
+  overtakerIds,
+  exitGlow = 0,
+  chaos = false,
+}: RaceTrackProps) {
   const percent = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
 
@@ -57,7 +87,9 @@ export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackP
             <li
               key={racer.id}
               aria-label={label}
-              className={`flex h-[76px] items-stretch bg-surface-container-highest ${racer.isConnected ? "" : "opacity-50"}`}
+              className={`flex h-[76px] items-stretch bg-surface-container-highest ${racer.isConnected ? "" : "opacity-50"} ${
+                overtakerIds?.has(racer.id) ? "lane-overtake" : ""
+              }`}
             >
               {/* The course: everything here is decorative and placed from progress only. */}
               <div aria-hidden="true" className="@container relative flex-1 overflow-hidden">
@@ -70,6 +102,33 @@ export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackP
                   style={{ width }}
                 />
                 <div className="absolute inset-x-0 bottom-1 h-px bg-on-surface/25" />
+                {/* The exit: a light at the end of the lane, brighter as the leader nears it. */}
+                <div
+                  className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-secondary-fixed/45 to-transparent transition-opacity duration-500"
+                  style={{ opacity: exitGlow }}
+                />
+                <div
+                  className={`absolute inset-y-1 right-0 w-1.5 bg-secondary-fixed shadow-[0_0_14px_4px_var(--color-secondary-fixed)] transition-opacity duration-500 ${
+                    exitGlow > 0.6 ? "motion-safe:animate-pulse" : ""
+                  }`}
+                  style={{ opacity: 0.2 + 0.8 * exitGlow }}
+                />
+                {chaos &&
+                  laneStones(index).map((stone, stoneIndex) => (
+                    <div
+                      key={stoneIndex}
+                      className="lane-stone absolute bottom-1 -skew-x-12 bg-surface-bright shadow-[1px_1px_0_var(--color-primary-container)]"
+                      style={
+                        {
+                          left: stone.left,
+                          width: stone.size,
+                          height: stone.size,
+                          "--stone-duration": stone.duration,
+                          "--stone-delay": stone.delay,
+                        } as CSSProperties
+                      }
+                    />
+                  ))}
                 {RUNNER_OBSTACLES.map((obstacle) => (
                   <div
                     key={obstacle}
@@ -104,6 +163,7 @@ export function RaceTrack({ dictionary, locale, racers, youId, now }: RaceTrackP
                     progress={racer.progress}
                     wpm={racer.wpm}
                     isFinished={racer.isFinished}
+                    mistakes={racer.mistakes}
                     isYou={isYou}
                     now={now}
                   />
