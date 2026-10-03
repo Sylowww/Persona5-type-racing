@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   COMMENT_COOLDOWN_MS,
   STREAK_STEP,
-  countdownIntro,
   detectMoments,
   exitGlow,
   overtakers,
@@ -77,11 +76,5 @@ describe("presentation helpers", () => {
     expect(exitGlow(0)).toBe(0);
     expect(exitGlow(0.5)).toBeLessThan(0.5);
     expect(exitGlow(2)).toBe(1);
-  });
-
-  it("fits the countdown intro into the time left", () => {
-    expect(countdownIntro(3000)).toEqual({ card: true, mona: true });
-    expect(countdownIntro(2000)).toEqual({ card: false, mona: true });
-    expect(countdownIntro(1000)).toEqual({ card: false, mona: false });
   });
 });

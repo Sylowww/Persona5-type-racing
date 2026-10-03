@@ -4,14 +4,14 @@ import {
   RESULTS_CUT_IN_TIMELINE,
   resultsVerdict,
   revealedLength,
-  shouldPlayCutIn,
+  countdownIntro,
 } from "../../src/lib/cut-in";
 
 describe("cut-ins", () => {
-  it("plays only when the whole cut-in fits before the start", () => {
-    expect(shouldPlayCutIn(3000)).toBe(true);
-    expect(shouldPlayCutIn(CUT_IN_TIMELINE.endsAt)).toBe(false);
-    expect(shouldPlayCutIn(800)).toBe(false);
+  it("fits the countdown intro into the time left", () => {
+    expect(countdownIntro(3000)).toEqual({ card: true, mona: true });
+    expect(countdownIntro(2000)).toEqual({ card: false, mona: true });
+    expect(countdownIntro(CUT_IN_TIMELINE.endsAt)).toEqual({ card: false, mona: false });
   });
 
   it("types the line out between its start and end", () => {

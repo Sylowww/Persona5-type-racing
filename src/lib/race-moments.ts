@@ -91,11 +91,3 @@ export function exitGlow(leaderProgress: number): number {
   const progress = Math.min(1, Math.max(0, leaderProgress));
   return progress * progress;
 }
-
-/** What plays during the countdown, given the time left: the calling card, then Mona's cut-in. */
-export function countdownIntro(remainingMs: number): { card: boolean; mona: boolean } {
-  return { card: remainingMs >= COUNTDOWN_INTRO.withCard, mona: remainingMs >= COUNTDOWN_INTRO.monaOnly };
-}
-
-/** Countdown time needed for the calling card plus Mona, or Mona alone (ms, including a margin before "GO"). */
-export const COUNTDOWN_INTRO = { cardMs: 600, withCard: 2300, monaOnly: 1700 } as const;

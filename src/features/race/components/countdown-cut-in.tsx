@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CutInBand, useCutInClock } from "@/components/ui/cut-in";
 import { SpriteFrames } from "@/components/ui/sprite-frames";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { characterSprite } from "@/lib/characters";
-import { CUT_IN_TIMELINE, revealedLength, shouldPlayCutIn } from "@/lib/cut-in";
+import { CALLING_CARD_MS, CUT_IN_TIMELINE, countdownIntro, revealedLength } from "@/lib/cut-in";
+import { playSoundFile } from "@/lib/sound-effects";
 
 const mona = characterSprite("mona");
 /** Mona's recorded line, matching `race.cutIn.line`. */
@@ -13,18 +14,49 @@ const VOICE = "/voices/mona/lets-go.mp3";
 
 type CountdownCutInProps = {
   dictionary: Dictionary["race"]["cutIn"];
-  /** Server-aligned race clock and start, to skip the cut-in when the countdown is almost over. */
+  callingCard: Dictionary["race"]["callingCard"];
+  /** Server-aligned race clock and start, to fit the intro into the countdown time left. */
   now: number;
   startsAt: number;
 };
 
-/** During the countdown, Mona shouts to run, then dashes off before the start. It never covers the countdown number. */
-export function CountdownCutIn({ dictionary, now, startsAt }: CountdownCutInProps) {
+/**
+ * Countdown intro: a calling card flips in, then Mona shouts to run and dashes off before the start.
+ * Both are skipped when the countdown has too little time left. It never covers the countdown number.
+ */
+export function CountdownCutIn({ dictionary, callingCard, now, startsAt }: CountdownCutInProps) {
   // Decided once, from the first render, so the same markup renders on the server and the client.
-  const [play] = useState(() => shouldPlayCutIn(startsAt - now));
+  const [intro] = useState(() => countdownIntro(startsAt - now));
   const line = dictionary.line;
-  const elapsed = useCutInClock(play, line, CUT_IN_TIMELINE, { voice: VOICE });
+  const elapsed = useCutInClock(intro.mona, line, CUT_IN_TIMELINE, {
+    delayMs: intro.card ? CALLING_CARD_MS : 0,
+    voice: VOICE,
+  });
 
+  // The ref keeps the sound from playing twice when development mode runs effects twice.
+  const cardPlayedRef = useRef(false);
+  useEffect(() => {
+    if (!intro.card || cardPlayedRef.current) return;
+    cardPlayedRef.current = true;
+    playSoundFile("/sfx/calling-card.mp3", 0.7);
+  }, [intro.card]);
+
+  if (intro.card && elapsed === null) {
+    return (
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[65] flex items-start justify-center pt-[18vh]">
+        <div className="calling-card relative flex h-44 w-72 -rotate-6 flex-col justify-between overflow-hidden bg-primary-container p-4 shadow-hard-xl shadow-surface-container-lowest">
+          <div className="absolute -right-10 top-0 h-full w-28 -skew-x-12 bg-surface-container-lowest" />
+          <span className="relative font-hud text-[12px] font-black uppercase tracking-widest text-on-primary-container">
+            {callingCard.kicker}
+          </span>
+          <span className="relative -skew-x-6 font-display text-[34px] uppercase leading-none text-secondary">
+            {callingCard.title}
+          </span>
+          <span className="relative self-end font-display text-[18px] tracking-wider text-secondary-fixed">TYPE//STRIKE</span>
+        </div>
+      </div>
+    );
+  }
   if (elapsed === null || elapsed >= CUT_IN_TIMELINE.endsAt) return null;
   const runsOff = elapsed >= CUT_IN_TIMELINE.runsOffAt;
 
