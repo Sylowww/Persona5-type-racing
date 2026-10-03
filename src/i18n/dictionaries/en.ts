@@ -265,6 +265,28 @@ const en = {
       speaker: "Mona",
       line: "Okay, let's go!",
     },
+    comms: {
+      speaker: "Mona",
+      overtook: "Nice one, keep it up!",
+      overtaken: "Hey, come on! Wake up!",
+      streak: "Nice going!",
+      finalStretch: "One more! This is it!",
+      chaos: "Don't panic! Stay cool and blaze through them!",
+      finished: "Well done!",
+      fumble: "Ugh... that's not good!",
+    },
+    callingCard: {
+      kicker: "Calling card",
+      title: "Take their words!",
+    },
+    finish: {
+      title: "Escaped!",
+      subtitle: "Waiting for the others...",
+    },
+    winner: {
+      tag: "First out",
+      line: "{name} reached the exit first!",
+    },
     stats: {
       speed: "Speedometer",
       wpm: "WPM",

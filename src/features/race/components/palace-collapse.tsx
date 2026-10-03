@@ -18,7 +18,7 @@ import {
   type Debris,
   type Rumble,
 } from "@/lib/palace-collapse";
-import { playFinalCollapse, playRumble } from "@/lib/sound-effects";
+import { playFinalCollapse, playRumble, playSoundFile } from "@/lib/sound-effects";
 
 type PalaceCollapseProps = {
   /** Server-aligned race clock. */
@@ -130,7 +130,10 @@ export function PalaceCollapse({ now, startsAt, endsAt, leaderProgress, collapsi
   // The palace gives way the moment the leader reaches the middle (not on a reload that is already past it).
   const wasChaosRef = useRef(chaos);
   useEffect(() => {
-    if (chaos && !wasChaosRef.current) pendingRumbleRef.current = CHAOS_ONSET;
+    if (chaos && !wasChaosRef.current) {
+      pendingRumbleRef.current = CHAOS_ONSET;
+      playSoundFile("/sfx/alarm.mp3", 0.55);
+    }
     wasChaosRef.current = chaos;
   }, [chaos]);
 
@@ -287,6 +290,12 @@ export function PalaceCollapse({ now, startsAt, endsAt, leaderProgress, collapsi
       >
         <div className={`palace-alarm size-full ${chaos ? "palace-alarm-chaos" : ""}`} />
       </div>
+      {chaos && (
+        // A red alarm light sweeping the room.
+        <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-40 overflow-hidden opacity-25 mix-blend-screen">
+          <div className="palace-sweep absolute left-1/2 top-1/2 size-[250vmax] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,transparent_0deg,var(--color-primary-container)_18deg,transparent_40deg,transparent_180deg,var(--color-primary-container)_198deg,transparent_220deg)]" />
+        </div>
+      )}
       <canvas ref={frontRef} aria-hidden="true" className="pointer-events-none fixed inset-0 z-40 size-full" />
       {collapsing && (
         <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] overflow-hidden">

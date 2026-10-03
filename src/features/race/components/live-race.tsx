@@ -17,16 +17,22 @@ import {
   wordsPerMinute,
   type TypingState,
 } from "@/lib/typing";
-import { FINAL_COLLAPSE_MS } from "@/lib/palace-collapse";
+import { characterSprite } from "@/lib/characters";
+import { FINAL_COLLAPSE_MS, isChaos } from "@/lib/palace-collapse";
+import { exitGlow } from "@/lib/race-moments";
 import type { LobbyView } from "@/types/lobby";
 import type { InputEvent, RaceYou } from "@/types/race";
 import { useInputSender } from "../use-input-sender";
+import { useFinishFrame, useFirstFinisher, useOvertakeFlash } from "../use-race-highlights";
 import { CountdownCutIn } from "./countdown-cut-in";
+import { FinishCutIn } from "./finish-cut-in";
+import { MonaComms } from "./mona-comms";
 import { PalaceCollapse } from "./palace-collapse";
 import { RaceHud } from "./race-hud";
 import { RaceStats } from "./race-stats";
 import { RaceTrack } from "./race-track";
 import { TypingText } from "./typing-text";
+import { WinnerCutIn } from "./winner-cut-in";
 
 const TICK_MS = 100;
 
@@ -143,8 +149,17 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const elapsedMs = race === null ? 0 : Math.max(0, endTime - startsAt);
   const wpm = wordsPerMinute(correctPrefixLength(text, typing.typed), elapsedMs);
   const racers = (race?.racers ?? []).map((racer) =>
-    racer.id === view.youId ? { ...racer, progress: progress(text, typing.typed), wpm } : racer,
+    racer.id === view.youId ? { ...racer, progress: progress(text, typing.typed), wpm, mistakes: typing.mistakes } : racer,
   );
+  const leaderProgress = Math.max(0, ...racers.map((racer) => racer.progress));
+  const chaos = isChaos(leaderProgress);
+  const youRacer = racers.find((racer) => racer.id === view.youId);
+  const raceOver = resultsHref !== null;
+  // Presentation only: the server still decides places, finish and results.
+  const overtakerIds = useOvertakeFlash(racers, view.youId, now);
+  // Also shown when the last finisher ends the race: the collapse wedges (above it) then close over it.
+  const showFinishFrame = useFinishFrame(finished, now);
+  const winner = useFirstFinisher(racers, view.youId);
   const place = view.race?.you?.place ?? racers.length;
   const secondsLeft = Math.max(1, Math.ceil((startsAt - now) / 1000));
 
@@ -162,13 +177,30 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   return (
     <>
       {/* Outside PalaceCollapse: its shaking wrapper would anchor this fixed overlay. */}
-      {isCountdown && <CountdownCutIn dictionary={dictionary.cutIn} now={now} startsAt={startsAt} />}
+      {isCountdown && (
+        <CountdownCutIn dictionary={dictionary.cutIn} callingCard={dictionary.callingCard} now={now} startsAt={startsAt} />
+      )}
+      {winner && !raceOver && <WinnerCutIn dictionary={dictionary.winner} name={winner.name} character={winner.character} />}
+      {showFinishFrame && youRacer && (
+        <FinishCutIn dictionary={dictionary.finish} character={characterSprite(youRacer.character)} />
+      )}
+      <MonaComms
+        dictionary={dictionary.comms}
+        now={now}
+        active={race !== null && !isCountdown && !raceOver}
+        place={place}
+        streak={typing.streak}
+        progress={progress(text, typing.typed)}
+        mistakes={typing.mistakes}
+        finished={finished}
+        chaos={chaos}
+      />
       <PalaceCollapse
         now={now}
         startsAt={startsAt}
         endsAt={race?.endsAt ?? startsAt}
-        leaderProgress={Math.max(0, ...racers.map((racer) => racer.progress))}
-        collapsing={resultsHref !== null}
+        leaderProgress={leaderProgress}
+        collapsing={raceOver}
       >
         <div className="flex flex-col gap-4">
           <RaceHud
@@ -179,7 +211,16 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
             racerCount={racers.length}
           />
 
-          <RaceTrack dictionary={dictionary.track} locale={locale} racers={racers} youId={view.youId} now={now} />
+          <RaceTrack
+            dictionary={dictionary.track}
+            locale={locale}
+            racers={racers}
+            youId={view.youId}
+            now={now}
+            overtakerIds={overtakerIds}
+            exitGlow={exitGlow(leaderProgress)}
+            chaos={chaos && !raceOver}
+          />
 
           <section
             aria-label={dictionary.arena.label}

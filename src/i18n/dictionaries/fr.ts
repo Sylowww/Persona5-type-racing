@@ -267,6 +267,28 @@ const fr: Dictionary = {
       speaker: "Mona",
       line: "OK, on y va !",
     },
+    comms: {
+      speaker: "Mona",
+      overtook: "Bien joué, continue comme ça !",
+      overtaken: "Hé, allez ! Réveille-toi !",
+      streak: "Bien joué !",
+      finalStretch: "Encore un ! C'est le moment !",
+      chaos: "Pas de panique ! Garde ton calme et fonce !",
+      finished: "Bravo !",
+      fumble: "Aïe... ça sent mauvais !",
+    },
+    callingCard: {
+      kicker: "Carte d'appel",
+      title: "Vole leurs mots !",
+    },
+    finish: {
+      title: "Évadé !",
+      subtitle: "En attente des autres...",
+    },
+    winner: {
+      tag: "Premier dehors",
+      line: "{name} a atteint la sortie en premier !",
+    },
     stats: {
       speed: "Compteur de vitesse",
       wpm: "MPM",
