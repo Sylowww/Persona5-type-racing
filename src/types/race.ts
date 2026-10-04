@@ -73,6 +73,8 @@ export type ResultRacer = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
+  /** Character the racer raced as; the podium shows its portrait. */
+  character: CharacterId;
   wpm: number;
   /** From 0 to 1. */
   accuracy: number;
