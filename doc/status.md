@@ -13,6 +13,8 @@ Last updated: 2026-09-30.
 - Background music (`components/layout/music-player.tsx`, tracks in `public/music/`): the race page plays the race theme from 25 s (vocals start as the 3 s countdown ends), every other page the home theme chosen in the header (Theme I or II). Header buttons pick the theme and mute (the mute also silences sound effects); both choices are saved in `localStorage`. Playback starts on the first click or key press when the browser blocks autoplay.
 - Reconnection: 30 s grace period for a lost connection in the lobby and during a race; reloading the race page restores progress.
 
+- Header nav: Home and Leaderboards only (races, training and lobbies start from the home page).
+- Leaderboard (`/fr/leaderboard`, `/en/leaderboard`): top 100 registered players by record WPM, with average WPM, accuracy and race count; 10 per page with previous/next arrows, each page loaded from the server; the signed-in player's row is highlighted.
 - Race history: when a race ends, the server saves each registered player's place, WPM, accuracy and time in `race_results`. The profile page (`/fr/profile`, `/en/profile`, registered users only: avatar, username, member since, character picker (Joker, Mona, Panther, Skull, Fox, Queen, Oracle, Noir or Crow, used from the next lobby joined), sign-in methods) shows races, record, average WPM, accuracy and the last 10 races; the home dossier shows record, accuracy and race count, and links to the profile. Guests keep their races in `sessionStorage` (the results page writes them), so they last until the tab is closed; the home dossier shows them.
 
 - Database foundation: migration runner, `users` / `oauth_accounts` / `sessions` schema, password hashing, session tokens, account validation and data-access functions (`lib/users.ts`). Used by email/password auth.
@@ -25,7 +27,7 @@ Last updated: 2026-09-30.
 - Radar is an empty state until it is computed from saved races. `SkillRadar` is kept for when it is.
 - Leaderboard and server data come from `src/mocks/player.ts`; the home page hides the mock "you" row. `mockPlayer` (with radar values) is no longer used by any page.
 - Lobby buttons for settings, chat and invite observer do nothing; the rules dossier shows the fixed rules races use today; the taunt feed and spectators are empty. Player cards show `-- WPM` as best speed until stats are stored.
-- Nav items other than Home and Lobby, and the mode cards, do nothing yet. "Start a race" opens a new lobby (no matchmaking).
+- The mode cards do nothing yet. "Start a race" opens a new lobby (no matchmaking).
 - Key-audio selection is UI only (no key sounds yet).
 - Avatar and logo are placeholders (icon + wordmark) until real assets exist.
 
