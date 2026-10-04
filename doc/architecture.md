@@ -79,6 +79,7 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 | Layer | File | Role |
 | --- | --- | --- |
 | Rules | `lib/race-engine.ts` | Pure `(state, event, now) → state` functions: join, leave, ready, add/remove bot, start, input, connect/disconnect, `advance` (time-based transitions and bot keystrokes), `viewFor` (per-player snapshot), `resultFor`. No timers, I/O or transport. |
+| Settings / chat | `lib/race-settings.ts`, `lib/chat.ts` | Race settings (defaults, allowed values, validation of client changes) and chat message cleanup and limits. |
 | Bots | `lib/bots.ts` | `planBotRun(text, difficulty, random)`: a bot's whole race as timed keystrokes, planned at race start. |
 | Store | `lib/lobby-store.ts` | `createLobbyStore()`: keeps lobbies in a `Map`, runs one 100 ms timer (countdown end, race end, expired seats), broadcasts to subscribers, counts connections per player. Unit tested with an injected clock. |
 | Singleton | `lib/lobby-server.ts` | Server-only `getLobbyStore()`, kept on `globalThis`. Reads `LOBBY_CAPACITY`. |
@@ -89,10 +90,13 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 
 - The creator is host; if the host leaves or their seat expires, the longest-standing player takes over. Only the host starts, once at least two players are all ready (`canStartRace`).
 - Capacity defaults to 30 (a class), capped at 60, set with `LOBBY_CAPACITY`.
-- Start: the server picks a text in the lobby's language (`lib/race-texts.ts`) and sets `startsAt = now + 3 s`. Snapshots carry `serverNow` so every client shows the same countdown.
+- Settings: the host changes the next race's rules while the lobby is waiting (`updateSettings`; every field is validated server-side): mode (`normal` or `suddenDeath`: the first wrong character eliminates the racer), powers (saved only, no effect until bonuses exist), time limit (30 s, 1, 2 or 3 min, or none: untimed races still stop after a 30-minute safety cap), numbers (texts with digits) and case sensitivity (when off, a letter in the wrong case is stored as the expected one with `normalizeTypedChar`, on the server and in the race page). A race copies the settings when it starts.
+- Sudden death: an eliminated racer stops typing (server and client), counts as done for the race end, and ranks after every racer still in, the last one knocked out first. Their WPM is measured up to the elimination.
+- Chat: any member sends messages (`sendMessage`): whitespace collapsed, 1-140 characters, one message per 500 ms per player, last 50 kept in the lobby (memory only) and sent in every snapshot. Quick taunts are preset messages in the sender's language.
+- Start: the server picks a text in the lobby's language (`lib/race-texts.ts`, from the texts with digits when numbers are on) and sets `startsAt = now + 3 s`. Snapshots carry `serverNow` so every client shows the same countdown.
 - Input: the client diffs the hidden input into `char`/`delete` events and posts them in numbered batches (one request at a time, retried with the same number). The server replays them with `lib/typing.ts`, timed by its own clock, and ignores repeated batches, input outside the race and more than 30 keys/s. Progress, WPM, places, finish and results are computed server-side only. Client-measured key delays are used only for the heatmap.
 - Progress is broadcast at most every 100 ms per lobby; membership and phase changes are broadcast immediately.
-- End: when every racer finished, left, or stayed disconnected past the grace period, or at the 3-minute limit. Results are ranked with `rankRacers`.
+- End: when every racer finished, was eliminated, left, or stayed disconnected past the grace period, or at the time limit. Results are ranked with `rankRacers`.
 
 **Bots:** the host adds bots from the lobby (one button per difficulty, so every bot can have its own level) and removes them while no race is running. A bot is a lobby member with `bot` set to its difficulty: always connected and ready, never host, counted in the capacity. When the race starts, `planBotRun` plans each bot's keystrokes; `advance` replays the ones that are due with the same typing rules as players (progress, samples, key stats, results). Plans are human-like: target speed per difficulty (`botTargetWpm`, ±8% per race), uneven rhythm, slower capitals and punctuation, short pauses between words, and typos on neighboring QWERTY keys that are sometimes noticed a few keys late, then deleted and retyped. Easier levels make more typos and react more slowly. A single player can race bots. The race ends early once no player is left, and bots are removed when the last player leaves.
 
