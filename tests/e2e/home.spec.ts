@@ -20,3 +20,16 @@ test("renders the home page sections", async ({ page }) => {
   await page.goto("/fr");
   await expect(page.getByRole("button", { name: /Lancer une course/i })).toBeVisible();
 });
+
+test("keeps only home and leaderboards in the nav and pages the leaderboard", async ({ page }) => {
+  await page.goto("/en");
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(nav.getByRole("link")).toHaveText(["Home // Radar", "Leaderboards"]);
+
+  await nav.getByRole("link", { name: "Leaderboards" }).click();
+  await expect(page).toHaveURL(/\/en\/leaderboard$/);
+  await expect(page.getByRole("heading", { name: "Metaverse leaderboard" })).toBeVisible();
+  // Out-of-range pages fall back to a valid one.
+  await page.goto("/en/leaderboard?page=999");
+  await expect(page.getByRole("heading", { name: "Metaverse leaderboard" })).toBeVisible();
+});

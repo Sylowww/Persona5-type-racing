@@ -16,6 +16,8 @@ Last updated: 2026-10-04.
 - Lobby chat: messages and quick taunts, shared live with every member (last 50, in memory with the lobby). The "Lobby settings" and "Chat / taunts" buttons jump to the rules and the chat input.
 - Reconnection: 30 s grace period for a lost connection in the lobby and during a race; reloading the race page restores progress.
 
+- Header nav: Home and Leaderboards only (races, training and lobbies start from the home page).
+- Leaderboard (`/fr/leaderboard`, `/en/leaderboard`): top 100 registered players by record WPM, with average WPM, accuracy and race count; 10 per page with previous/next arrows, each page loaded from the server; the signed-in player's row is highlighted.
 - Race history: when a race ends, the server saves each registered player's place, WPM, accuracy and time in `race_results`. The profile page (`/fr/profile`, `/en/profile`, registered users only: avatar, username, member since, character picker (Joker, Mona, Panther, Skull, Fox, Queen, Oracle, Noir or Crow, used from the next lobby joined), sign-in methods) shows races, record, average WPM, accuracy and the last 10 races; the home dossier shows record, accuracy and race count, and links to the profile. Guests keep their races in `sessionStorage` (the results page writes them), so they last until the tab is closed; the home dossier shows them.
 
 - Database foundation: migration runner, `users` / `oauth_accounts` / `sessions` schema, password hashing, session tokens, account validation and data-access functions (`lib/users.ts`). Used by email/password auth.
@@ -27,7 +29,7 @@ Last updated: 2026-10-04.
 
 - Server data comes from `src/mocks/player.ts`.
 - The invite observer button does nothing and the spectator list is empty. Player cards show `-- WPM` as best speed until stats are stored.
-- Nav items other than Home and Lobby, and the mode cards, do nothing yet. "Start a race" opens a new lobby (no matchmaking).
+- The mode cards do nothing yet. "Start a race" opens a new lobby (no matchmaking).
 - Key-audio selection is UI only (no key sounds yet).
 - Avatar and logo are placeholders (icon + wordmark) until real assets exist.
 
