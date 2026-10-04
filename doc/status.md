@@ -40,7 +40,7 @@ Last updated: 2026-10-04.
 
 ## Not started
 
-Guest sessions (no page creates a guest yet, so racing requires an account and the guest history above is not reachable yet), heatmap history, spectators, public lobby discovery, matchmaking, powers (the setting exists but does nothing), multi-instance deployment (shared lobby state).
+Guest sessions (no page creates a guest yet, so racing requires an account and the guest history above is not reachable yet), heatmap history, spectators, public lobby discovery, matchmaking for custom lobbies, powers (the setting exists but does nothing), multi-instance deployment (shared lobby state).
 
 ## Undecided
 
