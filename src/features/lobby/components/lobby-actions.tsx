@@ -29,7 +29,7 @@ export function LobbyActions({
   onShowChat,
 }: LobbyActionsProps) {
   return (
-    <div className="mt-4 flex flex-col items-center justify-between gap-6 pt-4 lg:flex-row">
+    <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
       <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
         <button
           type="button"

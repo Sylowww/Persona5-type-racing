@@ -60,6 +60,20 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
         readyCount={countReady(players)}
       />
 
+      {/* Right under the header, so readying up and starting never need a scroll. */}
+      <LobbyActions
+        dictionary={dictionary.actions}
+        canStart={isHost && isWaiting && (isTraining || canStartRace(players))}
+        isHost={isHost}
+        isReady={isReady}
+        isPending={isPending}
+        onToggleReady={() => startTransition(async () => void (await setLobbyReady(code, !isReady)))}
+        onStart={() => startTransition(async () => void (await startLobbyRace(code)))}
+        onLeave={() => startTransition(() => leaveLobby(code, locale))}
+        onShowSettings={() => focusSection("lobby-rules")}
+        onShowChat={() => focusSection("lobby-chat-input")}
+      />
+
       <div className="grid grid-cols-1 items-start gap-7 xl:grid-cols-12">
         <div className="xl:col-span-8">
           <LobbyRoster
@@ -88,19 +102,6 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
           <TauntFeed dictionary={dictionary.chat} messages={view.messages} youId={view.youId} onSend={(text) => sendLobbyMessage(code, text)} />
         </div>
       </div>
-
-      <LobbyActions
-        dictionary={dictionary.actions}
-        canStart={isHost && isWaiting && (isTraining || canStartRace(players))}
-        isHost={isHost}
-        isReady={isReady}
-        isPending={isPending}
-        onToggleReady={() => startTransition(async () => void (await setLobbyReady(code, !isReady)))}
-        onStart={() => startTransition(async () => void (await startLobbyRace(code)))}
-        onLeave={() => startTransition(() => leaveLobby(code, locale))}
-        onShowSettings={() => focusSection("lobby-rules")}
-        onShowChat={() => focusSection("lobby-chat-input")}
-      />
     </>
   );
 }
