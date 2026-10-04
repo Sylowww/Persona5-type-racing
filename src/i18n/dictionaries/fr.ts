@@ -459,7 +459,7 @@ const fr: Dictionary = {
       hint: "Choisis le voleur avec lequel tu cours. Le changement s'applique au prochain lobby que tu rejoins.",
       selected: "Choisi",
       codename: "Nom de code",
-      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow", violet: "Violet" },
+      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow", violet: "Violet", blackMask: "Black Mask" },
     },
     accounts: {
       title: "Méthodes de connexion",

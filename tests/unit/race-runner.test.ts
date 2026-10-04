@@ -126,7 +126,7 @@ describe("character ids", () => {
   });
 
   it("picks a random character, even at the edge of the range", () => {
-    const picks = [0, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.99, 1].map((value) => randomCharacter(() => value));
-    expect(picks).toEqual(["joker", "mona", "panther", "skull", "fox", "queen", "oracle", "noir", "crow", "violet", "violet"]);
+    const picks = [0, 0.1, 0.19, 0.28, 0.37, 0.46, 0.55, 0.64, 0.73, 0.82, 0.95, 1].map((value) => randomCharacter(() => value));
+    expect(picks).toEqual(["joker", "mona", "panther", "skull", "fox", "queen", "oracle", "noir", "crow", "violet", "blackMask", "blackMask"]);
   });
 });
