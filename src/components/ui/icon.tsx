@@ -10,7 +10,6 @@ export const iconNames = [
   "chevron_right",
   "close",
   "content_copy",
-  "electric_bolt",
   "graphic_eq",
   "home",
   "keyboard",

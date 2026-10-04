@@ -173,7 +173,6 @@ const fr: Dictionary = {
       },
     },
     ticker: {
-      bonus: "Boost de dérive activé // multiplicateur de série à 100 % de précision",
       start: "La course démarre quand tous les joueurs sont prêts",
     },
     rules: {

@@ -171,7 +171,6 @@ const en = {
       },
     },
     ticker: {
-      bonus: "Drift boost enabled // 100% accuracy streak multiplier",
       start: "Race starts when every player is ready",
     },
     rules: {
