@@ -21,7 +21,7 @@ export default async function QuickPlayPage({ params }: { params: Promise<{ loca
   // Racing needs an account until guest sessions exist (same as creating a lobby).
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/sign-in`);
-  const { quick } = await getDictionary(locale);
+  const { quick, profile, lobby } = await getDictionary(locale);
 
   return (
     <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
@@ -35,7 +35,12 @@ export default async function QuickPlayPage({ params }: { params: Promise<{ loca
             <h1 className="font-display text-headline-lg uppercase italic tracking-wider text-secondary">{quick.title}</h1>
             <p className="text-on-surface-variant">{quick.hint}</p>
           </header>
-          <QuickMatchSearch dictionary={quick} locale={locale} />
+          <QuickMatchSearch
+            dictionary={quick}
+            characterNames={profile.character.names}
+            botNames={lobby.bots.difficulties}
+            locale={locale}
+          />
         </div>
       </div>
     </main>
