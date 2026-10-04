@@ -457,7 +457,7 @@ const en = {
       hint: "Pick the thief you race as. Changes apply from the next lobby you join.",
       selected: "Selected",
       codename: "Codename",
-      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow" },
+      names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow", violet: "Violet" },
     },
     accounts: {
       title: "Sign-in methods",

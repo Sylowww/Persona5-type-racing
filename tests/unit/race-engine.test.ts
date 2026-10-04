@@ -298,7 +298,7 @@ describe("characters", () => {
   it("gives bots a random character", () => {
     let state = unwrap(addBot(lobbyWith("ann"), "ann", "rookie", () => 0));
     state = unwrap(addBot(state, "ann", "rookie", () => 0.99));
-    expect(state.members.slice(1).map((member) => member.character)).toEqual(["joker", "crow"]);
+    expect(state.members.slice(1).map((member) => member.character)).toEqual(["joker", "violet"]);
   });
 });
 

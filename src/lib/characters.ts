@@ -144,6 +144,20 @@ export const characters = {
       victory: { row: 3, frames: 2, fps: 4, loop: false },
     },
   },
+  // Kasumi Yoshizawa. Cut from a single generated sheet (checkerboard removed); the victory is her last pose.
+  violet: {
+    src: "/sprites/violet.webp",
+    frameSize: 128,
+    columns: 8,
+    rows: 4,
+    anchorX: 88,
+    animations: {
+      idle: { row: 0, frames: 7, fps: 4, loop: true },
+      run: { row: 1, frames: 8, fps: 12, loop: true },
+      jump: { row: 2, frames: 6, fps: 12, loop: false },
+      victory: { row: 3, frames: 1, fps: 1, loop: false },
+    },
+  },
 } satisfies Record<CharacterId, CharacterSprite>;
 
 export const characterIds = Object.keys(characters) as CharacterId[];
