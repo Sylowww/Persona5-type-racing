@@ -172,3 +172,73 @@ describe("lobby store", () => {
     expect(store.exists(code)).toBe(false);
   });
 });
+
+describe("training dojo", () => {
+  it("starts a solo race at once and never reports it", () => {
+    const finished: string[] = [];
+    store = createLobbyStore({ now: () => clock, randomInt: () => 0, tickMs: null, onRaceFinished: (code) => finished.push(code) });
+    const code = store.startTraining(ann, "en");
+    const stream = listen(code, "ann");
+    expect(stream.last()).toMatchObject({ kind: "training", phase: "countdown", capacity: 1 });
+    expect(stream.last()?.race?.racers.map((racer) => racer.id)).toEqual(["ann"]);
+    expect(store.join(code, bob)).toBe("privateLobby");
+
+    // Typed within the 30 keys/s limit.
+    clock += 3_000 + 20_000;
+    store.tick();
+    const text = raceTexts.en[0];
+    store.input(code, "ann", { clientId: "tab", seq: 1, events: chars(text.slice(0, 100)) });
+    store.input(code, "ann", { clientId: "tab", seq: 2, events: chars(text.slice(100)) });
+    expect(stream.last()?.phase).toBe("finished");
+    expect(store.result(code, "ann")?.racers.map((racer) => racer.id)).toEqual(["ann"]);
+    expect(finished).toEqual([]);
+
+    // The player can go again alone, without readying up.
+    expect(store.start(code, "ann")).toBeNull();
+    expect(stream.last()?.phase).toBe("countdown");
+  });
+});
+
+describe("quick 1v1", () => {
+  it("pairs two players searching in the same language in a 30 s race", () => {
+    expect(store.joinQuickMatch(ann, "en", "rookie")).toEqual({ state: "searching", waitedMs: 0 });
+    const matched = store.joinQuickMatch(bob, "en", "rookie");
+    expect(matched.state).toBe("matched");
+    const code = matched.state === "matched" ? matched.code : "";
+    expect(store.quickMatchStatus("ann")).toEqual({ state: "matched", code });
+
+    const view = store.view(code, "ann");
+    expect(view).toMatchObject({ kind: "quick", phase: "countdown", settings: { timeLimitSec: 30 } });
+    expect(view?.race?.racers.map((racer) => [racer.id, racer.isBot])).toEqual([
+      ["ann", false],
+      ["bob", false],
+    ]);
+    expect(store.join(code, { id: "cid", name: "cid" })).toBe("privateLobby");
+  });
+
+  it("does not pair players searching in different languages", () => {
+    store.joinQuickMatch(ann, "en", "rookie");
+    expect(store.joinQuickMatch(bob, "fr", "rookie").state).toBe("searching");
+  });
+
+  it("races a bot of the player's level after 15 s alone", () => {
+    store.joinQuickMatch(ann, "en", "master");
+    clock += 14_000;
+    expect(store.quickMatchStatus("ann")).toEqual({ state: "searching", waitedMs: 14_000 });
+    clock += 1_000;
+    const status = store.quickMatchStatus("ann");
+    expect(status.state).toBe("matched");
+    const code = status.state === "matched" ? status.code : "";
+    expect(store.view(code, "ann")?.players.map((player) => player.bot)).toEqual([null, "master"]);
+  });
+
+  it("forgets players who cancel or stop checking in", () => {
+    store.joinQuickMatch(ann, "en", "rookie");
+    store.leaveQuickMatch("ann");
+    expect(store.quickMatchStatus("ann")).toEqual({ state: "idle" });
+    expect(store.joinQuickMatch(bob, "en", "rookie").state).toBe("searching");
+
+    clock += 6_000;
+    expect(store.joinQuickMatch(ann, "en", "rookie").state).toBe("searching");
+  });
+});

@@ -40,7 +40,8 @@ export default async function RaceResultsPage({ params }: Params) {
   const you = ranked[place - 1];
   if (!you) notFound();
   // Registered players' results are saved by the server when the race ends; guests keep theirs in this tab.
-  const guestRecord = user.kind === "guest" ? recordFromResult(result) : null;
+  // Training races are practice only and never saved.
+  const guestRecord = user.kind === "guest" && view?.kind !== "training" ? recordFromResult(result) : null;
 
   return (
     <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">

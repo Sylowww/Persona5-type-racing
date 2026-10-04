@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { Icon, type IconName } from "@/components/ui/icon";
 
-export type ModeCardVariant = "blitz" | "lobby" | "training";
+export type ModeCardVariant = "blitz" | "training";
 
 type ModeCardProps = {
   variant: ModeCardVariant;
@@ -9,6 +10,8 @@ type ModeCardProps = {
   description: string;
   meta: string;
   action: string;
+  /** A page to open, or a Server Function to run when the card is clicked. */
+  target: { href: string } | { run: () => Promise<void> };
 };
 
 type VariantStyle = {
@@ -33,16 +36,6 @@ const variants: Record<ModeCardVariant, VariantStyle> = {
     metaColor: "text-secondary-fixed",
     actionHover: "group-hover:text-primary",
   },
-  lobby: {
-    icon: "theater_comedy",
-    actionIcon: "add_circle",
-    shadowTilt: "rotate-[-1.5deg]",
-    card: "rotate-[1.5deg] bg-surface-container shadow-secondary-fixed",
-    badge: "rotate-[2deg] bg-secondary-container text-on-secondary-fixed shadow-hard-xs",
-    iconColor: "text-secondary-fixed",
-    metaColor: "text-on-surface",
-    actionHover: "group-hover:text-secondary-fixed",
-  },
   training: {
     icon: "model_training",
     actionIcon: "north_east",
@@ -55,14 +48,13 @@ const variants: Record<ModeCardVariant, VariantStyle> = {
   },
 };
 
-// Not interactive yet: these modes have no pages to link to.
-export function ModeCard({ variant, badge, title, description, meta, action }: ModeCardProps) {
+export function ModeCard({ variant, badge, title, description, meta, action, target }: ModeCardProps) {
   const style = variants[variant];
 
   return (
     <article className="group relative">
       <div className={`absolute -inset-0.5 translate-x-2 translate-y-2 bg-surface-container-lowest ${style.shadowTilt}`} />
-      <div className={`relative flex h-full flex-col p-4 shadow-hard-md transition-transform hover:-translate-y-1 ${style.card}`}>
+      <div className={`relative flex h-full flex-col p-4 shadow-hard-md transition-transform group-hover:-translate-y-1 ${style.card}`}>
         <div className="flex items-start justify-between">
           <span className={`px-2 py-0.5 font-hud text-label-hud font-black uppercase ${style.badge}`}>{badge}</span>
           <Icon name={style.icon} size={24} className={style.iconColor} />
@@ -79,6 +71,18 @@ export function ModeCard({ variant, badge, title, description, meta, action }: M
           </span>
         </div>
       </div>
+      <CardTarget target={target} label={`${title} - ${action}`} />
     </article>
+  );
+}
+
+/** Covers the whole card, so a click anywhere opens the page or runs the Server Function. */
+function CardTarget({ target, label }: { target: ModeCardProps["target"]; label: string }) {
+  const className = "absolute inset-0 z-10 cursor-pointer focus-visible:outline-2 focus-visible:outline-secondary-fixed";
+  if ("href" in target) return <Link href={target.href} aria-label={label} className={className} />;
+  return (
+    <form action={target.run}>
+      <button type="submit" aria-label={label} className={className} />
+    </form>
   );
 }

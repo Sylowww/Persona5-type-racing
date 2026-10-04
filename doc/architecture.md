@@ -17,6 +17,7 @@ src/
     [locale]/sign-in/page.tsx       Email/password sign in
     [locale]/sign-up/page.tsx       Account creation
     [locale]/profile/page.tsx       Signed-in player's profile
+    [locale]/quick/page.tsx         Quick 1v1 matchmaking (searching screen)
     [locale]/leaderboard/page.tsx   Top 100 registered players, 10 per page (`?page=`)
   components/
     layout/                 Site-wide chrome (header, footer, wordmark)
@@ -87,6 +88,10 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 | Singleton | `lib/lobby-server.ts` | Server-only `getLobbyStore()`, kept on `globalThis`. Reads `LOBBY_CAPACITY`. |
 | Transport | `app/api/lobbies/[code]/*`, `features/lobby/actions.ts` | SSE stream (`events`), keystroke batches (`input`), Server Functions for create/join/leave/ready/start. Swapping SSE for WebSockets only touches this layer. |
 | Client | `features/lobby/use-lobby-stream.ts`, `features/race/use-input-sender.ts` | `EventSource` hook (auto-reconnect, server clock offset) and batched, retried keystroke sender. |
+
+**Lobby kinds** (`LobbyKind`): `custom` (the home "Start a race" button, joined with its code), `quick` (a 1v1 made by matchmaking, 30 s race, capacity 2) and `training` (the dojo: one player, no bots, starts without readying up, never saved). Quick and training lobbies refuse code joins (`privateLobby`); both start their race as soon as they are created (`startPrivateRace` in the store).
+
+**Quick 1v1 matchmaking** (`lobby-store.ts`, `lib/matchmaking.ts`): the `/quick` page joins a queue (`joinQuickMatch`) and checks in every second (`checkQuickMatch`). A player is paired with the first other player searching in the same language; after 15 s alone they race a bot whose level is closest to their average WPM (`botForSpeed`). Leaving the page or not checking in for 5 s removes them from the queue. The queue lives in memory like lobbies.
 
 **Lifecycle:** `waiting → countdown → racing → finished`, then the next ready or join reopens `waiting` (results are kept). A lobby is deleted (closed) once nobody is left.
 

@@ -2,7 +2,7 @@
 // transport, so the same rules work behind SSE today and any other transport later.
 import type { Locale } from "@/i18n/locales";
 import type { CharacterId } from "@/types/character";
-import type { BotDifficulty, LobbyMessage, LobbyPhase, LobbyView, PlayerEmblem, RaceSettings } from "@/types/lobby";
+import type { BotDifficulty, LobbyKind, LobbyMessage, LobbyPhase, LobbyView, PlayerEmblem, RaceSettings } from "@/types/lobby";
 import type { InputBatch, InputEvent, KeyStat, RaceRacer, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
 import { planBotRun, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
@@ -108,6 +108,7 @@ export type StoredResult = {
 
 export type LobbyState = {
   code: string;
+  kind: LobbyKind;
   locale: Locale;
   config: EngineConfig;
   phase: LobbyPhase;
@@ -129,6 +130,7 @@ export type LobbyState = {
 
 export type LobbyError =
   | "lobbyFull"
+  | "privateLobby"
   | "raceInProgress"
   | "notMember"
   | "notHost"
@@ -152,11 +154,19 @@ export function createLobby(input: {
   host: Player;
   now: number;
   config?: Partial<EngineConfig>;
+  /** Defaults to `custom`. */
+  kind?: LobbyKind;
+  /** Defaults to `defaultRaceSettings`. */
+  settings?: RaceSettings;
 }): LobbyState {
+  const kind = input.kind ?? "custom";
   const config = { ...defaultEngineConfig, ...input.config };
   config.capacity = Math.min(MAX_LOBBY_CAPACITY, Math.max(MIN_LOBBY_CAPACITY, Math.floor(config.capacity)));
+  if (kind === "training") config.capacity = 1;
+  if (kind === "quick") config.capacity = 2;
   return {
     code: input.code,
+    kind,
     locale: input.locale,
     config,
     phase: "waiting",
@@ -165,7 +175,7 @@ export function createLobby(input: {
     joinCount: 1,
     race: null,
     result: null,
-    settings: defaultRaceSettings,
+    settings: input.settings ?? defaultRaceSettings,
     messages: [],
     messageCount: 0,
   };
@@ -220,7 +230,15 @@ function reopen(state: LobbyState): LobbyState {
   });
 }
 
+/** Joining with a code only works for custom lobbies; matchmaking adds quick players with `admitPlayer`. */
 export function joinLobby(state: LobbyState, player: Player, now: number): Outcome {
+  if (isMember(state, player.id)) return ok(state);
+  if (state.kind !== "custom") return fail("privateLobby");
+  return admitPlayer(state, player, now);
+}
+
+/** Adds a player to any kind of lobby, within its capacity. */
+export function admitPlayer(state: LobbyState, player: Player, now: number): Outcome {
   if (isMember(state, player.id)) return ok(state);
   if (state.phase === "countdown" || state.phase === "racing") return fail("raceInProgress");
   const open = reopen(state);
@@ -238,6 +256,7 @@ export function addBot(state: LobbyState, userId: string, difficulty: BotDifficu
   if (state.hostId !== userId) return fail("notHost");
   const open = reopen(state);
   if (open.phase !== "waiting") return fail("wrongPhase");
+  if (open.kind === "training") return fail("privateLobby");
   if (activeMembers(open).length >= open.config.capacity) return fail("lobbyFull");
 
   const bot: Member = {
@@ -320,20 +339,23 @@ export function setReady(state: LobbyState, userId: string, isReady: boolean): O
 export function startRace(state: LobbyState, userId: string, text: string, now: number, random: () => number = Math.random): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
   if (state.hostId !== userId) return fail("notHost");
-  if (state.phase !== "waiting") return fail("wrongPhase");
-  const players = activeMembers(state);
-  if (!canStartRace(players)) return fail("notReady");
+  // A finished race reopens the lobby first, like any other lobby action.
+  const open = reopen(state);
+  if (open.phase !== "waiting") return fail("wrongPhase");
+  const players = activeMembers(open);
+  // Training is solo: the player starts whenever they want.
+  if (open.kind !== "training" && !canStartRace(players)) return fail("notReady");
 
-  const startsAt = now + state.config.countdownMs;
+  const startsAt = now + open.config.countdownMs;
   return ok({
-    ...state,
+    ...open,
     phase: "countdown",
     race: {
       text,
       startsAt,
-      endsAt: startsAt + raceDurationMs(state.settings),
+      endsAt: startsAt + raceDurationMs(open.settings),
       endedAt: null,
-      settings: state.settings,
+      settings: open.settings,
       racers: players.map((member) => ({
         id: member.id,
         name: member.name,
@@ -625,6 +647,7 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
   if (!isMember(state, userId)) return null;
   return {
     code: state.code,
+    kind: state.kind,
     phase: state.phase,
     capacity: state.config.capacity,
     locale: state.locale,

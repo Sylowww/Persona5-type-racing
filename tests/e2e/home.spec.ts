@@ -13,7 +13,8 @@ test("renders the page in French and English", async ({ page }) => {
 test("renders the home page sections", async ({ page }) => {
   await page.goto("/en");
   await expect(page.getByRole("button", { name: /Start a race/i })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Create heist lobby" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Quick play // 1v1" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Training dojo" })).toBeVisible();
   await expect(page.getByLabel("Lobby code")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Unknown phantom" })).toBeVisible();
 

@@ -46,6 +46,8 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
   const isReady = you?.isReady ?? false;
   const { players } = view;
   const isWaiting = view.phase === "waiting" || view.phase === "finished";
+  // Training is solo: no bots, and the player starts without readying up.
+  const isTraining = view.kind === "training";
 
   return (
     <>
@@ -65,7 +67,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
             capacity={view.capacity}
             players={players}
             youId={view.youId}
-            canManageBots={isHost && view.phase !== "countdown" && view.phase !== "racing"}
+            canManageBots={isHost && !isTraining && view.phase !== "countdown" && view.phase !== "racing"}
             isPending={isPending}
             onAddBot={(difficulty) => startTransition(async () => void (await addLobbyBot(code, difficulty)))}
             onRemoveBot={(botId) => startTransition(async () => void (await removeLobbyBot(code, botId)))}
@@ -86,7 +88,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
 
       <LobbyActions
         dictionary={dictionary.actions}
-        canStart={isHost && view.phase === "waiting" && canStartRace(players)}
+        canStart={isHost && isWaiting && (isTraining || canStartRace(players))}
         isHost={isHost}
         isReady={isReady}
         isPending={isPending}

@@ -6,9 +6,11 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { isBotDifficulty } from "@/lib/bots";
 import { normalizeLobbyCode } from "@/lib/lobby-code";
 import { getLobbyStore } from "@/lib/lobby-server";
-import type { StoreError } from "@/lib/lobby-store";
+import type { QuickMatchStatus, StoreError } from "@/lib/lobby-store";
+import { botForSpeed } from "@/lib/matchmaking";
+import { getPlayerStats } from "@/lib/race-history-db";
 
-export type JoinErrorCode = "invalidCode" | "lobbyNotFound" | "lobbyFull" | "raceInProgress";
+export type JoinErrorCode = "invalidCode" | "lobbyNotFound" | "lobbyFull" | "privateLobby" | "raceInProgress";
 
 export type JoinFormState = { error: JoinErrorCode | null; code: string };
 
@@ -39,9 +41,35 @@ export async function joinLobby(_previous: JoinFormState, form: FormData): Promi
 
   const player = await requirePlayer(locale);
   const error = getLobbyStore().join(code, player);
-  if (error === "lobbyNotFound" || error === "lobbyFull" || error === "raceInProgress") return { error, code: typed };
+  if (error === "lobbyNotFound" || error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress") return { error, code: typed };
   if (error) return { error: "lobbyNotFound", code: typed };
   redirect(`/${locale}/lobby/${code}`);
+}
+
+/** Training dojo: a solo practice race that starts right away (never saved). */
+export async function startTraining(localeValue: string): Promise<void> {
+  const locale = toLocale(localeValue);
+  const player = await requirePlayer(locale);
+  const code = getLobbyStore().startTraining(player, locale);
+  redirect(`/${locale}/lobby/${code}/race`);
+}
+
+/** Quick 1v1: enters matchmaking. The fallback bot matches the player's average speed. */
+export async function joinQuickMatch(localeValue: string): Promise<QuickMatchStatus> {
+  const locale = toLocale(localeValue);
+  const player = await requirePlayer(locale);
+  const stats = await getPlayerStats(player.id);
+  return getLobbyStore().joinQuickMatch(player, locale, botForSpeed(stats.races > 0 ? stats.averageWpm : null));
+}
+
+export async function checkQuickMatch(): Promise<QuickMatchStatus> {
+  const user = await getCurrentUser();
+  return user ? getLobbyStore().quickMatchStatus(user.id) : { state: "idle" };
+}
+
+export async function leaveQuickMatch(): Promise<void> {
+  const user = await getCurrentUser();
+  if (user) getLobbyStore().leaveQuickMatch(user.id);
 }
 
 export async function leaveLobby(codeValue: string, localeValue: string): Promise<void> {

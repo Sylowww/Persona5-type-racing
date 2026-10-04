@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cleanMessage, MAX_MESSAGE_LENGTH } from "../../src/lib/chat";
+import { botForSpeed } from "../../src/lib/matchmaking";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs, UNTIMED_RACE_CAP_MS } from "../../src/lib/race-settings";
 import { numberRaceTexts, pickRaceText, raceTexts } from "../../src/lib/race-texts";
 import { normalizeTypedChar } from "../../src/lib/typing";
@@ -54,5 +55,14 @@ describe("chat messages", () => {
     expect(cleanMessage("x".repeat(MAX_MESSAGE_LENGTH + 1))).toBeNull();
     expect(cleanMessage("x".repeat(MAX_MESSAGE_LENGTH))).not.toBeNull();
     expect(cleanMessage(42)).toBeNull();
+  });
+});
+
+describe("matchmaking bot level", () => {
+  it("picks the bot closest to the player's average speed", () => {
+    expect(botForSpeed(null)).toBe("rookie");
+    expect(botForSpeed(70)).toBe("rookie");
+    expect(botForSpeed(110)).toBe("master");
+    expect(botForSpeed(200)).toBe("godspeed");
   });
 });
