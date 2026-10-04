@@ -229,7 +229,8 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
           <RaceHud
             dictionary={dictionary.hud}
             elapsedMs={elapsedMs}
-            remainingMs={race?.isTimed ? Math.max(0, race.endsAt - Math.max(endTime, startsAt)) : null}
+            // The race clock keeps running after you finish: the race ends at the limit or once everyone is done.
+            remainingMs={race?.isTimed ? Math.max(0, race.endsAt - Math.max(now, startsAt)) : null}
             wordCount={text.split(" ").length}
             place={place}
             racerCount={racers.length}
