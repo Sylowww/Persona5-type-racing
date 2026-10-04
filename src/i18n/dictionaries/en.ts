@@ -128,18 +128,6 @@ const en = {
           recovery: "Recovery",
         },
       },
-      leaderboard: {
-        title: "Metropolitan rival leaderboard",
-        live: "● Live updates",
-        you: "You // {name}",
-        target: "Target",
-        wpm: "{wpm} WPM",
-      },
-      keyAudio: {
-        label: "Key audio:",
-        clicky: "Clicky blue",
-        linear: "Linear red",
-      },
     },
   },
   lobby: {

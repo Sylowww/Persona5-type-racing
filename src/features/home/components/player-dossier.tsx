@@ -4,13 +4,10 @@ import { PlayerAvatar } from "@/components/ui/player-avatar";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import type { LeaderboardEntry } from "@/types/player";
 import type { PlayerStats } from "@/types/race";
 import type { User } from "@/types/user";
 import { DossierStats } from "./dossier-stats";
 import { GuestDossierStats } from "./guest-dossier-stats";
-import { KeyAudioToggle } from "./key-audio-toggle";
-import { RivalLeaderboard } from "./rival-leaderboard";
 
 type PlayerDossierProps = {
   locale: Locale;
@@ -19,11 +16,10 @@ type PlayerDossierProps = {
   user: User | null;
   /** Saved stats of the registered user; guests' stats are read from their browser tab. */
   stats: PlayerStats | null;
-  leaderboard: readonly LeaderboardEntry[];
 };
 
 // The radar stays empty until it is computed from saved races.
-export function PlayerDossier({ locale, dictionary, user, stats, leaderboard }: PlayerDossierProps) {
+export function PlayerDossier({ locale, dictionary, user, stats }: PlayerDossierProps) {
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
 
   return (
@@ -103,8 +99,6 @@ export function PlayerDossier({ locale, dictionary, user, stats, leaderboard }: 
           </p>
         </section>
 
-        <RivalLeaderboard dictionary={dictionary.leaderboard} entries={leaderboard} />
-        <KeyAudioToggle dictionary={dictionary.keyAudio} />
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-import type { LeaderboardEntry, PlayerProfile, ServerStatus } from "@/types/player";
+import type { PlayerProfile, ServerStatus } from "@/types/player";
 
 // Placeholder data until accounts, stats and live rankings exist server-side.
 
@@ -27,12 +27,6 @@ export const mockPlayer: PlayerProfile = {
     { axis: "recovery", value: 0.72 },
   ],
 };
-
-export const mockLeaderboard: readonly LeaderboardEntry[] = [
-  { position: 1, name: "CROW_66", title: "PALACE OVERLORD", wpm: 168, isCurrentPlayer: false },
-  { position: 2, name: "QUEEN_FIST", title: "TACTICAL CADET", wpm: 154, isCurrentPlayer: false },
-  { position: 7, name: "JOKER_KEY", title: "STRIKE SYNDICATE", wpm: 142, isCurrentPlayer: true },
-];
 
 export const mockLobbySlots = { min: 2, max: 8 } as const;
 export const mockBlitzBet = 150;
