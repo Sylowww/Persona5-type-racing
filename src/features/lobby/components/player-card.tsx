@@ -5,7 +5,6 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 import { characterPortrait } from "@/lib/characters";
 import { botTargetWpm } from "@/lib/lobby";
 import type { LobbyMember } from "@/types/lobby";
-import { PlayerEmblem } from "./player-emblem";
 
 type PlayerCardProps = {
   dictionary: Dictionary["lobby"]["roster"];
@@ -39,19 +38,17 @@ export function PlayerCard({ dictionary, botDictionary, player, slot, isYou, onR
     <li className="group relative h-[290px] transition-transform duration-200 hover:-translate-y-1">
       <div aria-hidden="true" className={`absolute inset-0 translate-x-1 translate-y-1 shadow-hard-lg ${tilt} ${backing}`} />
       <article className="relative flex h-full flex-col justify-between overflow-hidden bg-surface-container-low p-4">
-        {portrait && (
-          // The chosen character's portrait fills the card; dark fades keep the name and speed readable.
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-            <Image
-              src={portrait}
-              alt=""
-              fill
-              sizes="(min-width: 1280px) 320px, 50vw"
-              className="object-cover object-top opacity-90 transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-surface-container-lowest/85 via-transparent via-40% to-surface-container-lowest/90" />
-          </div>
-        )}
+        {/* The chosen character's portrait fills the card; dark fades keep the name and speed readable. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <Image
+            src={portrait}
+            alt=""
+            fill
+            sizes="(min-width: 1280px) 320px, 50vw"
+            className="object-cover object-top opacity-90 transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-surface-container-lowest/85 via-transparent via-40% to-surface-container-lowest/90" />
+        </div>
         <header className="z-10 flex items-start justify-between gap-2">
           <div className="flex min-w-0 flex-col">
             <span
@@ -78,15 +75,6 @@ export function PlayerCard({ dictionary, botDictionary, player, slot, isYou, onR
             {player.isReady ? dictionary.ready : dictionary.waiting}
           </span>
         </header>
-
-        {!portrait && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute right-2 bottom-6 size-36 opacity-70 transition-transform duration-300 group-hover:scale-105"
-          >
-            <PlayerEmblem emblem={player.emblem} />
-          </div>
-        )}
 
         <div className="z-10 flex items-end justify-between gap-2">
           <div className="w-3/4 -skew-x-6 bg-surface-container-lowest/90 p-2 backdrop-blur-sm">

@@ -120,9 +120,9 @@ describe("character ids", () => {
     expect(characterSprite("nobody")).toBe(characters.joker);
   });
 
-  it("has a portrait for every character but Oracle", () => {
+  it("has a portrait for every character", () => {
     expect(characterPortrait("violet")).toBe("/portraits/characters/violet.webp");
-    expect(characterPortrait("oracle")).toBeNull();
+    expect(characterPortrait("oracle")).toBe("/portraits/characters/oracle.webp");
   });
 
   it("picks a random character, even at the edge of the range", () => {
