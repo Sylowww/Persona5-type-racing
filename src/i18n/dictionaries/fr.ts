@@ -130,18 +130,6 @@ const fr: Dictionary = {
           recovery: "Reprise",
         },
       },
-      leaderboard: {
-        title: "Classement des rivaux",
-        live: "● En direct",
-        you: "Toi // {name}",
-        target: "Cible",
-        wpm: "{wpm} MPM",
-      },
-      keyAudio: {
-        label: "Son des touches :",
-        clicky: "Clicky bleu",
-        linear: "Linéaire rouge",
-      },
     },
   },
   lobby: {

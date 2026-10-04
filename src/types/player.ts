@@ -15,14 +15,6 @@ export type PlayerProfile = {
   radar: readonly { axis: RadarAxis; value: number }[];
 };
 
-export type LeaderboardEntry = {
-  position: number;
-  name: string;
-  title: string;
-  wpm: number;
-  isCurrentPlayer: boolean;
-};
-
 export type ServerStatus = {
   name: string;
   onlineCount: number;
