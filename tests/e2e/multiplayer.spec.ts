@@ -170,3 +170,26 @@ test("quick play pairs two searching players in the same race", async ({ browser
   await expect(second).toHaveURL(first.url());
   for (const context of contexts) await context.close();
 });
+
+test("a public lobby shows in the lobby browser and can be joined from it", async ({ browser }) => {
+  const hostContext = await browser.newContext();
+  const guestContext = await browser.newContext();
+  const host = await hostContext.newPage();
+  const guest = await guestContext.newPage();
+  const hostName = await signUp(host, "pub");
+  const guestName = await signUp(guest, "pub");
+
+  const code = await createLobby(host);
+  await guest.goto("/en/lobbies");
+  await expect(guest.getByText(`Host: ${hostName}`)).toHaveCount(0);
+
+  await host.getByRole("button", { name: "Public" }).click();
+  await expect(host.getByRole("button", { name: "Public" })).toHaveAttribute("aria-pressed", "true");
+  await guest.getByRole("button", { name: "Refresh" }).click();
+  await guest.getByRole("button", { name: `Join - Host: ${hostName}` }).click();
+
+  await expect(guest).toHaveURL(new RegExp(`/en/lobby/${code}$`));
+  await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
+  await hostContext.close();
+  await guestContext.close();
+});

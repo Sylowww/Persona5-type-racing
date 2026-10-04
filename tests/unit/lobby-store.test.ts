@@ -253,3 +253,20 @@ describe("quick 1v1", () => {
     expect(store.joinQuickMatch(ann, "en", "rookie").state).toBe("searching");
   });
 });
+
+describe("lobby browser", () => {
+  it("lists public lobbies only, open ones first", () => {
+    const quiet = store.create(ann, "en");
+    const busy = store.create(bob, "fr");
+    store.join(busy, { id: "cid", name: "cid" });
+    store.create({ id: "dan", name: "dan" }, "en");
+    expect(store.listPublic()).toEqual([]);
+
+    expect(store.setVisibility(quiet, "ann", "public")).toBeNull();
+    expect(store.setVisibility(busy, "bob", "public")).toBeNull();
+    expect(store.listPublic().map((lobby) => [lobby.code, lobby.hostName, lobby.playerCount])).toEqual([
+      [busy, "bob", 2],
+      [quiet, "ann", 1],
+    ]);
+  });
+});

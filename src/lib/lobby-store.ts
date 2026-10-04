@@ -2,7 +2,7 @@
 // State lives in this process only, so the app must run as a single Node instance (see doc/architecture.md).
 import type { Locale } from "@/i18n/locales";
 import type { CharacterId } from "@/types/character";
-import type { BotDifficulty, LobbyView } from "@/types/lobby";
+import type { BotDifficulty, LobbyView, PublicLobby } from "@/types/lobby";
 import type { InputBatch, RaceResult } from "@/types/race";
 import { generateUniqueLobbyCode, type RandomInt } from "./lobby-code";
 import { QUICK_MATCH_BOT_DELAY_MS, QUICK_MATCH_INTRO_MS, QUICK_MATCH_STALE_MS, quickMatchSettings } from "./matchmaking";
@@ -15,11 +15,13 @@ import {
   isMember,
   joinLobby,
   leaveLobby,
+  publicLobbyFor,
   removeBot,
   resultFor,
   sendMessage,
   setConnected,
   setReady,
+  setVisibility,
   startRace,
   updateSettings,
   viewFor,
@@ -283,6 +285,19 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     updateSettings(code: string, userId: string, change: unknown): StoreError | null {
       return updateOutcome(code, (state) => updateSettings(state, userId, change));
+    },
+
+    setVisibility(code: string, userId: string, visibility: unknown): StoreError | null {
+      return updateOutcome(code, (state) => setVisibility(state, userId, visibility));
+    },
+
+    /** Public lobbies for the lobby browser: open ones first, then the most players. */
+    listPublic(): PublicLobby[] {
+      const time = now();
+      const isOpen = (lobby: PublicLobby) => Number(lobby.phase === "waiting" || lobby.phase === "finished");
+      return [...lobbies.values()]
+        .flatMap((state) => publicLobbyFor(advance(state, time)) ?? [])
+        .sort((a, b) => isOpen(b) - isOpen(a) || b.playerCount - a.playerCount);
     },
 
     sendMessage(code: string, userId: string, text: unknown): StoreError | null {
