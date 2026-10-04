@@ -2,6 +2,12 @@ import type { RaceView } from "./race";
 
 export type PlayerEmblem = "domino" | "cat" | "skull" | "mask";
 
+/**
+ * `custom`: created from the home button and joined with its code. `quick`: a 1v1 made by matchmaking.
+ * `training`: a solo practice race, never saved. Quick and training lobbies cannot be joined with their code.
+ */
+export type LobbyKind = "custom" | "quick" | "training";
+
 /** Lobby lifecycle. `closed` lobbies are simply deleted. */
 export type LobbyPhase = "waiting" | "countdown" | "racing" | "finished";
 
@@ -21,6 +27,7 @@ export type LobbyMember = {
 /** Snapshot of a lobby for one viewer, sent by the server on every change. */
 export type LobbyView = {
   code: string;
+  kind: LobbyKind;
   phase: LobbyPhase;
   capacity: number;
   locale: "fr" | "en";

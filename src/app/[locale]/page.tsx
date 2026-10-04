@@ -6,13 +6,12 @@ import { ModeCard } from "@/features/home/components/mode-card";
 import { PlayerDossier } from "@/features/home/components/player-dossier";
 import { StartRaceButton } from "@/features/home/components/start-race-button";
 import { TypingPreview } from "@/features/home/components/typing-preview";
+import { startTraining } from "@/features/lobby/actions";
 import { getDictionary } from "@/i18n/dictionaries";
-import { formatMessage } from "@/i18n/format";
 import { isLocale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
 import { RADAR_RACE_COUNT, skillRadar } from "@/lib/radar";
 import { getPlayerStats, getRecentRaces } from "@/lib/race-history-db";
-import { mockBlitzBet, mockLobbySlots } from "@/mocks/player";
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -38,18 +37,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <StartRaceButton dictionary={home.startRace} locale={locale} />
 
             <div className="grid grid-cols-1 gap-4 pt-1 md:grid-cols-2">
-              <ModeCard
-                variant="blitz"
-                {...modes.blitz}
-                meta={formatMessage(modes.blitz.meta, { coins: mockBlitzBet })}
-              />
-              <ModeCard
-                variant="lobby"
-                {...modes.lobby}
-                meta={formatMessage(modes.lobby.meta, mockLobbySlots)}
-              />
-              <JoinCodeCard dictionary={home.joinCode} locale={locale} />
-              <ModeCard variant="training" {...modes.training} />
+              <ModeCard variant="blitz" {...modes.blitz} target={{ href: `/${locale}/quick` }} />
+              <ModeCard variant="training" {...modes.training} target={{ run: startTraining.bind(null, locale) }} />
+              <div className="md:col-span-2">
+                <JoinCodeCard dictionary={home.joinCode} locale={locale} />
+              </div>
             </div>
 
             <TypingPreview dictionary={home.typingPreview} />

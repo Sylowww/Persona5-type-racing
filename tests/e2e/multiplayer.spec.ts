@@ -146,3 +146,27 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
   await hostContext.close();
   await guestContext.close();
 });
+
+test("the training dojo starts a solo race", async ({ page }) => {
+  await signUp(page, "dojo");
+  await page.getByRole("button", { name: /Training dojo/ }).click();
+  await expect(page).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/);
+  await expect(page.getByRole("timer", { name: /Race starts in/ })).toBeVisible();
+  await expect(page.getByLabel("Type the text")).toBeEditable({ timeout: 10_000 });
+});
+
+test("quick play pairs two searching players in the same race", async ({ browser }) => {
+  const contexts = [await browser.newContext(), await browser.newContext()];
+  const [first, second] = await Promise.all(contexts.map((context) => context.newPage()));
+  await signUp(first, "quick");
+  await signUp(second, "quick");
+
+  await first.getByRole("link", { name: /Quick play/ }).click();
+  await expect(first).toHaveURL(/\/en\/quick$/);
+  await expect(first.getByRole("status")).toContainText("Searching");
+  await second.getByRole("link", { name: /Quick play/ }).click();
+
+  await expect(first).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/, { timeout: 10_000 });
+  await expect(second).toHaveURL(first.url());
+  for (const context of contexts) await context.close();
+});
