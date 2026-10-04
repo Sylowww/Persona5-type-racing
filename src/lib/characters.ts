@@ -172,6 +172,21 @@ export const characters = {
       victory: { row: 3, frames: 1, fps: 1, loop: false },
     },
   },
+  // Sophia (Persona 5 Strikers). Cut from a single generated sheet (checkerboard removed by texture so her white coat
+  // stays); her victory is the pointing pose of the idle row.
+  sophia: {
+    src: "/sprites/sophia.webp",
+    frameSize: 128,
+    columns: 8,
+    rows: 4,
+    anchorX: 88,
+    animations: {
+      idle: { row: 0, frames: 7, fps: 4, loop: true },
+      run: { row: 1, frames: 7, fps: 12, loop: true },
+      jump: { row: 2, frames: 6, fps: 12, loop: false },
+      victory: { row: 3, frames: 1, fps: 1, loop: false },
+    },
+  },
 } satisfies Record<CharacterId, CharacterSprite>;
 
 export const characterIds = Object.keys(characters) as CharacterId[];
@@ -201,6 +216,7 @@ const portraits: Record<CharacterId, string> = {
   crow: "/portraits/characters/crow.webp",
   violet: "/portraits/characters/violet.webp",
   blackMask: "/portraits/characters/black-mask.webp",
+  sophia: "/portraits/characters/sophia.webp",
 };
 
 export function characterPortrait(id: CharacterId): string {
