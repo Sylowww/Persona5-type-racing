@@ -14,9 +14,11 @@ import {
   leaveLobby,
   removeBot,
   resultFor,
+  sendMessage,
   setConnected,
   setReady,
   startRace,
+  updateSettings,
   viewFor,
   type EngineConfig,
   type LobbyError,
@@ -171,7 +173,15 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     },
 
     start(code: string, userId: string): StoreError | null {
-      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.locale, randomInt), time, random));
+      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.locale, randomInt, state.settings.numbers), time, random));
+    },
+
+    updateSettings(code: string, userId: string, change: unknown): StoreError | null {
+      return updateOutcome(code, (state) => updateSettings(state, userId, change));
+    },
+
+    sendMessage(code: string, userId: string, text: unknown): StoreError | null {
+      return updateOutcome(code, (state, time) => sendMessage(state, userId, text, time));
     },
 
     addBot(code: string, userId: string, difficulty: BotDifficulty): StoreError | null {

@@ -5,6 +5,8 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 type RaceHudProps = {
   dictionary: Dictionary["race"]["hud"];
   elapsedMs: number;
+  /** Shown as a countdown when set; otherwise the elapsed time is shown. */
+  remainingMs: number | null;
   wordCount: number;
   place: number;
   racerCount: number;
@@ -19,7 +21,7 @@ function formatRaceTime(ms: number): string {
   return `${pad(minutes)}:${pad(seconds)}.${pad(centiseconds % 100)}`;
 }
 
-export function RaceHud({ dictionary, elapsedMs, wordCount, place, racerCount }: RaceHudProps) {
+export function RaceHud({ dictionary, elapsedMs, remainingMs, wordCount, place, racerCount }: RaceHudProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -28,10 +30,10 @@ export function RaceHud({ dictionary, elapsedMs, wordCount, place, racerCount }:
             <Icon name="timer" className="text-primary-container" />
             <div className="flex flex-col">
               <span className="font-hud text-label-hud font-black uppercase leading-none tracking-widest text-on-surface-variant">
-                {dictionary.time}
+                {remainingMs === null ? dictionary.time : dictionary.timeLeft}
               </span>
               <span role="timer" className="font-display text-headline-md leading-tight tracking-wider text-secondary tabular-nums">
-                {formatRaceTime(elapsedMs)}
+                {formatRaceTime(remainingMs ?? elapsedMs)}
               </span>
             </div>
           </div>

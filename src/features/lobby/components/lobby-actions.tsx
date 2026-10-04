@@ -12,10 +12,22 @@ type LobbyActionsProps = {
   onToggleReady: () => void;
   onStart: () => void;
   onLeave: () => void;
+  onShowSettings: () => void;
+  onShowChat: () => void;
 };
 
-// Lobby settings and chat are not built yet; ready, start and leave go to the server.
-export function LobbyActions({ dictionary, canStart, isHost, isReady, isPending, onToggleReady, onStart, onLeave }: LobbyActionsProps) {
+export function LobbyActions({
+  dictionary,
+  canStart,
+  isHost,
+  isReady,
+  isPending,
+  onToggleReady,
+  onStart,
+  onLeave,
+  onShowSettings,
+  onShowChat,
+}: LobbyActionsProps) {
   return (
     <div className="mt-4 flex flex-col items-center justify-between gap-6 pt-4 lg:flex-row">
       <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
@@ -31,8 +43,8 @@ export function LobbyActions({ dictionary, canStart, isHost, isReady, isPending,
           <Icon name={isReady ? "close" : "check"} size={20} />
           <span>{isReady ? dictionary.unready : dictionary.ready}</span>
         </button>
-        <DockButton icon="tune" label={dictionary.settings} />
-        <DockButton icon="chat" label={dictionary.chat} />
+        <DockButton icon="tune" label={dictionary.settings} onClick={onShowSettings} />
+        <DockButton icon="chat" label={dictionary.chat} onClick={onShowChat} />
         <DockButton icon="close" label={dictionary.leave} danger onClick={onLeave} />
       </div>
 

@@ -4,9 +4,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useTransition } from "react";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import { canStartRace, countReady, currentRaceSettings } from "@/lib/lobby";
+import { canStartRace, countReady } from "@/lib/lobby";
 import type { LobbyView } from "@/types/lobby";
-import { addLobbyBot, leaveLobby, removeLobbyBot, setLobbyReady, startLobbyRace } from "../actions";
+import {
+  addLobbyBot,
+  leaveLobby,
+  removeLobbyBot,
+  sendLobbyMessage,
+  setLobbyReady,
+  startLobbyRace,
+  updateLobbySettings,
+} from "../actions";
 import { useLobbyStream } from "../use-lobby-stream";
 import { LobbyActions } from "./lobby-actions";
 import { LobbyHeader } from "./lobby-header";
@@ -37,6 +45,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
   const isHost = you?.isHost ?? false;
   const isReady = you?.isReady ?? false;
   const { players } = view;
+  const isWaiting = view.phase === "waiting" || view.phase === "finished";
 
   return (
     <>
@@ -63,8 +72,15 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
           />
         </div>
         <div className="flex flex-col gap-4 xl:col-span-4">
-          <RulesDossier dictionary={dictionary.rules} settings={currentRaceSettings(view.locale)} spectators={[]} />
-          <TauntFeed dictionary={dictionary.chat} messages={[]} currentPlayer={you?.name ?? ""} />
+          <RulesDossier
+            dictionary={dictionary.rules}
+            settings={view.settings}
+            canEdit={isHost && isWaiting}
+            isPending={isPending}
+            onChange={(change) => startTransition(async () => void (await updateLobbySettings(code, change)))}
+            spectators={[]}
+          />
+          <TauntFeed dictionary={dictionary.chat} messages={view.messages} youId={view.youId} onSend={(text) => sendLobbyMessage(code, text)} />
         </div>
       </div>
 
@@ -77,7 +93,15 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
         onToggleReady={() => startTransition(async () => void (await setLobbyReady(code, !isReady)))}
         onStart={() => startTransition(async () => void (await startLobbyRace(code)))}
         onLeave={() => startTransition(() => leaveLobby(code, locale))}
+        onShowSettings={() => focusSection("lobby-rules")}
+        onShowChat={() => focusSection("lobby-chat-input")}
       />
     </>
   );
+}
+
+function focusSection(id: string) {
+  const element = document.getElementById(id);
+  element?.scrollIntoView({ behavior: "smooth", block: "center" });
+  element?.focus({ preventScroll: true });
 }

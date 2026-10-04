@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canStartRace, countReady, currentRaceSettings, openSlotCount, readyMeter } from "../../src/lib/lobby";
+import { canStartRace, countReady, openSlotCount, readyMeter } from "../../src/lib/lobby";
 
 function player(id: string, isReady: boolean) {
   return { id, isReady };
@@ -25,9 +25,5 @@ describe("lobby", () => {
     expect(readyMeter(1, 3, 12)).toEqual({ filled: 1, segments: 3 });
     expect(readyMeter(15, 30, 12)).toEqual({ filled: 6, segments: 12 });
     expect(readyMeter(0, 0, 12)).toEqual({ filled: 0, segments: 0 });
-  });
-
-  it("describes the rules races use today", () => {
-    expect(currentRaceSettings("fr")).toMatchObject({ mode: null, language: "FR", caseSensitive: true });
   });
 });

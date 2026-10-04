@@ -113,3 +113,36 @@ test("two players race from lobby creation to results", async ({ browser }) => {
   await hostContext.close();
   await guestContext.close();
 });
+
+test("the host sets the race rules and players chat in the lobby", async ({ browser }) => {
+  const hostContext = await browser.newContext();
+  const guestContext = await browser.newContext();
+  const host = await hostContext.newPage();
+  const guest = await guestContext.newPage();
+
+  const hostName = await signUp(host, "host");
+  const guestName = await signUp(guest, "guest");
+  const code = await createLobby(host);
+  await guest.goto(`/en/lobby/${code}`);
+  await guest.getByRole("button", { name: "Punch in" }).click();
+  await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
+
+  // Only the host edits; everyone sees the change.
+  await expect(guest.getByRole("button", { name: /Sudden death/ })).toBeDisabled();
+  await host.getByRole("button", { name: /Sudden death/ }).click();
+  await host.getByRole("button", { name: "None" }).click();
+  await host.getByRole("switch", { name: "Case sensitive" }).click();
+  await expect(guest.getByRole("button", { name: /Sudden death/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(guest.getByRole("button", { name: "None" })).toHaveAttribute("aria-pressed", "true");
+  await expect(guest.getByRole("switch", { name: "Case sensitive" })).toHaveAttribute("aria-checked", "false");
+
+  // Messages and quick taunts reach every member.
+  await host.getByLabel("Message").fill("Prepare to lose");
+  await host.getByRole("button", { name: "Send" }).click();
+  await expect(guest.getByRole("listitem").filter({ hasText: `${hostName}: Prepare to lose` })).toBeVisible();
+  await guest.getByRole("button", { name: "Too slow!" }).click();
+  await expect(host.getByRole("listitem").filter({ hasText: "Too slow!" })).toBeVisible();
+
+  await hostContext.close();
+  await guestContext.close();
+});

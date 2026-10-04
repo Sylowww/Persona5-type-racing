@@ -1,71 +1,115 @@
 import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import type { LobbySettings, RaceMode } from "@/types/lobby";
+import { raceModes, timeLimitOptions } from "@/lib/race-settings";
+import type { RaceSettings } from "@/types/lobby";
 import { KeySoundPicker } from "./key-sound-picker";
 
 type RulesDossierProps = {
   dictionary: Dictionary["lobby"]["rules"];
-  settings: LobbySettings;
+  settings: RaceSettings;
+  /** The host edits the rules while the lobby is waiting; everyone else only sees them. */
+  canEdit: boolean;
+  isPending: boolean;
+  onChange: (change: Partial<RaceSettings>) => void;
   spectators: readonly string[];
 };
 
-const modes: readonly RaceMode[] = ["sprint", "burst", "hardcore"];
+function timeLimitLabel(dictionary: Dictionary["lobby"]["rules"]["time"], seconds: number | null): string {
+  if (seconds === null) return dictionary.unlimited;
+  return seconds < 60 ? formatMessage(dictionary.seconds, { count: seconds }) : formatMessage(dictionary.minutes, { count: seconds / 60 });
+}
 
-export function RulesDossier({ dictionary, settings, spectators }: RulesDossierProps) {
-  const { mode, text } = dictionary;
+export function RulesDossier({ dictionary, settings, canEdit, isPending, onChange, spectators }: RulesDossierProps) {
+  const { mode, time, text } = dictionary;
+  const disabled = !canEdit || isPending;
   const textRules = [
-    { label: text.punctuation, enabled: settings.punctuation },
-    { label: text.numbers, enabled: settings.numbers },
-    { label: text.casing, enabled: settings.caseSensitive },
-  ];
+    { key: "numbers", label: text.numbers, enabled: settings.numbers },
+    { key: "caseSensitive", label: text.casing, enabled: settings.caseSensitive },
+  ] as const;
 
   return (
-    <section className="flex flex-col gap-4">
+    <section id="lobby-rules" tabIndex={-1} className="flex flex-col gap-4 outline-none">
       <h2 className="flex rotate-1 items-center justify-between bg-secondary-fixed px-4 py-2 text-on-secondary-fixed shadow-hard-md">
         <span className="font-hud text-headline-sm font-black uppercase italic tracking-wider">{dictionary.title}</span>
         <Icon name="assignment" size={20} />
       </h2>
 
       <div className="flex flex-col gap-4 bg-surface-container p-4 shadow-hard-xl">
+        {!canEdit && <p className="text-[12px] italic text-on-surface-variant">{dictionary.hostOnly}</p>}
+
         <div className="flex flex-col gap-1">
-          <DirectiveTitle title={mode.title} tag={mode.tag} />
-          <ul className="grid grid-cols-3 gap-2">
-            {modes.map((option) => {
+          <DirectiveTitle title={mode.title} tag={dictionary.hostEdits} />
+          <div className="grid grid-cols-2 gap-2">
+            {raceModes.map((option) => {
               const isActive = option === settings.mode;
               return (
-                <li
+                <button
                   key={option}
-                  aria-current={isActive ? "true" : undefined}
-                  className={`p-2 text-center ${isActive ? "bg-primary-container shadow-hard-xs" : "bg-surface-container-low opacity-70"}`}
+                  type="button"
+                  aria-pressed={isActive}
+                  disabled={disabled}
+                  onClick={() => onChange({ mode: option })}
+                  className={`p-2 text-center transition-transform enabled:hover:-translate-y-0.5 ${
+                    isActive ? "bg-primary-container shadow-hard-xs" : "bg-surface-container-low opacity-70 enabled:hover:opacity-100"
+                  }`}
                 >
-                  <span className={`block font-hud text-[10px] font-black uppercase ${isActive ? "text-secondary-fixed" : "text-outline"}`}>
+                  <span className={`block font-hud text-[11px] font-black uppercase ${isActive ? "text-secondary-fixed" : "text-outline"}`}>
                     {mode[option]}
                   </span>
-                  <span className={`font-hud text-[15px] font-black ${option === "hardcore" ? "text-error" : "text-secondary"}`}>
+                  <span className={`font-hud text-[13px] font-black ${option === "suddenDeath" ? "text-error" : "text-secondary"}`}>
                     {mode[`${option}Value`]}
                   </span>
-                </li>
+                </button>
               );
             })}
-          </ul>
-          <p className="mt-1 text-[12px] italic text-on-surface-variant">{mode.note}</p>
+          </div>
+          {settings.mode === "suddenDeath" && <p className="mt-1 text-[12px] italic text-on-surface-variant">{mode.note}</p>}
+          <ToggleRow label={mode.powers} enabled={settings.powers} disabled={disabled} dictionary={text} onToggle={() => onChange({ powers: !settings.powers })} />
+          <p className="text-[12px] italic text-outline">{mode.powersSoon}</p>
         </div>
 
         <hr className="border-surface-container-highest" />
 
         <div className="flex flex-col gap-1">
-          <DirectiveTitle title={text.title} tag={settings.language} />
-          <dl className="flex flex-col gap-1.5 bg-surface-container-low p-2">
+          <DirectiveTitle title={time.title} tag={timeLimitLabel(time, settings.timeLimitSec)} />
+          <div className="grid grid-cols-5 gap-1">
+            {timeLimitOptions.map((option) => {
+              const isActive = option === settings.timeLimitSec;
+              return (
+                <button
+                  key={option ?? "none"}
+                  type="button"
+                  aria-pressed={isActive}
+                  disabled={disabled}
+                  onClick={() => onChange({ timeLimitSec: option })}
+                  className={`px-1 py-1.5 font-hud text-[12px] font-black uppercase ${
+                    isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
+                  }`}
+                >
+                  {timeLimitLabel(time, option)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <hr className="border-surface-container-highest" />
+
+        <div className="flex flex-col gap-1">
+          <DirectiveTitle title={text.title} tag={settings.numbers ? "0-9" : "A-Z"} />
+          <div className="flex flex-col gap-1.5 bg-surface-container-low p-2">
             {textRules.map((rule) => (
-              <div key={rule.label} className="flex items-center justify-between">
-                <dt className="text-on-surface">{rule.label}</dt>
-                <dd className={`font-hud text-[13px] font-black uppercase ${rule.enabled ? "text-secondary-fixed" : "text-outline"}`}>
-                  {rule.enabled ? text.on : text.off}
-                </dd>
-              </div>
+              <ToggleRow
+                key={rule.key}
+                label={rule.label}
+                enabled={rule.enabled}
+                disabled={disabled}
+                dictionary={text}
+                onToggle={() => onChange({ [rule.key]: !rule.enabled })}
+              />
             ))}
-          </dl>
+          </div>
         </div>
 
         <hr className="border-surface-container-highest" />
@@ -94,6 +138,35 @@ export function RulesDossier({ dictionary, settings, spectators }: RulesDossierP
         </div>
       </div>
     </section>
+  );
+}
+
+type ToggleRowProps = {
+  label: string;
+  enabled: boolean;
+  disabled: boolean;
+  dictionary: Dictionary["lobby"]["rules"]["text"];
+  onToggle: () => void;
+};
+
+function ToggleRow({ label, enabled, disabled, dictionary, onToggle }: ToggleRowProps) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-on-surface">{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        aria-label={label}
+        disabled={disabled}
+        onClick={onToggle}
+        className={`min-w-14 px-2 py-0.5 font-hud text-[13px] font-black uppercase ${
+          enabled ? "bg-secondary-fixed text-on-secondary-fixed" : "bg-surface-container-high text-outline"
+        } enabled:hover:-translate-y-0.5 disabled:cursor-default`}
+      >
+        {enabled ? dictionary.on : dictionary.off}
+      </button>
+    </div>
   );
 }
 

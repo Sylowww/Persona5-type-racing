@@ -40,6 +40,15 @@ export function typeChar(state: TypingState, text: string, char: string, now: nu
   };
 }
 
+/**
+ * The character to record for a keystroke. When case does not matter, a letter typed in the wrong case
+ * is stored as the expected one, so every later comparison treats it as correct.
+ */
+export function normalizeTypedChar(expected: string | undefined, char: string, caseSensitive: boolean): string {
+  if (caseSensitive || expected === undefined) return char;
+  return char.toLowerCase() === expected.toLowerCase() ? expected : char;
+}
+
 /** Removes the last typed character; mistakes already made still count. */
 export function deleteChar(state: TypingState): TypingState {
   if (isFinished(state) || state.typed.length === 0) return state;

@@ -1,5 +1,4 @@
-import type { Locale } from "@/i18n/locales";
-import type { BotDifficulty, LobbySettings } from "@/types/lobby";
+import type { BotDifficulty } from "@/types/lobby";
 
 type Readiness = { isReady: boolean };
 
@@ -29,9 +28,4 @@ export function readyMeter(ready: number, total: number, maxSegments: number): {
   const segments = Math.min(total, maxSegments);
   if (total === 0) return { filled: 0, segments: 0 };
   return { filled: Math.round((ready / total) * segments), segments };
-}
-
-/** The rules every race uses until race settings exist: built-in texts with punctuation, compared exactly. */
-export function currentRaceSettings(locale: Locale): LobbySettings {
-  return { mode: null, language: locale.toUpperCase(), punctuation: true, numbers: false, caseSensitive: true };
 }

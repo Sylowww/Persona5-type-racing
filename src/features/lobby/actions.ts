@@ -78,3 +78,12 @@ export async function removeLobbyBot(code: string, botId: string): Promise<Store
   if (typeof botId !== "string") return "notMember";
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().removeBot(lobby, userId, botId));
 }
+
+/** Only the host can change the settings; the server validates every field. */
+export async function updateLobbySettings(code: string, change: unknown): Promise<StoreError | null> {
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().updateSettings(lobby, userId, change));
+}
+
+export async function sendLobbyMessage(code: string, text: string): Promise<StoreError | null> {
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().sendMessage(lobby, userId, text));
+}

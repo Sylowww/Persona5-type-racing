@@ -12,6 +12,7 @@ import {
   deleteChar,
   initialTypingState,
   isFinished,
+  normalizeTypedChar,
   progress,
   typeChar,
   wordsPerMinute,
@@ -35,6 +36,8 @@ import { TypingText } from "./typing-text";
 import { WinnerCutIn } from "./winner-cut-in";
 
 const TICK_MS = 100;
+/** Without a time limit, the palace still collapses at the pace of a 3-minute race. */
+const UNTIMED_COLLAPSE_PACE_MS = 180_000;
 
 const noSubscription = () => () => {};
 
@@ -94,6 +97,8 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const race = view.race ?? initialView.race;
   const text = race?.text ?? "";
   const startsAt = race?.startsAt ?? 0;
+  const caseSensitive = race?.caseSensitive ?? true;
+  const isSuddenDeath = race?.mode === "suddenDeath";
 
   const [now, setNow] = useState(initialView.serverNow);
   const [isFocused, setIsFocused] = useState(false);
@@ -121,10 +126,12 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   }, [offsetMs]);
 
   const finished = isFinished(typing);
+  // In sudden death the first mistake ends the race; shown at once, the server confirms it.
+  const eliminated = (isSuddenDeath && typing.mistakes > 0) || (race?.you?.eliminatedAt ?? null) !== null;
   const isCountdown = now < startsAt;
   // Keys typed before hydration would be dropped when React takes over the input, so it opens only after.
   const hydrated = useHydrated();
-  const isOpen = hydrated && race !== null && !isCountdown && !finished && view.phase !== "finished";
+  const isOpen = hydrated && race !== null && !isCountdown && !finished && !eliminated && view.phase !== "finished";
 
   // autoFocus can run before hydration, so place the caret here too.
   useEffect(() => {
@@ -149,8 +156,8 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
       events.push({ type: "delete" });
     }
     for (const char of value.slice(next.typed.length)) {
-      if (isFinished(next)) break;
-      next = typeChar(next, text, char, serverTime);
+      if (isFinished(next) || (isSuddenDeath && next.mistakes > 0)) break;
+      next = typeChar(next, text, normalizeTypedChar(text[next.typed.length], char, caseSensitive), serverTime);
       events.push({ type: "char", char, delayMs: lastKeyAt.current === null ? 0 : time - lastKeyAt.current });
       lastKeyAt.current = time;
     }
@@ -158,11 +165,13 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
     sender.push(events);
   }
 
-  const endTime = typing.finishedAt ?? now;
+  const endTime = typing.finishedAt ?? race?.you?.eliminatedAt ?? now;
   const elapsedMs = race === null ? 0 : Math.max(0, endTime - startsAt);
   const wpm = wordsPerMinute(correctPrefixLength(text, typing.typed), elapsedMs);
   const racers = (race?.racers ?? []).map((racer) =>
-    racer.id === view.youId ? { ...racer, progress: progress(text, typing.typed), wpm, mistakes: typing.mistakes } : racer,
+    racer.id === view.youId
+      ? { ...racer, progress: progress(text, typing.typed), wpm, mistakes: typing.mistakes, isEliminated: eliminated }
+      : racer,
   );
   const leaderProgress = Math.max(0, ...racers.map((racer) => racer.progress));
   const chaos = isChaos(leaderProgress);
@@ -179,13 +188,15 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const statusText =
     status === "reconnecting"
       ? dictionary.arena.reconnecting
-      : finished
-        ? dictionary.arena.waitingOthers
-        : isCountdown
-          ? dictionary.arena.countdown
-          : isOpen
-            ? dictionary.arena.live
-            : dictionary.arena.waiting;
+      : eliminated
+        ? dictionary.arena.eliminated
+        : finished
+          ? dictionary.arena.waitingOthers
+          : isCountdown
+            ? dictionary.arena.countdown
+            : isOpen
+              ? dictionary.arena.live
+              : dictionary.arena.waiting;
 
   return (
     <>
@@ -211,7 +222,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
       <PalaceCollapse
         now={now}
         startsAt={startsAt}
-        endsAt={race?.endsAt ?? startsAt}
+        endsAt={race?.isTimed === false ? startsAt + UNTIMED_COLLAPSE_PACE_MS : (race?.endsAt ?? startsAt)}
         leaderProgress={leaderProgress}
         collapsing={raceOver}
       >
@@ -219,6 +230,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
           <RaceHud
             dictionary={dictionary.hud}
             elapsedMs={elapsedMs}
+            remainingMs={race?.isTimed ? Math.max(0, race.endsAt - Math.max(endTime, startsAt)) : null}
             wordCount={text.split(" ").length}
             place={place}
             racerCount={racers.length}
@@ -250,6 +262,9 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                 </span>
               </div>
               <div className="flex items-center gap-4">
+                {isSuddenDeath && (
+                  <span className="font-hud text-label-hud font-black uppercase text-error">{dictionary.arena.suddenDeath}</span>
+                )}
                 <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">
                   {formatMessage(dictionary.arena.mistakes, { count: typing.mistakes })}
                 </span>
