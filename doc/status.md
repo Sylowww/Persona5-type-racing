@@ -4,7 +4,8 @@ Last updated: 2026-10-04.
 
 ## Built
 
-- Bilingual (`/fr`, `/en`) home page with the Persona 5 theme: header, calling-card banner, start-race button (Enter/Space shortcut), mode cards, join-with-code form, typing preview, player dossier (stats, radar, leaderboard, key-audio switch), footer.
+- Bilingual (`/fr`, `/en`) home page with the Persona 5 theme: header, calling-card banner, start-race button (Enter/Space shortcut), mode cards, join-with-code form, typing preview, player dossier (stats, skill radar), footer.
+- Skill radar on the home dossier (`skillRadar` in `lib/radar.ts`), from the last 20 races (saved races for accounts, the tab's races for guests): top speed (best WPM), average speed, accuracy (80% at the center, 100% at the edge), stamina (share of races finished), placement (average standing) and consistency (WPM spread between races; neutral after one race). Speed axes are full at 150 WPM. "Sync" is the average of the six axes. These scales are first guesses.
 - Real-time multiplayer races (see architecture.md, Multiplayer). Signed-in players create a lobby ("Start a race" on home), others join with its `P5-XXXX` code (or its URL), everyone readies up, the host starts, a synchronized 3 s countdown runs, all racers type the same text and see each other move live, and the server ends the race and sends everyone to the real results. Server-authoritative, in memory, single Node instance.
 - Lobby page (`/{locale}/lobby/{code}`): live roster with connection status, ready meter, ready/unready, host-only start, leave. Capacity 30 by default (max 60, `LOBBY_CAPACITY`); free seats collapse into one invite card.
 - Race page (`/{locale}/lobby/{code}/race`): countdown overlay, timer, live place from the server, race track where every racer is an animated runner (idle, run, jump over decorative obstacles, victory; dimmed while disconnected), typing arena, WPM, streak and accuracy, all inside a collapsing-palace atmosphere (cracks, debris, rumbles, alarm vignette, total chaos once the leader is halfway, a calling card and a Mona cut-in during the countdown, Mona's live comments, overtake flashes, stumbling runners, a glowing exit, a finish frame and a winner cut-in, final collapse before the results, results reveal, synthesized sound effects; see design-system.md). Typing logic lives in `lib/typing.ts` and runs on both client and server.
@@ -24,8 +25,7 @@ Last updated: 2026-10-04.
 
 ## Mocked / not wired
 
-- Radar is an empty state until it is computed from saved races. `SkillRadar` is kept for when it is.
-- Leaderboard and server data come from `src/mocks/player.ts`; the home page hides the mock "you" row. `mockPlayer` (with radar values) is no longer used by any page.
+- Server data comes from `src/mocks/player.ts`.
 - The invite observer button does nothing and the spectator list is empty. Player cards show `-- WPM` as best speed until stats are stored.
 - Nav items other than Home and Lobby, and the mode cards, do nothing yet. "Start a race" opens a new lobby (no matchmaking).
 - Key-audio selection is UI only (no key sounds yet).

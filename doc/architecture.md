@@ -25,7 +25,7 @@ src/
     actions.ts              Server Functions for that feature (e.g. features/auth)
   i18n/                     Locales, dictionaries, message formatting
   lib/                      Framework-free logic (pure functions, db access)
-  mocks/                    Placeholder data for features not built yet (home leaderboard, header status)
+  mocks/                    Placeholder data for features not built yet (header status, mode cards)
   types/                    Shared domain types
 public/
   sprites/                  Race runner sprite sheets (see design-system.md)
@@ -40,7 +40,7 @@ tests/
 - **Routes stay thin.** `app/**/page.tsx` loads the dictionary and data, then composes components. No business logic there.
 - **Business / game logic lives in `src/lib/`** (or a future `src/features/<feature>/logic/`) as pure, typed, tested functions. Example: `lib/radar.ts` computes the radar polygon; `SkillRadar` only renders it.
 - **A component used by one feature** goes in `features/<feature>/components/`. Move it to `components/` only once a second feature needs it.
-- **Server Components by default.** Add `"use client"` only for components with state or browser events (`StartRaceButton`, `KeyAudioToggle`). Pass them translated strings as props; they never load dictionaries.
+- **Server Components by default.** Add `"use client"` only for components with state or browser events (`StartRaceButton`, `JoinCodeCard`). Pass them translated strings as props; they never load dictionaries.
 - **Components receive their dictionary slice** (e.g. `dictionary={home.joinCode}`) typed as `Dictionary["home"]["joinCode"]`, not the whole dictionary.
 - **Mock data** is imported only by routes/layouts, never by components, so swapping in real data changes one place.
 - File names are kebab-case; exported components are PascalCase.

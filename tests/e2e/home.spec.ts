@@ -20,14 +20,3 @@ test("renders the home page sections", async ({ page }) => {
   await page.goto("/fr");
   await expect(page.getByRole("button", { name: /Lancer une course/i })).toBeVisible();
 });
-
-test("switches the key audio option", async ({ page }) => {
-  await page.goto("/en");
-  const clicky = page.getByRole("radio", { name: "Clicky blue" });
-  const linear = page.getByRole("radio", { name: "Linear red" });
-
-  await expect(clicky).toHaveAttribute("aria-checked", "true");
-  await linear.click();
-  await expect(linear).toHaveAttribute("aria-checked", "true");
-  await expect(clicky).toHaveAttribute("aria-checked", "false");
-});
