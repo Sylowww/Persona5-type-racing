@@ -16,11 +16,13 @@ type RulesDossierProps = {
   visibility: LobbyVisibility | null;
   onVisibilityChange: (visibility: LobbyVisibility) => void;
   spectators: readonly string[];
+  /** Shows a close button in the title (when the dossier is in the settings panel). */
+  onClose?: () => void;
 };
 
 const visibilities: readonly LobbyVisibility[] = ["private", "public"];
 
-function timeLimitLabel(dictionary: Dictionary["lobby"]["rules"]["time"], seconds: number | null): string {
+export function timeLimitLabel(dictionary: Dictionary["lobby"]["rules"]["time"], seconds: number | null): string {
   if (seconds === null) return dictionary.unlimited;
   return seconds < 60 ? formatMessage(dictionary.seconds, { count: seconds }) : formatMessage(dictionary.minutes, { count: seconds / 60 });
 }
@@ -34,6 +36,7 @@ export function RulesDossier({
   visibility,
   onVisibilityChange,
   spectators,
+  onClose,
 }: RulesDossierProps) {
   const { mode, time, text } = dictionary;
   const disabled = !canEdit || isPending;
@@ -43,10 +46,16 @@ export function RulesDossier({
   ] as const;
 
   return (
-    <section id="lobby-rules" tabIndex={-1} className="flex flex-col gap-4 outline-none">
+    <section className="flex flex-col gap-4">
       <h2 className="flex rotate-1 items-center justify-between bg-secondary-fixed px-4 py-2 text-on-secondary-fixed shadow-hard-md">
         <span className="font-hud text-headline-sm font-black uppercase italic tracking-wider">{dictionary.title}</span>
-        <Icon name="assignment" size={20} />
+        {onClose ? (
+          <button type="button" onClick={onClose} aria-label={dictionary.close} className="flex items-center hover:scale-110">
+            <Icon name="close" size={22} />
+          </button>
+        ) : (
+          <Icon name="assignment" size={20} />
+        )}
       </h2>
 
       <div className="flex flex-col gap-4 bg-surface-container p-4 shadow-hard-xl">

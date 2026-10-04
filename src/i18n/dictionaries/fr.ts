@@ -179,6 +179,12 @@ const fr: Dictionary = {
       title: "Règles et équipement",
       hostEdits: "Hôte",
       hostOnly: "Seul l'hôte peut changer les règles.",
+      close: "Fermer",
+      summary: {
+        title: "Règles de la course",
+        edit: "Modifier",
+        view: "Détails",
+      },
       visibility: {
         title: "Directive 00 // Accès",
         private: "Privé",

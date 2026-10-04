@@ -177,6 +177,12 @@ const en = {
       title: "Heist rules & loadout",
       hostEdits: "Host",
       hostOnly: "Only the host can change the rules.",
+      close: "Close",
+      summary: {
+        title: "Race rules",
+        edit: "Edit",
+        view: "Details",
+      },
       visibility: {
         title: "Directive 00 // Access",
         private: "Private",

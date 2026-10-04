@@ -127,14 +127,19 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
   await guest.getByRole("button", { name: "Punch in" }).click();
   await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
 
-  // Only the host edits; everyone sees the change.
+  // Only the host edits, in the settings panel; everyone sees the change in the rules summary.
+  await guest.getByRole("button", { name: "Details" }).click();
   await expect(guest.getByRole("button", { name: /Sudden death/ })).toBeDisabled();
+  await guest.getByRole("button", { name: "Close" }).click();
+  await host.getByRole("button", { name: "Lobby settings" }).click();
   await host.getByRole("button", { name: /Sudden death/ }).click();
   await host.getByRole("button", { name: "None" }).click();
   await host.getByRole("switch", { name: "Case sensitive" }).click();
-  await expect(guest.getByRole("button", { name: /Sudden death/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(guest.getByRole("button", { name: "None" })).toHaveAttribute("aria-pressed", "true");
-  await expect(guest.getByRole("switch", { name: "Case sensitive" })).toHaveAttribute("aria-checked", "false");
+  await host.keyboard.press("Escape");
+  const summary = guest.getByRole("region", { name: "Race rules" });
+  await expect(summary).toContainText("Sudden death");
+  await expect(summary).toContainText("None");
+  await expect(summary).toContainText("Case sensitive Off");
 
   // Messages and quick taunts reach every member.
   await host.getByLabel("Message").fill("Prepare to lose");
@@ -183,8 +188,10 @@ test("a public lobby shows in the lobby browser and can be joined from it", asyn
   await guest.goto("/en/lobbies");
   await expect(guest.getByText(`Host: ${hostName}`)).toHaveCount(0);
 
+  await host.getByRole("button", { name: "Lobby settings" }).click();
   await host.getByRole("button", { name: "Public" }).click();
   await expect(host.getByRole("button", { name: "Public" })).toHaveAttribute("aria-pressed", "true");
+  await host.keyboard.press("Escape");
   await guest.getByRole("button", { name: "Refresh" }).click();
   await guest.getByRole("button", { name: `Join - Host: ${hostName}` }).click();
 
