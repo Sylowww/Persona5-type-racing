@@ -4,6 +4,7 @@ type Readiness = { isReady: boolean };
 
 /** Target speed of each bot level; bots will vary around it once they exist. */
 export const botTargetWpm: Record<BotDifficulty, number> = {
+  novice: 30,
   rookie: 60,
   master: 120,
   godspeed: 150,
