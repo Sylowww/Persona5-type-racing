@@ -31,25 +31,34 @@ export type LobbyView = {
   race: RaceView | null;
   /** The viewer has results for the last race of this lobby. */
   hasResult: boolean;
+  /** Rules of the next race; only the host changes them, while the lobby is waiting. */
+  settings: RaceSettings;
+  /** Latest chat messages, oldest first. */
+  messages: readonly LobbyMessage[];
 };
 
-export type RaceMode = "sprint" | "burst" | "hardcore";
+/** `suddenDeath`: the first mistake eliminates the racer. */
+export type RaceMode = "normal" | "suddenDeath";
 
 export type BotDifficulty = "rookie" | "master" | "godspeed";
 
 export type KeySound = "clicky" | "tactile" | "silent";
 
-export type LobbySettings = {
-  /** Null until race modes exist. */
-  mode: RaceMode | null;
-  language: string;
-  punctuation: boolean;
+export type RaceSettings = {
+  mode: RaceMode;
+  /** Saved for when bonuses exist; no effect on races yet. */
+  powers: boolean;
+  /** Race time limit in seconds; null for no limit. */
+  timeLimitSec: number | null;
+  /** Texts with digits. */
   numbers: boolean;
+  /** When false, a letter typed in the wrong case counts as correct. */
   caseSensitive: boolean;
 };
 
 export type LobbyMessage = {
   id: string;
+  authorId: string;
   author: string;
   text: string;
 };

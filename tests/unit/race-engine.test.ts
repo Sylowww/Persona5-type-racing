@@ -11,9 +11,11 @@ import {
   parseInputBatch,
   removeBot,
   resultFor,
+  sendMessage,
   setConnected,
   setReady,
   startRace,
+  updateSettings,
   viewFor,
   type LobbyState,
   type Outcome,
@@ -386,5 +388,77 @@ describe("parseInputBatch", () => {
     expect(parseInputBatch({ clientId: "tab", seq: 1, events: [{ type: "char", char: "ab", delayMs: 1 }] })).toBeNull();
     expect(parseInputBatch({ clientId: "tab", seq: 1, events: [{ type: "paste", char: "a" }] })).toBeNull();
     expect(parseInputBatch({ clientId: "tab", seq: 1, events: Array.from({ length: 201 }, () => ({ type: "delete" })) })).toBeNull();
+  });
+});
+
+describe("race settings", () => {
+  it("lets only the host change the rules, with valid values, while waiting", () => {
+    const state = lobbyWith("ann", "bob");
+    expect(updateSettings(state, "bob", { mode: "suddenDeath" })).toEqual({ ok: false, error: "notHost" });
+    expect(updateSettings(state, "ann", { timeLimitSec: 7 })).toEqual({ ok: false, error: "invalidSettings" });
+
+    const updated = unwrap(updateSettings(state, "ann", { mode: "suddenDeath", timeLimitSec: 30 }));
+    expect(viewFor(updated, "bob", T0)?.settings).toMatchObject({ mode: "suddenDeath", timeLimitSec: 30 });
+    expect(updateSettings(racing("ann", "bob"), "ann", { numbers: true })).toEqual({ ok: false, error: "wrongPhase" });
+  });
+
+  it("uses the chosen time limit, or a long safety cap without one", () => {
+    const timed = unwrap(updateSettings(readyAll(lobbyWith("ann", "bob")), "ann", { timeLimitSec: 30 }));
+    const race = unwrap(startRace(timed, "ann", TEXT, T0)).race;
+    expect(race?.endsAt).toBe(START + 30_000);
+
+    const untimed = unwrap(updateSettings(readyAll(lobbyWith("ann", "bob")), "ann", { timeLimitSec: null }));
+    const view = viewFor(advance(unwrap(startRace(untimed, "ann", TEXT, T0)), START), "ann", START);
+    expect(view?.race?.isTimed).toBe(false);
+    expect(view?.race?.endsAt).toBeGreaterThan(START + 180_000);
+  });
+
+  it("accepts letters in the wrong case when case does not matter", () => {
+    const lobby = unwrap(updateSettings(readyAll(lobbyWith("ann", "bob")), "ann", { caseSensitive: false }));
+    let state = advance(unwrap(startRace(lobby, "ann", "Go now", T0)), START);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars("go NOW") }, START + 1_000);
+    expect(viewFor(state, "ann", START + 1_000)?.race?.you).toMatchObject({ typed: "Go now", mistakes: 0 });
+  });
+
+  it("eliminates a racer at their first mistake in sudden death and ranks them last", () => {
+    const lobby = unwrap(updateSettings(readyAll(lobbyWith("ann", "bob", "cid")), "ann", { mode: "suddenDeath" }));
+    let state = advance(unwrap(startRace(lobby, "ann", TEXT, T0)), START);
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars("gx now") }, START + 1_000);
+    state = applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars("go x") }, START + 2_000);
+
+    const view = viewFor(state, "ann", START + 2_000);
+    expect(view?.race?.you).toMatchObject({ typed: "gx", eliminatedAt: START + 1_000 });
+    expect(view?.race?.racers.map((racer) => racer.isEliminated)).toEqual([true, true, false]);
+    expect(view?.race?.you?.place).toBe(3);
+
+    state = advance(applyInput(state, "cid", { clientId: "tab", seq: 1, events: chars("go") }, START + 3_000), START + 3_000);
+    expect(state.phase).toBe("racing");
+    state = advance(applyInput(state, "cid", { clientId: "tab", seq: 2, events: chars(" now") }, START + 4_000), START + 4_000);
+    expect(state.phase).toBe("finished");
+    expect(resultFor(state, "ann")?.racers.map((racer) => racer.id)).toEqual(["cid", "bob", "ann"]);
+    expect(resultFor(state, "ann")?.durationMs).toBe(1_000);
+  });
+});
+
+describe("lobby chat", () => {
+  it("shares cleaned messages with every member", () => {
+    const state = unwrap(sendMessage(lobbyWith("ann", "bob"), "bob", "  too   slow ", T0));
+    expect(viewFor(state, "ann", T0)?.messages).toEqual([{ id: "1", authorId: "bob", author: "bob", text: "too slow" }]);
+  });
+
+  it("refuses non-members, empty messages and spam", () => {
+    const state = unwrap(sendMessage(lobbyWith("ann", "bob"), "ann", "hi", T0));
+    expect(sendMessage(state, "eve", "hi", T0)).toEqual({ ok: false, error: "notMember" });
+    expect(sendMessage(state, "bob", "   ", T0)).toEqual({ ok: false, error: "invalidMessage" });
+    expect(sendMessage(state, "ann", "again", T0 + 100)).toEqual({ ok: false, error: "tooFast" });
+    expect(sendMessage(state, "ann", "again", T0 + 1_000).ok).toBe(true);
+  });
+
+  it("keeps only the latest messages", () => {
+    let state = lobbyWith("ann");
+    for (let index = 0; index < 60; index++) state = unwrap(sendMessage(state, "ann", `m${index}`, T0 + index * 1_000));
+    const messages = viewFor(state, "ann", T0)?.messages ?? [];
+    expect(messages).toHaveLength(50);
+    expect(messages.at(-1)).toMatchObject({ id: "60", text: "m59" });
   });
 });
