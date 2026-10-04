@@ -42,13 +42,23 @@ export function TauntFeed({ dictionary, messages, youId, onSend }: TauntFeedProp
   }
 
   return (
-    <section className="flex flex-col gap-2 bg-surface-container-low p-2">
-      <div className="flex items-center justify-between font-hud text-[11px] font-black uppercase text-outline">
-        <h2>{dictionary.title}</h2>
-        <span className="text-secondary-fixed">{dictionary.live}</span>
+    <section className="flex flex-col gap-3 bg-surface-container p-4 shadow-hard-xl shadow-primary-container">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex min-w-0 items-center gap-2 truncate font-hud text-[18px] font-black uppercase italic tracking-wider text-secondary">
+          <Icon name="chat" size={20} className="text-primary-container" />
+          {dictionary.title}
+        </h2>
+        <span className="flex items-center gap-1.5 font-hud text-label-hud font-black uppercase text-secondary-fixed">
+          <span aria-hidden="true" className="size-2 rounded-full bg-secondary-fixed motion-safe:animate-pulse" />
+          {dictionary.live}
+        </span>
       </div>
 
-      <ul ref={listRef} aria-live="polite" className="flex max-h-56 min-h-16 flex-col gap-1 overflow-y-auto text-[13px]">
+      <ul
+        ref={listRef}
+        aria-live="polite"
+        className="flex h-64 flex-col gap-1.5 overflow-y-auto bg-surface-container-lowest p-3 text-[14px]"
+      >
         {messages.length === 0 && <li className="italic text-outline">{dictionary.empty}</li>}
         {messages.map((message) => (
           <li key={message.id} className="break-words">

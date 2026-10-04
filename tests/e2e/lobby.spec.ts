@@ -24,9 +24,11 @@ test("creates a lobby with the player as host", async ({ page }) => {
   // A race needs a second player.
   await expect(page.getByRole("button", { name: /Start the race/i })).toBeDisabled();
 
+  await page.getByRole("button", { name: "Lobby settings" }).click();
   const silent = page.getByRole("radio", { name: "Silent red" });
   await silent.click();
   await expect(silent).toHaveAttribute("aria-checked", "true");
+  await page.keyboard.press("Escape");
 
   // /lobby brings the player back to their lobby.
   await page.goto("/en/lobby");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import { canStartRace, countReady } from "@/lib/lobby";
@@ -21,6 +21,8 @@ import { LobbyActions } from "./lobby-actions";
 import { LobbyHeader } from "./lobby-header";
 import { LobbyRoster } from "./lobby-roster";
 import { RulesDossier } from "./rules-dossier";
+import { RulesSummary } from "./rules-summary";
+import { SettingsPanel } from "./settings-panel";
 import { TauntFeed } from "./taunt-feed";
 
 type LobbyRoomProps = {
@@ -34,6 +36,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
   const router = useRouter();
   const { view, status } = useLobbyStream(initialView);
   const [isPending, startTransition] = useTransition();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { code } = view;
 
   // Everyone moves to the race together when the host starts it.
@@ -49,6 +52,8 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
   const isWaiting = view.phase === "waiting" || view.phase === "finished";
   // Training is solo: no bots, and the player starts without readying up.
   const isTraining = view.kind === "training";
+  const canEditRules = isHost && isWaiting;
+  const visibility = view.kind === "custom" ? view.visibility : null;
 
   return (
     <>
@@ -70,7 +75,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
         onToggleReady={() => startTransition(async () => void (await setLobbyReady(code, !isReady)))}
         onStart={() => startTransition(async () => void (await startLobbyRace(code)))}
         onLeave={() => startTransition(() => leaveLobby(code, locale))}
-        onShowSettings={() => focusSection("lobby-rules")}
+        onShowSettings={() => setSettingsOpen(true)}
         onShowChat={() => focusSection("lobby-chat-input")}
       />
 
@@ -89,19 +94,30 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
           />
         </div>
         <div className="flex flex-col gap-4 xl:col-span-4">
-          <RulesDossier
+          <RulesSummary
             dictionary={dictionary.rules}
             settings={view.settings}
-            canEdit={isHost && isWaiting}
-            isPending={isPending}
-            onChange={(change) => startTransition(async () => void (await updateLobbySettings(code, change)))}
-            visibility={view.kind === "custom" ? view.visibility : null}
-            onVisibilityChange={(visibility) => startTransition(async () => void (await setLobbyVisibility(code, visibility)))}
-            spectators={[]}
+            visibility={visibility}
+            canEdit={canEditRules}
+            onOpen={() => setSettingsOpen(true)}
           />
           <TauntFeed dictionary={dictionary.chat} messages={view.messages} youId={view.youId} onSend={(text) => sendLobbyMessage(code, text)} />
         </div>
       </div>
+
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} label={dictionary.rules.title}>
+        <RulesDossier
+          dictionary={dictionary.rules}
+          settings={view.settings}
+          canEdit={canEditRules}
+          isPending={isPending}
+          onChange={(change) => startTransition(async () => void (await updateLobbySettings(code, change)))}
+          visibility={visibility}
+          onVisibilityChange={(visibility) => startTransition(async () => void (await setLobbyVisibility(code, visibility)))}
+          spectators={[]}
+          onClose={() => setSettingsOpen(false)}
+        />
+      </SettingsPanel>
     </>
   );
 }
