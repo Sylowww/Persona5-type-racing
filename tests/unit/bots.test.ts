@@ -30,7 +30,7 @@ function replay(text: string, difficulty: BotDifficulty, seed: number) {
 
 describe("planBotRun", () => {
   it("always ends with the whole text typed correctly", () => {
-    for (const difficulty of ["rookie", "master", "godspeed"] as const) {
+    for (const difficulty of ["novice", "rookie", "master", "godspeed"] as const) {
       for (let seed = 1; seed <= 20; seed++) {
         const { typing } = replay(TEXT, difficulty, seed);
         expect(typing.typed).toBe(TEXT);
@@ -40,7 +40,7 @@ describe("planBotRun", () => {
   });
 
   it("finishes close to the difficulty's target speed", () => {
-    for (const difficulty of ["rookie", "master", "godspeed"] as const) {
+    for (const difficulty of ["novice", "rookie", "master", "godspeed"] as const) {
       for (let seed = 1; seed <= 20; seed++) {
         const { typing } = replay(TEXT, difficulty, seed);
         const wpm = wordsPerMinute(correctPrefixLength(TEXT, typing.typed), typing.finishedAt ?? 0);
@@ -53,10 +53,12 @@ describe("planBotRun", () => {
   it("makes mistakes and fixes them, more often on easier levels", () => {
     const mistakes = (difficulty: BotDifficulty) =>
       Array.from({ length: 30 }, (_, seed) => replay(TEXT, difficulty, seed + 1).typing.mistakes).reduce((sum, count) => sum + count, 0);
+    const novice = mistakes("novice");
     const rookie = mistakes("rookie");
     const godspeed = mistakes("godspeed");
     expect(godspeed).toBeGreaterThan(0);
     expect(rookie).toBeGreaterThan(godspeed);
+    expect(novice).toBeGreaterThan(rookie);
   });
 
   it("types with an uneven rhythm and keystrokes in time order", () => {

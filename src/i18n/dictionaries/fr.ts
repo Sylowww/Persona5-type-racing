@@ -166,6 +166,7 @@ const fr: Dictionary = {
       title: "+ Ajouter un bot",
       subtitle: "Choisis la difficulté",
       difficulties: {
+        novice: "Novice // Stagiaire",
         rookie: "Recrue // Agent",
         master: "Maître // Ombre",
         godspeed: "Éclair // Fantôme",

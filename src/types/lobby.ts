@@ -65,7 +65,7 @@ export type LobbyView = {
 /** `suddenDeath`: the first mistake eliminates the racer. */
 export type RaceMode = "normal" | "suddenDeath";
 
-export type BotDifficulty = "rookie" | "master" | "godspeed";
+export type BotDifficulty = "novice" | "rookie" | "master" | "godspeed";
 
 export type KeySound = "clicky" | "tactile" | "silent";
 
