@@ -695,6 +695,7 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
       id: member.id,
       name: member.name,
       emblem: member.emblem,
+      character: member.character,
       isHost: member.id === state.hostId,
       isReady: member.isReady,
       isConnected: member.presence === "connected",

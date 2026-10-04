@@ -8,7 +8,7 @@ import {
   runnerAnimation,
   updateRunner,
 } from "../../src/lib/race-runner";
-import { characterSprite, characters, isCharacterId, randomCharacter, type CharacterSprite } from "../../src/lib/characters";
+import { characterPortrait, characterSprite, characters, isCharacterId, randomCharacter, type CharacterSprite } from "../../src/lib/characters";
 
 describe("crossesObstacle", () => {
   it("detects passing an obstacle, including landing exactly on it", () => {
@@ -118,6 +118,11 @@ describe("character ids", () => {
   it("falls back to Joker for an unknown character", () => {
     expect(characterSprite("mona")).toBe(characters.mona);
     expect(characterSprite("nobody")).toBe(characters.joker);
+  });
+
+  it("has a portrait for every character but Oracle", () => {
+    expect(characterPortrait("violet")).toBe("/portraits/characters/violet.webp");
+    expect(characterPortrait("oracle")).toBeNull();
   });
 
   it("picks a random character, even at the edge of the range", () => {

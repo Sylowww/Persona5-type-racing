@@ -1,3 +1,4 @@
+import type { CharacterId } from "./character";
 import type { RaceView } from "./race";
 
 export type PlayerEmblem = "domino" | "cat" | "skull" | "mask";
@@ -30,6 +31,8 @@ export type LobbyMember = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
+  /** Character the player races as; their card shows its portrait. */
+  character: CharacterId;
   isHost: boolean;
   isReady: boolean;
   /** False while the player's connection is lost (they keep their seat for a grace period). */

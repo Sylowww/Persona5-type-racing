@@ -174,6 +174,24 @@ export function characterSprite(id: string): CharacterSprite {
   return isCharacterId(id) ? characters[id] : characters[DEFAULT_CHARACTER];
 }
 
+/** Characters with a portrait in `public/portraits/characters/` (black background), shown on lobby player cards. */
+const portraits: Partial<Record<CharacterId, string>> = {
+  joker: "/portraits/characters/joker.webp",
+  mona: "/portraits/characters/mona.webp",
+  panther: "/portraits/characters/panther.webp",
+  skull: "/portraits/characters/skull.webp",
+  fox: "/portraits/characters/fox.webp",
+  queen: "/portraits/characters/queen.webp",
+  noir: "/portraits/characters/noir.webp",
+  crow: "/portraits/characters/crow.webp",
+  violet: "/portraits/characters/violet.webp",
+};
+
+/** Portrait of a character; null when it has none yet (Oracle). */
+export function characterPortrait(id: CharacterId): string | null {
+  return portraits[id] ?? null;
+}
+
 /** Bots get a random character. */
 export function randomCharacter(random: () => number): CharacterId {
   return characterIds[Math.min(Math.floor(random() * characterIds.length), characterIds.length - 1)];
