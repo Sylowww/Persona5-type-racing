@@ -1,19 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef } from "react";
-import { SpriteFrames } from "@/components/ui/sprite-frames";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import type { CharacterSprite } from "@/lib/characters";
+import { characterAllOutPortrait } from "@/lib/characters";
 import { playSoundFile } from "@/lib/sound-effects";
+import type { CharacterId } from "@/types/character";
 
 type FinishCutInProps = {
   dictionary: Dictionary["race"]["finish"];
-  character: CharacterSprite;
+  character: CharacterId;
 };
 
 /**
  * "All-Out Attack" style freeze frame when the local player reaches the exit: a red slash across a black
- * screen with their character in their victory pose. Shown briefly by the race page; decorative and aria-hidden.
+ * screen with their character's all-out attack portrait (original red background). Shown briefly by the race page; decorative and aria-hidden.
  */
 export function FinishCutIn({ dictionary, character }: FinishCutInProps) {
   // The ref keeps the sound from playing twice when development mode runs effects twice.
@@ -30,8 +31,10 @@ export function FinishCutIn({ dictionary, character }: FinishCutInProps) {
       <div className="finish-slash absolute inset-x-[-10%] top-[22%] h-[56%] -rotate-6 bg-primary-container" />
       <div className="finish-slash absolute inset-x-[-10%] top-[22%] h-3 -rotate-6 bg-secondary" />
       <div className="relative flex h-full items-center justify-center gap-6 px-4">
-        <div className="finish-pop [filter:drop-shadow(0_0_2px_var(--color-surface-container-lowest))_drop-shadow(6px_6px_0_var(--color-surface-container-lowest))] max-md:scale-75">
-          <SpriteFrames character={character} animation="victory" size={300} />
+        <div className="finish-pop relative size-[200px] shrink-0 -rotate-6 bg-secondary p-2 shadow-[10px_10px_0_var(--color-surface-container-lowest)] md:size-[320px]">
+          <div className="relative size-full overflow-hidden [clip-path:polygon(6%_0,100%_0,94%_100%,0_100%)]">
+            <Image src={characterAllOutPortrait(character)} alt="" fill sizes="320px" className="object-cover" priority />
+          </div>
         </div>
         <div className="finish-pop flex flex-col items-start gap-2">
           <span className="-skew-x-12 bg-surface-container-lowest px-5 font-display text-[64px] uppercase leading-tight text-secondary-fixed shadow-hard-xl md:text-[112px]">

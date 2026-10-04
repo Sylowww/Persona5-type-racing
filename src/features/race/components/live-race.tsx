@@ -18,7 +18,6 @@ import {
   wordsPerMinute,
   type TypingState,
 } from "@/lib/typing";
-import { characterSprite } from "@/lib/characters";
 import { FINAL_COLLAPSE_MS, isChaos } from "@/lib/palace-collapse";
 import { exitGlow } from "@/lib/race-moments";
 import type { LobbyView } from "@/types/lobby";
@@ -206,7 +205,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
       )}
       {winner && !raceOver && <WinnerCutIn dictionary={dictionary.winner} name={winner.name} character={winner.character} />}
       {showFinishFrame && youRacer && (
-        <FinishCutIn dictionary={dictionary.finish} character={characterSprite(youRacer.character)} />
+        <FinishCutIn dictionary={dictionary.finish} character={youRacer.character} />
       )}
       <MonaComms
         dictionary={dictionary.comms}

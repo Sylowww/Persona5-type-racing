@@ -102,7 +102,7 @@ Presentation-only layers on the race page; the server still decides places, fini
 - **Stumble**: a runner tilts for 350 ms after each mistake (the race view carries each racer's `mistakes`).
 - **Exit light**: a yellow light at the end of every lane, brighter (then pulsing) as the leader nears the finish (`exitGlow`).
 - **Chaos extras**: stones fall and bounce on the lanes, a red alarm light sweeps the room and the palace alarm sounds once.
-- **Finish frame** (`finish-cut-in.tsx`): an "All-Out Attack" style frame (red slash, the player's character in their victory pose with a dark outline, "Escaped!") for 1.5 s when the player finishes; if that ends the race, the collapse wedges close over it.
+- **Finish frame** (`finish-cut-in.tsx`): an "All-Out Attack" style frame (red slash, the player's all-out attack portrait with its original red background in a tilted white frame, "Escaped!") for 1.5 s when the player finishes; if that ends the race, the collapse wedges close over it.
 - **Winner cut-in** (`winner-cut-in.tsx`): the other racers see the first finisher's "all-out attack" portrait with its original red background (`characterAllOutPortrait`, files in `public/portraits/characters/all-out/`, same crops as the black lobby versions) in a tilted white frame, in a band ("{name} reached the exit first!").
 - **Recorded sounds** in `public/sfx/` (from the game's sound files, played with `playSoundFile`): `calling-card.mp3`, `alarm.mp3`, `all-out-attack.mp3`, `winner.mp3`. They were picked by category and shape, not by ear; swap a file to change a sound.
 - Reduced motion: no falling stones or sweeping light; overlays appear without sliding.
