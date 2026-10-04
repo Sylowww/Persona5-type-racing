@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { testEmail, testUsername } from "./test-accounts";
 
-// Needs a migrated database (DATABASE_URL) for the dev server.
-const unique = Date.now().toString(36);
-const account = { username: `p_${unique}`, email: `p_${unique}@example.com`, password: "correct-horse" };
+// Needs a migrated database (DATABASE_URL) for the dev server. The account is deleted after the run.
+const username = testUsername("p");
+const account = { username, email: testEmail(username), password: "correct-horse" };
 
 test("signs up, signs out and signs back in", async ({ page, context }) => {
   await page.goto("/en/sign-up");
@@ -55,7 +56,7 @@ test("shows validation errors and keeps typed values", async ({ page }) => {
 
 test("rejects a wrong password with a generic message", async ({ page }) => {
   await page.goto("/en/sign-in");
-  await page.getByLabel("Email").fill("nobody@example.com");
+  await page.getByLabel("Email").fill("nobody@e2e.test");
   await page.getByLabel("Password").fill("wrong-password");
   await page.getByRole("button", { name: "Enter the race" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Incorrect email or password." })).toBeVisible();
