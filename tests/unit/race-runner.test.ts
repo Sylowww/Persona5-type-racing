@@ -8,7 +8,7 @@ import {
   runnerAnimation,
   updateRunner,
 } from "../../src/lib/race-runner";
-import { characterPortrait, characterSprite, characters, isCharacterId, randomCharacter, type CharacterSprite } from "../../src/lib/characters";
+import { characterAllOutPortrait, characterPortrait, characterSprite, characters, isCharacterId, randomCharacter, type CharacterSprite } from "../../src/lib/characters";
 
 describe("crossesObstacle", () => {
   it("detects passing an obstacle, including landing exactly on it", () => {
@@ -123,6 +123,10 @@ describe("character ids", () => {
   it("has a portrait for every character", () => {
     expect(characterPortrait("violet")).toBe("/portraits/characters/violet.webp");
     expect(characterPortrait("oracle")).toBe("/portraits/characters/oracle.webp");
+  });
+
+  it("has the original-background portrait for the winner cut-in", () => {
+    expect(characterAllOutPortrait("blackMask")).toBe("/portraits/characters/all-out/black-mask.webp");
   });
 
   it("picks a random character, even at the edge of the range", () => {

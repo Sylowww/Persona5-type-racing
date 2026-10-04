@@ -203,24 +203,30 @@ export function characterSprite(id: string): CharacterSprite {
   return isCharacterId(id) ? characters[id] : characters[DEFAULT_CHARACTER];
 }
 
-/** Characters with a portrait in `public/portraits/characters/` (black background), shown on lobby player cards. */
-const portraits: Record<CharacterId, string> = {
-  joker: "/portraits/characters/joker.webp",
-  mona: "/portraits/characters/mona.webp",
-  panther: "/portraits/characters/panther.webp",
-  skull: "/portraits/characters/skull.webp",
-  fox: "/portraits/characters/fox.webp",
-  queen: "/portraits/characters/queen.webp",
-  oracle: "/portraits/characters/oracle.webp",
-  noir: "/portraits/characters/noir.webp",
-  crow: "/portraits/characters/crow.webp",
-  violet: "/portraits/characters/violet.webp",
-  blackMask: "/portraits/characters/black-mask.webp",
-  sophia: "/portraits/characters/sophia.webp",
+/** File name of each character's "all-out attack" portrait in `public/portraits/characters/`. */
+const portraitFiles: Record<CharacterId, string> = {
+  joker: "joker.webp",
+  mona: "mona.webp",
+  panther: "panther.webp",
+  skull: "skull.webp",
+  fox: "fox.webp",
+  queen: "queen.webp",
+  oracle: "oracle.webp",
+  noir: "noir.webp",
+  crow: "crow.webp",
+  violet: "violet.webp",
+  blackMask: "black-mask.webp",
+  sophia: "sophia.webp",
 };
 
+/** Portrait on a black background, shown on lobby player cards. */
 export function characterPortrait(id: CharacterId): string {
-  return portraits[id];
+  return `/portraits/characters/${portraitFiles[id]}`;
+}
+
+/** The same portrait with its original red background, shown when the character wins. */
+export function characterAllOutPortrait(id: CharacterId): string {
+  return `/portraits/characters/all-out/${portraitFiles[id]}`;
 }
 
 /** Bots get a random character. */
