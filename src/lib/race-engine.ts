@@ -580,7 +580,7 @@ function finishRace(state: LobbyState, now: number): LobbyState {
       speedSamples: racer.samples,
       keyStats: keyStats(racer.keys),
     };
-    return { id: racer.id, name: racer.name, emblem: racer.emblem, wpm, accuracy: accuracy(typing.keystrokes, typing.mistakes), finishMs };
+    return { id: racer.id, name: racer.name, emblem: racer.emblem, character: racer.character, wpm, accuracy: accuracy(typing.keystrokes, typing.mistakes), finishMs };
   });
 
   return {

@@ -6,6 +6,7 @@ const racer = (id: string, wpm: number, finishMs: number | null): ResultRacer =>
   id,
   name: id,
   emblem: "cat",
+  character: "joker",
   wpm,
   accuracy: 1,
   finishMs,
