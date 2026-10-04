@@ -1,7 +1,8 @@
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import { radarLabelAnchor, radarPoint, radarPolygon, toSvgPoints, type RadarGeometry } from "@/lib/radar";
-import type { PlayerProfile } from "@/types/player";
+import { Icon } from "@/components/ui/icon";
+import { radarLabelAnchor, radarPoint, radarPolygon, radarSync, toSvgPoints, type RadarGeometry } from "@/lib/radar";
+import type { RadarValue } from "@/types/player";
 
 const geometry: RadarGeometry = { center: { x: 100, y: 80 }, radius: 70 };
 const rings = [1, 0.64, 0.29];
@@ -9,11 +10,10 @@ const LABEL_RATIO = 1.12;
 
 type SkillRadarProps = {
   dictionary: Dictionary["home"]["dossier"]["radar"];
-  radar: PlayerProfile["radar"];
-  sync: number;
+  radar: readonly RadarValue[];
 };
 
-export function SkillRadar({ dictionary, radar, sync }: SkillRadarProps) {
+export function SkillRadar({ dictionary, radar }: SkillRadarProps) {
   const axisCount = radar.length;
   const outline = (ratio: number) => toSvgPoints(radar.map((_, index) => radarPoint(geometry, axisCount, index, ratio)));
   const vertices = radarPolygon(geometry, radar.map(({ value }) => value));
@@ -26,11 +26,11 @@ export function SkillRadar({ dictionary, radar, sync }: SkillRadarProps) {
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary">{dictionary.title}</h3>
         <span className="shrink-0 bg-primary-container px-1.5 py-0.5 font-hud text-[10px] font-black uppercase text-on-primary-container">
-          {formatMessage(dictionary.sync, { percent: sync })}
+          {formatMessage(dictionary.sync, { percent: radarSync(radar) })}
         </span>
       </div>
       <div className="flex w-full items-center justify-center py-1">
-        <svg role="img" aria-label={description} viewBox="-45 -10 290 180" className="h-40 w-full max-w-72">
+        <svg role="img" aria-label={description} viewBox="-55 -10 310 180" className="h-40 w-full max-w-72">
           {rings.map((ratio, index) => (
             <polygon
               key={ratio}
@@ -83,6 +83,19 @@ export function SkillRadar({ dictionary, radar, sync }: SkillRadarProps) {
           })}
         </svg>
       </div>
+    </section>
+  );
+}
+
+/** Shown until the player has finished a race. */
+export function RadarEmpty({ dictionary }: { dictionary: SkillRadarProps["dictionary"] }) {
+  return (
+    <section className="flex flex-col gap-2 bg-surface-container-lowest p-4 shadow-hard-sm shadow-surface-container-high">
+      <h3 className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary">{dictionary.title}</h3>
+      <p className="flex items-center gap-2 py-6 text-on-surface-variant">
+        <Icon name="analytics" size={28} className="text-primary-container" />
+        {dictionary.empty}
+      </p>
     </section>
   );
 }
