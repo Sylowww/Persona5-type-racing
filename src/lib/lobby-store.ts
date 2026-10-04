@@ -1,10 +1,11 @@
 // In-memory home of every lobby: applies engine rules, runs timers and notifies subscribers.
 // State lives in this process only, so the app must run as a single Node instance (see doc/architecture.md).
 import type { Locale } from "@/i18n/locales";
+import type { CharacterId } from "@/types/character";
 import type { BotDifficulty, LobbyView } from "@/types/lobby";
 import type { InputBatch, RaceResult } from "@/types/race";
 import { generateUniqueLobbyCode, type RandomInt } from "./lobby-code";
-import { QUICK_MATCH_BOT_DELAY_MS, QUICK_MATCH_STALE_MS, quickMatchSettings } from "./matchmaking";
+import { QUICK_MATCH_BOT_DELAY_MS, QUICK_MATCH_INTRO_MS, QUICK_MATCH_STALE_MS, quickMatchSettings } from "./matchmaking";
 import {
   addBot,
   admitPlayer,
@@ -35,8 +36,14 @@ export type LobbySubscriber = (view: LobbyView | null) => void;
 
 export type StoreError = LobbyError | "lobbyNotFound";
 
-/** Where a player stands in quick 1v1 matchmaking. */
-export type QuickMatchStatus = { state: "idle" } | { state: "searching"; waitedMs: number } | { state: "matched"; code: string };
+/** A racer of a quick 1v1, shown on the versus screen. */
+export type QuickMatchRacer = { id: string; name: string; character: CharacterId; bot: BotDifficulty | null };
+
+/** Where a player stands in quick 1v1 matchmaking. Once matched, `racers` lists the viewer first. */
+export type QuickMatchStatus =
+  | { state: "idle" }
+  | { state: "searching"; waitedMs: number }
+  | { state: "matched"; code: string; racers: QuickMatchRacer[] };
 
 type QueueEntry = { player: Player; locale: Locale; bot: BotDifficulty; joinedAt: number; seenAt: number };
 
@@ -168,7 +175,9 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     for (const player of others) state = must(admitPlayer(state, player, time));
     if (bot) state = must(addBot(state, host.id, bot, random));
     for (const player of players) state = must(setReady(state, player.id, true));
-    state = must(startRace(state, host.id, pickRaceText(locale, randomInt, state.settings.numbers), time, random));
+    // Quick races leave time for the versus screen before their countdown.
+    const startAt = kind === "quick" ? time + QUICK_MATCH_INTRO_MS : time;
+    state = must(startRace(state, host.id, pickRaceText(locale, randomInt, state.settings.numbers), startAt, random));
     commit(code, state);
     return code;
   }
@@ -180,16 +189,23 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
   function matchedStatus(userId: string): QuickMatchStatus | null {
     const code = matches.get(userId);
     if (!code) return null;
-    if (lobbies.has(code)) return { state: "matched", code };
-    matches.delete(userId);
-    return null;
+    const state = lobbies.get(code);
+    if (!state) {
+      matches.delete(userId);
+      return null;
+    }
+    const racers = state.members
+      .filter((member) => member.presence !== "left")
+      .map(({ id, name, character, bot }) => ({ id, name, character, bot }))
+      .sort((a, b) => Number(b.id === userId) - Number(a.id === userId));
+    return { state: "matched", code, racers };
   }
 
-  function startQuickMatch(entries: readonly QueueEntry[], bot: BotDifficulty | null): string {
+  function startQuickMatch(userId: string, entries: readonly QueueEntry[], bot: BotDifficulty | null): QuickMatchStatus {
     for (const entry of entries) queue.delete(entry.player.id);
     const code = startPrivateRace("quick", entries.map((entry) => entry.player), entries[0].locale, bot);
     for (const entry of entries) matches.set(entry.player.id, code);
-    return code;
+    return matchedStatus(userId) ?? { state: "idle" };
   }
 
   return {
@@ -220,7 +236,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       }
       const entry: QueueEntry = { player, locale, bot, joinedAt: time, seenAt: time };
       const rival = [...queue.values()].find((candidate) => candidate.locale === locale);
-      if (rival) return { state: "matched", code: startQuickMatch([rival, entry], null) };
+      if (rival) return startQuickMatch(player.id, [rival, entry], null);
       queue.set(player.id, entry);
       return { state: "searching", waitedMs: 0 };
     },
@@ -233,7 +249,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       const entry = queue.get(userId);
       if (!entry) return { state: "idle" };
       entry.seenAt = time;
-      if (time - entry.joinedAt >= QUICK_MATCH_BOT_DELAY_MS) return { state: "matched", code: startQuickMatch([entry], entry.bot) };
+      if (time - entry.joinedAt >= QUICK_MATCH_BOT_DELAY_MS) return startQuickMatch(userId, [entry], entry.bot);
       return { state: "searching", waitedMs: time - entry.joinedAt };
     },
 

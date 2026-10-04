@@ -205,9 +205,20 @@ describe("quick 1v1", () => {
     const matched = store.joinQuickMatch(bob, "en", "rookie");
     expect(matched.state).toBe("matched");
     const code = matched.state === "matched" ? matched.code : "";
-    expect(store.quickMatchStatus("ann")).toEqual({ state: "matched", code });
+    // Each player sees themselves first on the versus screen.
+    expect(store.quickMatchStatus("ann")).toEqual({
+      state: "matched",
+      code,
+      racers: [
+        { id: "ann", name: "ann", character: "joker", bot: null },
+        { id: "bob", name: "bob", character: "joker", bot: null },
+      ],
+    });
+    expect(matched.state === "matched" && matched.racers.map((racer) => racer.id)).toEqual(["bob", "ann"]);
 
     const view = store.view(code, "ann");
+    // The countdown starts after the versus screen.
+    expect(view?.race?.startsAt).toBe(clock + 3_000 + 3_000);
     expect(view).toMatchObject({ kind: "quick", phase: "countdown", settings: { timeLimitSec: 30 } });
     expect(view?.race?.racers.map((racer) => [racer.id, racer.isBot])).toEqual([
       ["ann", false],

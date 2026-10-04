@@ -374,6 +374,13 @@ const fr: Dictionary = {
     botIn: "Personne dans {seconds} s ? Un bot prend sa place.",
     found: "Rival trouvé ! Prépare-toi...",
     cancel: "Annuler",
+    versus: {
+      vs: "VS",
+      label: "{you} contre {rival}",
+      you: "Toi",
+      rival: "Rival",
+      bot: "Bot",
+    },
   },
   leaderboard: {
     metaTitle: "Classement",

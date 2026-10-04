@@ -372,6 +372,13 @@ const en = {
     botIn: "No one in {seconds} s? A bot takes their place.",
     found: "Rival found! Get ready...",
     cancel: "Cancel",
+    versus: {
+      vs: "VS",
+      label: "{you} versus {rival}",
+      you: "You",
+      rival: "Rival",
+      bot: "Bot",
+    },
   },
   leaderboard: {
     metaTitle: "Leaderboard",
