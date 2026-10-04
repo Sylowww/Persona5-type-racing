@@ -1,19 +1,8 @@
-export type RadarAxis = "burst" | "accuracy" | "stamina" | "streak" | "rhythm" | "recovery";
+/** Skill radar axes, clockwise from the top. */
+export type RadarAxis = "burst" | "accuracy" | "stamina" | "placement" | "rhythm" | "consistency";
 
-export type PlayerProfile = {
-  name: string;
-  level: number;
-  rank: string;
-  syndicate: string;
-  dossierId: string;
-  recordWpm: number;
-  topPercent: number;
-  accuracy: number;
-  winStreak: number;
-  radarSync: number;
-  /** Clockwise from the top; each value is a 0-1 ratio. */
-  radar: readonly { axis: RadarAxis; value: number }[];
-};
+/** One axis of the skill radar; `value` is a 0-1 ratio. */
+export type RadarValue = { axis: RadarAxis; value: number };
 
 export type ServerStatus = {
   name: string;
