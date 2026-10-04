@@ -175,21 +175,21 @@ export function characterSprite(id: string): CharacterSprite {
 }
 
 /** Characters with a portrait in `public/portraits/characters/` (black background), shown on lobby player cards. */
-const portraits: Partial<Record<CharacterId, string>> = {
+const portraits: Record<CharacterId, string> = {
   joker: "/portraits/characters/joker.webp",
   mona: "/portraits/characters/mona.webp",
   panther: "/portraits/characters/panther.webp",
   skull: "/portraits/characters/skull.webp",
   fox: "/portraits/characters/fox.webp",
   queen: "/portraits/characters/queen.webp",
+  oracle: "/portraits/characters/oracle.webp",
   noir: "/portraits/characters/noir.webp",
   crow: "/portraits/characters/crow.webp",
   violet: "/portraits/characters/violet.webp",
 };
 
-/** Portrait of a character; null when it has none yet (Oracle). */
-export function characterPortrait(id: CharacterId): string | null {
-  return portraits[id] ?? null;
+export function characterPortrait(id: CharacterId): string {
+  return portraits[id];
 }
 
 /** Bots get a random character. */
