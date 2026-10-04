@@ -19,6 +19,7 @@ import {
   removeBot,
   resultFor,
   sendMessage,
+  setCharacter,
   setConnected,
   setReady,
   setVisibility,
@@ -372,6 +373,12 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     exists(code: string): boolean {
       return lobbies.has(code);
+    },
+
+    /** Shows a newly chosen character in the player's current lobby, if any. */
+    setCharacter(userId: string, character: CharacterId) {
+      const code = lobbyOfUser.get(userId);
+      if (code) update(code, (state) => setCharacter(state, userId, character));
     },
 
     lobbyOf(userId: string): string | null {

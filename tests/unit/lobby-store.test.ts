@@ -270,3 +270,13 @@ describe("lobby browser", () => {
     ]);
   });
 });
+
+describe("character change", () => {
+  it("updates the player's card in their current lobby", () => {
+    const code = store.create(ann, "en");
+    const stream = listen(code, "ann");
+    expect(stream.last()?.players[0].character).toBe("joker");
+    store.setCharacter("ann", "blackMask");
+    expect(stream.last()?.players[0].character).toBe("blackMask");
+  });
+});

@@ -303,6 +303,13 @@ export function removeBot(state: LobbyState, userId: string, botId: string): Out
   return ok({ ...open, members: open.members.filter((member) => member.id !== botId) });
 }
 
+/** A player picked another character on their profile: their card changes now, their runner from the next race. */
+export function setCharacter(state: LobbyState, userId: string, character: CharacterId): LobbyState {
+  const member = state.members.find((candidate) => candidate.id === userId && candidate.bot === null);
+  if (!member || member.character === character) return state;
+  return { ...state, members: state.members.map((candidate) => (candidate === member ? { ...candidate, character } : candidate)) };
+}
+
 /** The host changes the next race's rules while the lobby is waiting. `change` comes from the client and is validated here. */
 export function updateSettings(state: LobbyState, userId: string, change: unknown): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
