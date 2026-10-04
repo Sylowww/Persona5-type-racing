@@ -112,6 +112,22 @@ export async function updateLobbySettings(code: string, change: unknown): Promis
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().updateSettings(lobby, userId, change));
 }
 
+export async function setLobbyVisibility(code: string, visibility: string): Promise<StoreError | null> {
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().setVisibility(lobby, userId, visibility));
+}
+
+/** Joins a lobby picked in the lobby browser; returns why it failed, or redirects into it. */
+export async function joinListedLobby(codeValue: string, localeValue: string): Promise<JoinErrorCode> {
+  const locale = toLocale(localeValue);
+  const code = normalizeLobbyCode(String(codeValue));
+  if (!code) return "lobbyNotFound";
+  const player = await requirePlayer(locale);
+  const error = getLobbyStore().join(code, player);
+  if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress") return error;
+  if (error) return "lobbyNotFound";
+  redirect(`/${locale}/lobby/${code}`);
+}
+
 export async function sendLobbyMessage(code: string, text: string): Promise<StoreError | null> {
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().sendMessage(lobby, userId, text));
 }

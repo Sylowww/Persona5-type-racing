@@ -27,6 +27,7 @@ export const iconNames = [
   "pin",
   "play_arrow",
   "push_pin",
+  "refresh",
   "send",
   "smart_toy",
   "speed",

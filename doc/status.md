@@ -17,6 +17,7 @@ Last updated: 2026-10-04.
 - Reconnection: 30 s grace period for a lost connection in the lobby and during a race; reloading the race page restores progress.
 
 - Home mode cards: "Quick play // 1v1" opens matchmaking (another player, or a bot after 15 s; 30 s race, saved like any race), then a full-screen versus splash (both characters, names, "VS") before the race and "Training dojo" starts a solo practice race at once (not saved). The red "Start a race" button still creates a custom lobby; the duplicate "Create heist lobby" card was removed.
+- Public and private lobbies: a custom lobby is private by default (code or link); its host can make it public from the rules dossier. The "Find a lobby" home card opens `/lobbies`, which lists public lobbies (host, language, mode, time limit, players, status), refreshes every 5 s and joins one in a click.
 - Header nav: Home and Leaderboards only (races, training and lobbies start from the home page).
 - Leaderboard (`/fr/leaderboard`, `/en/leaderboard`): top 100 registered players by record WPM, with average WPM, accuracy and race count; 10 per page with previous/next arrows, each page loaded from the server; the signed-in player's row is highlighted.
 - Race history: when a race ends, the server saves each registered player's place, WPM, accuracy and time in `race_results`. The profile page (`/fr/profile`, `/en/profile`, registered users only: avatar, username, member since, character picker (Joker, Mona, Panther, Skull, Fox, Queen, Oracle, Noir or Crow, used from the next lobby joined), sign-in methods) shows races, record, average WPM, accuracy and the last 10 races; the home dossier shows record, accuracy and race count, and links to the profile. Guests keep their races in `sessionStorage` (the results page writes them), so they last until the tab is closed; the home dossier shows them.
@@ -40,7 +41,7 @@ Last updated: 2026-10-04.
 
 ## Not started
 
-Guest sessions (no page creates a guest yet, so racing requires an account and the guest history above is not reachable yet), heatmap history, spectators, public lobby discovery, matchmaking for custom lobbies, powers (the setting exists but does nothing), multi-instance deployment (shared lobby state).
+Guest sessions (no page creates a guest yet, so racing requires an account and the guest history above is not reachable yet), heatmap history, spectators, matchmaking for custom lobbies, powers (the setting exists but does nothing), multi-instance deployment (shared lobby state).
 
 ## Undecided
 

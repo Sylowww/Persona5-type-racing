@@ -8,6 +8,20 @@ export type PlayerEmblem = "domino" | "cat" | "skull" | "mask";
  */
 export type LobbyKind = "custom" | "quick" | "training";
 
+/** Private custom lobbies are joined with their code or link; public ones are also listed in the lobby browser. */
+export type LobbyVisibility = "private" | "public";
+
+/** A public lobby as the lobby browser lists it. */
+export type PublicLobby = {
+  code: string;
+  hostName: string;
+  playerCount: number;
+  capacity: number;
+  phase: LobbyPhase;
+  locale: "fr" | "en";
+  settings: RaceSettings;
+};
+
 /** Lobby lifecycle. `closed` lobbies are simply deleted. */
 export type LobbyPhase = "waiting" | "countdown" | "racing" | "finished";
 
@@ -28,6 +42,7 @@ export type LobbyMember = {
 export type LobbyView = {
   code: string;
   kind: LobbyKind;
+  visibility: LobbyVisibility;
   phase: LobbyPhase;
   capacity: number;
   locale: "fr" | "en";

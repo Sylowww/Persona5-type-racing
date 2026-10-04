@@ -2,7 +2,17 @@
 // transport, so the same rules work behind SSE today and any other transport later.
 import type { Locale } from "@/i18n/locales";
 import type { CharacterId } from "@/types/character";
-import type { BotDifficulty, LobbyKind, LobbyMessage, LobbyPhase, LobbyView, PlayerEmblem, RaceSettings } from "@/types/lobby";
+import type {
+  BotDifficulty,
+  LobbyKind,
+  LobbyMessage,
+  LobbyPhase,
+  LobbyView,
+  LobbyVisibility,
+  PlayerEmblem,
+  PublicLobby,
+  RaceSettings,
+} from "@/types/lobby";
 import type { InputBatch, InputEvent, KeyStat, RaceRacer, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
 import { planBotRun, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
@@ -109,6 +119,8 @@ export type StoredResult = {
 export type LobbyState = {
   code: string;
   kind: LobbyKind;
+  /** Only custom lobbies can be public. */
+  visibility: LobbyVisibility;
   locale: Locale;
   config: EngineConfig;
   phase: LobbyPhase;
@@ -167,6 +179,7 @@ export function createLobby(input: {
   return {
     code: input.code,
     kind,
+    visibility: "private",
     locale: input.locale,
     config,
     phase: "waiting",
@@ -299,6 +312,30 @@ export function updateSettings(state: LobbyState, userId: string, change: unknow
   const settings = parseRaceSettings(open.settings, change);
   if (!settings) return fail("invalidSettings");
   return ok({ ...open, settings });
+}
+
+/** The host makes a custom lobby public (listed in the lobby browser) or private (code or link only). */
+export function setVisibility(state: LobbyState, userId: string, visibility: unknown): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  if (state.kind !== "custom") return fail("privateLobby");
+  if (visibility !== "public" && visibility !== "private") return fail("invalidSettings");
+  return ok({ ...state, visibility });
+}
+
+/** How the lobby browser shows a public lobby; null for lobbies it does not list. */
+export function publicLobbyFor(state: LobbyState): PublicLobby | null {
+  if (state.kind !== "custom" || state.visibility !== "public") return null;
+  const host = state.members.find((member) => member.id === state.hostId);
+  return {
+    code: state.code,
+    hostName: host?.name ?? "",
+    playerCount: activeMembers(state).length,
+    capacity: state.config.capacity,
+    phase: state.phase,
+    locale: state.locale,
+    settings: state.settings,
+  };
 }
 
 /** Any member can chat, in every phase. `text` comes from the client and is validated here. */
@@ -648,6 +685,7 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
   return {
     code: state.code,
     kind: state.kind,
+    visibility: state.visibility,
     phase: state.phase,
     capacity: state.config.capacity,
     locale: state.locale,

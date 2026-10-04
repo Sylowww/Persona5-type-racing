@@ -12,6 +12,7 @@ import {
   removeLobbyBot,
   sendLobbyMessage,
   setLobbyReady,
+  setLobbyVisibility,
   startLobbyRace,
   updateLobbySettings,
 } from "../actions";
@@ -80,6 +81,8 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
             canEdit={isHost && isWaiting}
             isPending={isPending}
             onChange={(change) => startTransition(async () => void (await updateLobbySettings(code, change)))}
+            visibility={view.kind === "custom" ? view.visibility : null}
+            onVisibilityChange={(visibility) => startTransition(async () => void (await setLobbyVisibility(code, visibility)))}
             spectators={[]}
           />
           <TauntFeed dictionary={dictionary.chat} messages={view.messages} youId={view.youId} onSend={(text) => sendLobbyMessage(code, text)} />

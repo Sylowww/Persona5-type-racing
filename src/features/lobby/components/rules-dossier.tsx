@@ -2,7 +2,7 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { raceModes, timeLimitOptions } from "@/lib/race-settings";
-import type { RaceSettings } from "@/types/lobby";
+import type { LobbyVisibility, RaceSettings } from "@/types/lobby";
 import { KeySoundPicker } from "./key-sound-picker";
 
 type RulesDossierProps = {
@@ -12,15 +12,29 @@ type RulesDossierProps = {
   canEdit: boolean;
   isPending: boolean;
   onChange: (change: Partial<RaceSettings>) => void;
+  /** Custom lobbies only; null hides the access choice (quick and training lobbies are always private). */
+  visibility: LobbyVisibility | null;
+  onVisibilityChange: (visibility: LobbyVisibility) => void;
   spectators: readonly string[];
 };
+
+const visibilities: readonly LobbyVisibility[] = ["private", "public"];
 
 function timeLimitLabel(dictionary: Dictionary["lobby"]["rules"]["time"], seconds: number | null): string {
   if (seconds === null) return dictionary.unlimited;
   return seconds < 60 ? formatMessage(dictionary.seconds, { count: seconds }) : formatMessage(dictionary.minutes, { count: seconds / 60 });
 }
 
-export function RulesDossier({ dictionary, settings, canEdit, isPending, onChange, spectators }: RulesDossierProps) {
+export function RulesDossier({
+  dictionary,
+  settings,
+  canEdit,
+  isPending,
+  onChange,
+  visibility,
+  onVisibilityChange,
+  spectators,
+}: RulesDossierProps) {
   const { mode, time, text } = dictionary;
   const disabled = !canEdit || isPending;
   const textRules = [
@@ -37,6 +51,39 @@ export function RulesDossier({ dictionary, settings, canEdit, isPending, onChang
 
       <div className="flex flex-col gap-4 bg-surface-container p-4 shadow-hard-xl">
         {!canEdit && <p className="text-[12px] italic text-on-surface-variant">{dictionary.hostOnly}</p>}
+
+        {visibility && (
+          <>
+            <div className="flex flex-col gap-1">
+              <DirectiveTitle title={dictionary.visibility.title} tag={dictionary.visibility[visibility]} />
+              <div className="grid grid-cols-2 gap-2">
+                {visibilities.map((option) => {
+                  const isActive = option === visibility;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={isActive}
+                      disabled={disabled}
+                      onClick={() => onVisibilityChange(option)}
+                      className={`flex items-center justify-center gap-1.5 p-2 font-hud text-[12px] font-black uppercase transition-transform enabled:hover:-translate-y-0.5 ${
+                        isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
+                      }`}
+                    >
+                      <Icon name={option === "private" ? "lock" : "visibility"} size={16} />
+                      {dictionary.visibility[option]}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1 text-[12px] italic text-on-surface-variant">
+                {visibility === "private" ? dictionary.visibility.privateHint : dictionary.visibility.publicHint}
+              </p>
+            </div>
+
+            <hr className="border-surface-container-highest" />
+          </>
+        )}
 
         <div className="flex flex-col gap-1">
           <DirectiveTitle title={mode.title} tag={dictionary.hostEdits} />

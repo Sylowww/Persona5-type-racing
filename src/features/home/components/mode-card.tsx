@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/ui/icon";
 
-export type ModeCardVariant = "blitz" | "training";
+export type ModeCardVariant = "blitz" | "browse" | "training";
 
 type ModeCardProps = {
   variant: ModeCardVariant;
@@ -35,6 +35,16 @@ const variants: Record<ModeCardVariant, VariantStyle> = {
     iconColor: "text-primary-container",
     metaColor: "text-secondary-fixed",
     actionHover: "group-hover:text-primary",
+  },
+  browse: {
+    icon: "theater_comedy",
+    actionIcon: "arrow_forward",
+    shadowTilt: "rotate-[-1.5deg]",
+    card: "rotate-[1.5deg] bg-surface-container shadow-secondary-fixed",
+    badge: "rotate-[2deg] bg-secondary-container text-on-secondary-fixed shadow-hard-xs",
+    iconColor: "text-secondary-fixed",
+    metaColor: "text-on-surface",
+    actionHover: "group-hover:text-secondary-fixed",
   },
   training: {
     icon: "model_training",

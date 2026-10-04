@@ -39,9 +39,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <div className="grid grid-cols-1 gap-4 pt-1 md:grid-cols-2">
               <ModeCard variant="blitz" {...modes.blitz} target={{ href: `/${locale}/quick` }} />
               <ModeCard variant="training" {...modes.training} target={{ run: startTraining.bind(null, locale) }} />
-              <div className="md:col-span-2">
-                <JoinCodeCard dictionary={home.joinCode} locale={locale} />
-              </div>
+              <ModeCard variant="browse" {...modes.browse} target={{ href: `/${locale}/lobbies` }} />
+              <JoinCodeCard dictionary={home.joinCode} locale={locale} />
             </div>
 
             <TypingPreview dictionary={home.typingPreview} />

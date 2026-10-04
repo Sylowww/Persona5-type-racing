@@ -12,7 +12,9 @@ import {
   removeBot,
   resultFor,
   sendMessage,
+  publicLobbyFor,
   setConnected,
+  setVisibility,
   setReady,
   startRace,
   updateSettings,
@@ -460,5 +462,24 @@ describe("lobby chat", () => {
     const messages = viewFor(state, "ann", T0)?.messages ?? [];
     expect(messages).toHaveLength(50);
     expect(messages.at(-1)).toMatchObject({ id: "60", text: "m59" });
+  });
+});
+
+describe("lobby visibility", () => {
+  it("starts private and lets only the host make it public", () => {
+    const state = lobbyWith("ann", "bob");
+    expect(viewFor(state, "bob", T0)?.visibility).toBe("private");
+    expect(publicLobbyFor(state)).toBeNull();
+    expect(setVisibility(state, "bob", "public")).toEqual({ ok: false, error: "notHost" });
+    expect(setVisibility(state, "ann", "secret")).toEqual({ ok: false, error: "invalidSettings" });
+
+    const open = unwrap(setVisibility(state, "ann", "public"));
+    expect(publicLobbyFor(open)).toMatchObject({ code: "P5-TEST", hostName: "ann", playerCount: 2, phase: "waiting" });
+    expect(publicLobbyFor(unwrap(setVisibility(open, "ann", "private")))).toBeNull();
+  });
+
+  it("keeps quick and training lobbies private", () => {
+    const training = createLobby({ code: "P5-SOLO", locale: "en", host: { id: "ann", name: "ann" }, now: T0, kind: "training" });
+    expect(setVisibility(training, "ann", "public")).toEqual({ ok: false, error: "privateLobby" });
   });
 });
