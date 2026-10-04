@@ -7,10 +7,10 @@ import type { Locale } from "@/i18n/locales";
 
 type NavItem = keyof Dictionary["header"]["nav"];
 
-/** Pages that exist; the other entries become links once their pages are built. */
-const routes: Partial<Record<NavItem, string>> = { home: "", lobby: "/lobby" };
+// Races, training and lobbies start from the home page buttons, so the nav only links pages without one.
+const routes: Record<NavItem, string> = { home: "", leaderboards: "/leaderboard" };
 
-const navItems: readonly NavItem[] = ["home", "quickRace", "lobby", "training", "leaderboards"];
+const navItems: readonly NavItem[] = ["home", "leaderboards"];
 
 type SiteNavProps = {
   locale: Locale;
@@ -23,23 +23,22 @@ export function SiteNav({ locale, dictionary }: SiteNavProps) {
   return (
     <nav aria-label={dictionary.navLabel} className="hidden items-center gap-1 xl:flex">
       {navItems.map((item) => {
-        const route = routes[item];
-        const href = route === undefined ? undefined : `/${locale}${route}`;
+        const href = `/${locale}${routes[item]}`;
         const isActive = href === pathname;
-        const className = `whitespace-nowrap px-1.5 py-1 font-hud text-base font-black min-[1800px]:px-3 min-[1800px]:text-lg uppercase italic ${
-          isActive
-            ? "bg-primary-container text-on-primary-container shadow-hard-sm shadow-secondary-fixed"
-            : "text-on-surface-variant"
-        }`;
 
-        return href ? (
-          <Link key={item} href={href} aria-current={isActive ? "page" : undefined} className={`${className} hover:text-secondary`}>
+        return (
+          <Link
+            key={item}
+            href={href}
+            aria-current={isActive ? "page" : undefined}
+            className={`whitespace-nowrap px-1.5 py-1 font-hud text-base font-black uppercase italic min-[1800px]:px-3 min-[1800px]:text-lg ${
+              isActive
+                ? "bg-primary-container text-on-primary-container shadow-hard-sm shadow-secondary-fixed"
+                : "text-on-surface-variant hover:text-secondary"
+            }`}
+          >
             {dictionary.nav[item]}
           </Link>
-        ) : (
-          <span key={item} className={className}>
-            {dictionary.nav[item]}
-          </span>
         );
       })}
     </nav>

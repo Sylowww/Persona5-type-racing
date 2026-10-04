@@ -28,7 +28,7 @@ test("creates a lobby with the player as host", async ({ page }) => {
   await silent.click();
   await expect(silent).toHaveAttribute("aria-checked", "true");
 
-  // The nav brings the player back to their lobby.
+  // /lobby brings the player back to their lobby.
   await page.goto("/en/lobby");
   await expect(page).toHaveURL(new RegExp(`/en/lobby/${code}$`));
 

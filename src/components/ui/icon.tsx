@@ -6,6 +6,8 @@ export const iconNames = [
   "bolt",
   "chat",
   "check",
+  "chevron_left",
+  "chevron_right",
   "close",
   "content_copy",
   "electric_bolt",

@@ -31,3 +31,16 @@ test("switches the key audio option", async ({ page }) => {
   await expect(linear).toHaveAttribute("aria-checked", "true");
   await expect(clicky).toHaveAttribute("aria-checked", "false");
 });
+
+test("keeps only home and leaderboards in the nav and pages the leaderboard", async ({ page }) => {
+  await page.goto("/en");
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(nav.getByRole("link")).toHaveText(["Home // Radar", "Leaderboards"]);
+
+  await nav.getByRole("link", { name: "Leaderboards" }).click();
+  await expect(page).toHaveURL(/\/en\/leaderboard$/);
+  await expect(page.getByRole("heading", { name: "Metaverse leaderboard" })).toBeVisible();
+  // Out-of-range pages fall back to a valid one.
+  await page.goto("/en/leaderboard?page=999");
+  await expect(page.getByRole("heading", { name: "Metaverse leaderboard" })).toBeVisible();
+});
