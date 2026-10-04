@@ -1,14 +1,12 @@
 import { expect, type Page } from "@playwright/test";
+import { testEmail, testUsername } from "./test-accounts";
 
-let counter = 0;
-
-/** Creates a fresh account (needs a migrated database) and returns its username. */
-export async function signUp(page: Page, prefix: string): Promise<string> {
-  counter += 1;
-  const username = `${prefix}_${Date.now().toString(36)}${counter}${Math.floor(Math.random() * 100)}`.slice(0, 20);
+/** Creates a fresh test account (needs a migrated database; deleted after the run) and returns its username. */
+export async function signUp(page: Page, role: string): Promise<string> {
+  const username = testUsername(role);
   await page.goto("/en/sign-up");
   await page.getByLabel("Username").fill(username);
-  await page.getByLabel("Email").fill(`${username}@example.com`);
+  await page.getByLabel("Email").fill(testEmail(username));
   await page.getByLabel("Password").fill("correct-horse");
   await page.getByRole("button", { name: "Create my account" }).click();
   await expect(page).toHaveURL(/\/en$/);
