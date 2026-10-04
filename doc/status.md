@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-09-30.
+Last updated: 2026-10-04.
 
 ## Built
 
@@ -11,6 +11,8 @@ Last updated: 2026-09-30.
 - Results page (`/{locale}/lobby/{code}/results`): opening wedges and a Mona cut-in (congratulations, scolding for last place, or "go train"), banner, podium, speed chart, precision stats, slow keys and keyboard heatmap from the real race; back-to-lobby and rematch return to the same lobby.
 - Bots: the host adds bots of any difficulty (rookie ~60, master ~120, godspeed ~150 WPM), each with its own level, and removes them in the lobby. They race with the same rules as players, with a human-like rhythm and typos they correct (see architecture.md, Bots). One player plus bots is enough to start.
 - Background music (`components/layout/music-player.tsx`, tracks in `public/music/`): the race page plays the race theme from 25 s (vocals start as the 3 s countdown ends), every other page the home theme chosen in the header (Theme I or II). Header buttons pick the theme and mute (the mute also silences sound effects); both choices are saved in `localStorage`. Playback starts on the first click or key press when the browser blocks autoplay.
+- Race settings: the host picks the mode (normal or sudden death), powers on/off (no effect yet), time limit (30 s to 3 min, or none), numbers and case sensitivity in the lobby's rules dossier; others see the changes live. The race page shows the time left for timed races and eliminates a racer at their first mistake in sudden death.
+- Lobby chat: messages and quick taunts, shared live with every member (last 50, in memory with the lobby). The "Lobby settings" and "Chat / taunts" buttons jump to the rules and the chat input.
 - Reconnection: 30 s grace period for a lost connection in the lobby and during a race; reloading the race page restores progress.
 
 - Race history: when a race ends, the server saves each registered player's place, WPM, accuracy and time in `race_results`. The profile page (`/fr/profile`, `/en/profile`, registered users only: avatar, username, member since, character picker (Joker, Mona, Panther, Skull, Fox, Queen, Oracle, Noir or Crow, used from the next lobby joined), sign-in methods) shows races, record, average WPM, accuracy and the last 10 races; the home dossier shows record, accuracy and race count, and links to the profile. Guests keep their races in `sessionStorage` (the results page writes them), so they last until the tab is closed; the home dossier shows them.
@@ -24,18 +26,18 @@ Last updated: 2026-09-30.
 
 - Radar is an empty state until it is computed from saved races. `SkillRadar` is kept for when it is.
 - Leaderboard and server data come from `src/mocks/player.ts`; the home page hides the mock "you" row. `mockPlayer` (with radar values) is no longer used by any page.
-- Lobby buttons for settings, chat and invite observer do nothing; the rules dossier shows the fixed rules races use today; the taunt feed and spectators are empty. Player cards show `-- WPM` as best speed until stats are stored.
+- The invite observer button does nothing and the spectator list is empty. Player cards show `-- WPM` as best speed until stats are stored.
 - Nav items other than Home and Lobby, and the mode cards, do nothing yet. "Start a race" opens a new lobby (no matchmaking).
 - Key-audio selection is UI only (no key sounds yet).
 - Avatar and logo are placeholders (icon + wordmark) until real assets exist.
 
-- Race texts are a small built-in list per language (`lib/race-texts.ts`); countdown (3 s), time limit (3 min), grace period (30 s) and speed limit (30 keys/s) are fixed defaults in `lib/race-engine.ts`.
+- Race texts are a small built-in list per language, with a separate list with digits (`lib/race-texts.ts`); countdown (3 s), grace period (30 s) and speed limit (30 keys/s) are fixed defaults in `lib/race-engine.ts`. Punctuation is always on.
 - Full results (podium, chart, heatmap) live in memory with the lobby and disappear when it closes or the server restarts; only each player's summary is saved (see Built). Heatmap thresholds (100 ms fast, 250 ms or a miss = slow) are placeholders.
-- Error mode is fixed: wrong characters stay and must be deleted; corrected mistakes still count against accuracy.
+- Normal mode: wrong characters stay and must be deleted; corrected mistakes still count against accuracy.
 
 ## Not started
 
-Guest sessions (no page creates a guest yet, so racing requires an account and the guest history above is not reachable yet), heatmap history, spectators, public lobby discovery, matchmaking, race settings, multi-instance deployment (shared lobby state).
+Guest sessions (no page creates a guest yet, so racing requires an account and the guest history above is not reachable yet), heatmap history, spectators, public lobby discovery, matchmaking, powers (the setting exists but does nothing), multi-instance deployment (shared lobby state).
 
 ## Undecided
 
