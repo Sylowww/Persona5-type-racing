@@ -161,6 +161,7 @@ test("the training dojo starts a solo race", async ({ page }) => {
 });
 
 test("quick play pairs two searching players in the same race", async ({ browser }) => {
+  test.setTimeout(60_000);
   const contexts = [await browser.newContext(), await browser.newContext()];
   const [first, second] = await Promise.all(contexts.map((context) => context.newPage()));
   await signUp(first, "quick");
@@ -171,8 +172,10 @@ test("quick play pairs two searching players in the same race", async ({ browser
   await expect(first.getByRole("status")).toContainText("Searching");
   await second.getByRole("link", { name: /Quick play/ }).click();
 
-  await expect(first).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/, { timeout: 10_000 });
-  await expect(second).toHaveURL(first.url());
+  // Each page finds the match on its next check-in (every 1 s), shows the 2.6 s versus screen, then opens the
+  // race page, which the dev server may still be compiling in CI.
+  await expect(first).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/, { timeout: 20_000 });
+  await expect(second).toHaveURL(first.url(), { timeout: 20_000 });
   for (const context of contexts) await context.close();
 });
 
