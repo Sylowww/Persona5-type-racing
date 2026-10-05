@@ -1,19 +1,86 @@
-# Typing Race
+# TYPE//STRIKE
 
-Minimal Next.js foundation for a bilingual competitive typing application.
+A competitive, real-time typing race for students, inspired by Monkeytype and Kahoot, with a Persona 5 look. Players type the same text and race each other live: positions, speed and accuracy update as they type, and every race ends on a podium with detailed stats.
 
-## Local development
+School project (Cégep, 3rd year, web programming).
 
-Use Node.js 22 or newer. Run `npm ci`, copy `.env.example` to `.env.local`, and set `DATABASE_URL` to a local PostgreSQL database when database access is needed. The application does not query the database yet.
+## Features
 
-Run `npm run dev` to start the app. The root URL redirects to French (`/fr`); English is available at `/en`.
+- **Real-time multiplayer races**: lobbies with a 3 s synchronized countdown, live track with animated runners, live places, results page (podium, speed chart, accuracy, keyboard heatmap).
+- **Lobbies**: private (join with a `P5-XXXX` code or link) or public (listed in the lobby browser); ready-up, host-only start, chat and quick taunts.
+- **Race settings** (host only): normal or sudden death (first mistake eliminates you), time limit (30 s to 3 min, or none), texts with numbers, case sensitivity.
+- **Game modes**: quick 1v1 matchmaking (a bot steps in after 15 s), solo training dojo (not saved).
+- **Bots** with four levels (about 30, 60, 120 and 150 WPM), human-like rhythm and typos.
+- **Accounts**: email/password, plus Google, GitHub and Discord sign-in; 12 playable characters.
+- **Stats**: race history, skill radar on the home page, top 100 leaderboard.
+- French and English UI.
+
+The server is authoritative: clients only send keystrokes; progress, places, results and saved stats are computed on the server.
+
+## Stack
+
+Next.js (App Router) · React · TypeScript (strict) · Tailwind CSS · PostgreSQL · Vitest · Playwright · GitHub Actions.
+
+Real-time updates use Server-Sent Events from Next.js route handlers (no separate socket server). Lobbies and races live in the memory of the Node process, so the app must run as a **single long-running instance** (`next start`), not on serverless hosting.
+
+## Getting started
+
+Requirements: Node.js 22+ and PostgreSQL (17 is used in CI).
+
+1. Install dependencies: `npm ci`
+2. Start a database: `docker compose up -d` (or use any local PostgreSQL).
+3. Copy `.env.example` to `.env` and set `DATABASE_URL` (the default matches `docker-compose.yml`). OAuth providers are optional: a sign-in button appears only when its client id and secret are set.
+4. Create the tables: `npm run db:migrate`
+5. Start the app: `npm run dev`, then open http://localhost:3000 (redirects to `/fr`; English is at `/en`).
+
+To play from other devices on the same network during development, see `ALLOWED_DEV_ORIGINS` in `.env.example`.
 
 ## Checks
 
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run build`
-- `npx playwright install chromium` once, then `npm run test:e2e`
+| Command | What it does |
+| --- | --- |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | Route types, then strict TypeScript |
+| `npm test` | Unit tests (Vitest) |
+| `npm run build` | Production build |
+| `npm run test:e2e` | End-to-end tests (Playwright; run `npx playwright install chromium` once). Needs a migrated database; test accounts are deleted after each run. |
 
-No schema or migrations exist yet because no persistent features have been defined.
+CI runs all of them on every push and pull request.
+
+## Deployment
+
+The app needs a long-running Node server (one instance) and PostgreSQL. Both configs below build with `npm run build`, apply migrations, start with `next start` (it listens on the platform's `PORT`) and check `/fr`.
+
+### Railway (`railway.json`)
+
+1. Create a project from the GitHub repo; Railway reads `railway.json`.
+2. Add a **PostgreSQL** database to the project.
+3. In the app service variables, set `DATABASE_URL` to the database's URL (reference variable `${{Postgres.DATABASE_URL}}`) and `APP_URL` to the public URL (`https://…`).
+4. Generate a public domain (Settings → Networking). Keep **one replica**.
+
+Migrations run before each deploy (`preDeployCommand`).
+
+### Render (`render.yaml`)
+
+1. New → **Blueprint**, pick the repo; Render creates the web service and the database from `render.yaml`.
+2. When asked, set `APP_URL` to the service URL (`https://<name>.onrender.com`).
+
+Migrations run at startup. On the free plan the service sleeps when idle (the first visit takes a while and open lobbies are lost) and the free database expires after a while; a paid instance avoids both.
+
+### After deploying
+
+- HTTPS is required: the session cookie is `Secure` in production (both platforms provide HTTPS).
+- OAuth is optional. To enable a provider, set its `*_CLIENT_ID` / `*_CLIENT_SECRET` and register `{APP_URL}/api/auth/{google|github|discord}/callback` in its app.
+- Every redeploy or restart ends the lobbies in progress; accounts and stats stay in PostgreSQL.
+
+## Documentation
+
+Detailed docs are in [`doc/`](doc/README.md): architecture and multiplayer design, design system, translations, testing, and the current status of each feature.
+
+## Third-party content notice
+
+This is a non-commercial school project made for a class at Cégep. It is not affiliated with, endorsed by or sponsored by ATLUS or SEGA.
+
+Persona and Persona 5, their characters, artwork, music, sound effects and voice clips are trademarks and copyrighted works of ATLUS / SEGA. The character portraits (`public/portraits/`), sprite sheets (`public/sprites/`, fan art based on those characters), music (`public/music/`), sound effects (`public/sfx/`) and voice clips (`public/voices/`) are used for educational purposes only and remain the property of their respective owners. They must be replaced with original or licensed assets before any commercial or public release of the game.
+
+All other code in this repository was written for this project.

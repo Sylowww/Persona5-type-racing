@@ -1,6 +1,27 @@
+import type { CharacterId } from "./character";
 import type { RaceView } from "./race";
 
 export type PlayerEmblem = "domino" | "cat" | "skull" | "mask";
+
+/**
+ * `custom`: created from the home button and joined with its code. `quick`: a 1v1 made by matchmaking.
+ * `training`: a solo practice race, never saved. Quick and training lobbies cannot be joined with their code.
+ */
+export type LobbyKind = "custom" | "quick" | "training";
+
+/** Private custom lobbies are joined with their code or link; public ones are also listed in the lobby browser. */
+export type LobbyVisibility = "private" | "public";
+
+/** A public lobby as the lobby browser lists it. */
+export type PublicLobby = {
+  code: string;
+  hostName: string;
+  playerCount: number;
+  capacity: number;
+  phase: LobbyPhase;
+  locale: "fr" | "en";
+  settings: RaceSettings;
+};
 
 /** Lobby lifecycle. `closed` lobbies are simply deleted. */
 export type LobbyPhase = "waiting" | "countdown" | "racing" | "finished";
@@ -10,6 +31,8 @@ export type LobbyMember = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
+  /** Character the player races as; their card shows its portrait. */
+  character: CharacterId;
   isHost: boolean;
   isReady: boolean;
   /** False while the player's connection is lost (they keep their seat for a grace period). */
@@ -21,6 +44,8 @@ export type LobbyMember = {
 /** Snapshot of a lobby for one viewer, sent by the server on every change. */
 export type LobbyView = {
   code: string;
+  kind: LobbyKind;
+  visibility: LobbyVisibility;
   phase: LobbyPhase;
   capacity: number;
   locale: "fr" | "en";
@@ -31,25 +56,34 @@ export type LobbyView = {
   race: RaceView | null;
   /** The viewer has results for the last race of this lobby. */
   hasResult: boolean;
+  /** Rules of the next race; only the host changes them, while the lobby is waiting. */
+  settings: RaceSettings;
+  /** Latest chat messages, oldest first. */
+  messages: readonly LobbyMessage[];
 };
 
-export type RaceMode = "sprint" | "burst" | "hardcore";
+/** `suddenDeath`: the first mistake eliminates the racer. */
+export type RaceMode = "normal" | "suddenDeath";
 
-export type BotDifficulty = "rookie" | "master" | "godspeed";
+export type BotDifficulty = "novice" | "rookie" | "master" | "godspeed";
 
 export type KeySound = "clicky" | "tactile" | "silent";
 
-export type LobbySettings = {
-  /** Null until race modes exist. */
-  mode: RaceMode | null;
-  language: string;
-  punctuation: boolean;
+export type RaceSettings = {
+  mode: RaceMode;
+  /** Saved for when bonuses exist; no effect on races yet. */
+  powers: boolean;
+  /** Race time limit in seconds; null for no limit. */
+  timeLimitSec: number | null;
+  /** Texts with digits. */
   numbers: boolean;
+  /** When false, a letter typed in the wrong case counts as correct. */
   caseSensitive: boolean;
 };
 
 export type LobbyMessage = {
   id: string;
+  authorId: string;
   author: string;
   text: string;
 };

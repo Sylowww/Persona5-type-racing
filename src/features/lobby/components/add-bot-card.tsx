@@ -13,6 +13,7 @@ type AddBotCardProps = {
 };
 
 const buttonStyles: Record<BotDifficulty, { button: string; wpm: string }> = {
+  novice: { button: "bg-surface-container-low text-on-surface-variant hover:bg-surface-bright", wpm: "text-outline" },
   rookie: { button: "bg-surface-container text-on-surface hover:bg-surface-bright", wpm: "text-outline" },
   master: {
     button: "bg-surface-container-highest text-secondary hover:bg-primary-container hover:text-on-primary-container",

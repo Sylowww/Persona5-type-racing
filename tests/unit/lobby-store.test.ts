@@ -172,3 +172,117 @@ describe("lobby store", () => {
     expect(store.exists(code)).toBe(false);
   });
 });
+
+describe("training dojo", () => {
+  it("starts a solo race at once and never reports it", () => {
+    const finished: string[] = [];
+    store = createLobbyStore({ now: () => clock, randomInt: () => 0, tickMs: null, onRaceFinished: (code) => finished.push(code) });
+    const code = store.startTraining(ann, "en");
+    const stream = listen(code, "ann");
+    expect(stream.last()).toMatchObject({ kind: "training", phase: "countdown", capacity: 1 });
+    expect(stream.last()?.race?.racers.map((racer) => racer.id)).toEqual(["ann"]);
+    expect(store.join(code, bob)).toBe("privateLobby");
+
+    // Typed within the 30 keys/s limit.
+    clock += 3_000 + 20_000;
+    store.tick();
+    const text = raceTexts.en[0];
+    store.input(code, "ann", { clientId: "tab", seq: 1, events: chars(text.slice(0, 100)) });
+    store.input(code, "ann", { clientId: "tab", seq: 2, events: chars(text.slice(100)) });
+    expect(stream.last()?.phase).toBe("finished");
+    expect(store.result(code, "ann")?.racers.map((racer) => racer.id)).toEqual(["ann"]);
+    expect(finished).toEqual([]);
+
+    // The player can go again alone, without readying up.
+    expect(store.start(code, "ann")).toBeNull();
+    expect(stream.last()?.phase).toBe("countdown");
+  });
+});
+
+describe("quick 1v1", () => {
+  it("pairs two players searching in the same language in a 30 s race", () => {
+    expect(store.joinQuickMatch(ann, "en", "rookie")).toEqual({ state: "searching", waitedMs: 0 });
+    const matched = store.joinQuickMatch(bob, "en", "rookie");
+    expect(matched.state).toBe("matched");
+    const code = matched.state === "matched" ? matched.code : "";
+    // Each player sees themselves first on the versus screen.
+    expect(store.quickMatchStatus("ann")).toEqual({
+      state: "matched",
+      code,
+      racers: [
+        { id: "ann", name: "ann", character: "joker", bot: null },
+        { id: "bob", name: "bob", character: "joker", bot: null },
+      ],
+    });
+    expect(matched.state === "matched" && matched.racers.map((racer) => racer.id)).toEqual(["bob", "ann"]);
+
+    const view = store.view(code, "ann");
+    // The countdown starts after the versus screen.
+    expect(view?.race?.startsAt).toBe(clock + 3_000 + 3_000);
+    expect(view).toMatchObject({ kind: "quick", phase: "countdown", settings: { timeLimitSec: 30 } });
+    expect(view?.race?.racers.map((racer) => [racer.id, racer.isBot])).toEqual([
+      ["ann", false],
+      ["bob", false],
+    ]);
+    expect(store.join(code, { id: "cid", name: "cid" })).toBe("privateLobby");
+  });
+
+  it("gives a player their fresh match again if their page asks twice", () => {
+    store.joinQuickMatch(ann, "en", "rookie");
+    const matched = store.joinQuickMatch(bob, "en", "rookie");
+    expect(store.joinQuickMatch(bob, "en", "rookie")).toEqual(matched);
+  });
+
+  it("does not pair players searching in different languages", () => {
+    store.joinQuickMatch(ann, "en", "rookie");
+    expect(store.joinQuickMatch(bob, "fr", "rookie").state).toBe("searching");
+  });
+
+  it("races a bot of the player's level after 15 s alone", () => {
+    store.joinQuickMatch(ann, "en", "master");
+    clock += 14_000;
+    expect(store.quickMatchStatus("ann")).toEqual({ state: "searching", waitedMs: 14_000 });
+    clock += 1_000;
+    const status = store.quickMatchStatus("ann");
+    expect(status.state).toBe("matched");
+    const code = status.state === "matched" ? status.code : "";
+    expect(store.view(code, "ann")?.players.map((player) => player.bot)).toEqual([null, "master"]);
+  });
+
+  it("forgets players who cancel or stop checking in", () => {
+    store.joinQuickMatch(ann, "en", "rookie");
+    store.leaveQuickMatch("ann");
+    expect(store.quickMatchStatus("ann")).toEqual({ state: "idle" });
+    expect(store.joinQuickMatch(bob, "en", "rookie").state).toBe("searching");
+
+    clock += 6_000;
+    expect(store.joinQuickMatch(ann, "en", "rookie").state).toBe("searching");
+  });
+});
+
+describe("lobby browser", () => {
+  it("lists public lobbies only, open ones first", () => {
+    const quiet = store.create(ann, "en");
+    const busy = store.create(bob, "fr");
+    store.join(busy, { id: "cid", name: "cid" });
+    store.create({ id: "dan", name: "dan" }, "en");
+    expect(store.listPublic()).toEqual([]);
+
+    expect(store.setVisibility(quiet, "ann", "public")).toBeNull();
+    expect(store.setVisibility(busy, "bob", "public")).toBeNull();
+    expect(store.listPublic().map((lobby) => [lobby.code, lobby.hostName, lobby.playerCount])).toEqual([
+      [busy, "bob", 2],
+      [quiet, "ann", 1],
+    ]);
+  });
+});
+
+describe("character change", () => {
+  it("updates the player's card in their current lobby", () => {
+    const code = store.create(ann, "en");
+    const stream = listen(code, "ann");
+    expect(stream.last()?.players[0].character).toBe("joker");
+    store.setCharacter("ann", "blackMask");
+    expect(stream.last()?.players[0].character).toBe("blackMask");
+  });
+});

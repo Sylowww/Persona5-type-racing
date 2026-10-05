@@ -2,17 +2,30 @@
 // transport, so the same rules work behind SSE today and any other transport later.
 import type { Locale } from "@/i18n/locales";
 import type { CharacterId } from "@/types/character";
-import type { BotDifficulty, LobbyPhase, LobbyView, PlayerEmblem } from "@/types/lobby";
+import type {
+  BotDifficulty,
+  LobbyKind,
+  LobbyMessage,
+  LobbyPhase,
+  LobbyView,
+  LobbyVisibility,
+  PlayerEmblem,
+  PublicLobby,
+  RaceSettings,
+} from "@/types/lobby";
 import type { InputBatch, InputEvent, KeyStat, RaceRacer, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
 import { planBotRun, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
+import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
 import { canStartRace } from "./lobby";
+import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-settings";
 import { rankRacers } from "./results";
 import {
   accuracy,
   correctPrefixLength,
   deleteChar,
   initialTypingState,
+  normalizeTypedChar,
   progress,
   typeChar,
   wordsPerMinute,
@@ -23,8 +36,6 @@ export type EngineConfig = {
   /** Maximum number of players in one lobby. */
   capacity: number;
   countdownMs: number;
-  /** The race ends after this long even if some racers are still typing. */
-  raceTimeLimitMs: number;
   /** How long a disconnected player keeps their seat, and how long a race waits for them. */
   reconnectGraceMs: number;
   /** Typed characters per second above which input is dropped (30/s is about 360 WPM). */
@@ -39,7 +50,6 @@ export const MAX_LOBBY_CAPACITY = 60;
 export const defaultEngineConfig: EngineConfig = {
   capacity: 30,
   countdownMs: 3_000,
-  raceTimeLimitMs: 180_000,
   reconnectGraceMs: 30_000,
   maxKeysPerSecond: 30,
   sampleIntervalMs: 1_000,
@@ -80,6 +90,8 @@ export type Racer = {
   samples: SpeedSample[];
   /** A bot's planned keystrokes and how many were already applied; null for human players. */
   bot: { steps: BotStep[]; applied: number } | null;
+  /** When a mistake knocked the racer out (sudden death); null otherwise. */
+  eliminatedAt: number | null;
 };
 
 export type Race = {
@@ -87,9 +99,13 @@ export type Race = {
   startsAt: number;
   endsAt: number;
   endedAt: number | null;
+  /** Rules fixed when the race started. */
+  settings: RaceSettings;
   /** Everyone in the lobby when the race started, in join order. */
   racers: Racer[];
 };
+
+export type ChatMessage = LobbyMessage & { sentAt: number };
 
 type ResultDetails = Pick<RaceResult, "durationMs" | "keystrokes" | "mistakes" | "speedSamples" | "keyStats">;
 
@@ -102,6 +118,9 @@ export type StoredResult = {
 
 export type LobbyState = {
   code: string;
+  kind: LobbyKind;
+  /** Only custom lobbies can be public. */
+  visibility: LobbyVisibility;
   locale: Locale;
   config: EngineConfig;
   phase: LobbyPhase;
@@ -113,9 +132,25 @@ export type LobbyState = {
   race: Race | null;
   /** Results of the last finished race. */
   result: StoredResult | null;
+  /** Rules of the next race. */
+  settings: RaceSettings;
+  /** Latest messages, oldest first, at most `MAX_LOBBY_MESSAGES`. */
+  messages: ChatMessage[];
+  /** Number of messages ever sent; gives each message its id. */
+  messageCount: number;
 };
 
-export type LobbyError = "lobbyFull" | "raceInProgress" | "notMember" | "notHost" | "notReady" | "wrongPhase";
+export type LobbyError =
+  | "lobbyFull"
+  | "privateLobby"
+  | "raceInProgress"
+  | "notMember"
+  | "notHost"
+  | "notReady"
+  | "wrongPhase"
+  | "invalidSettings"
+  | "invalidMessage"
+  | "tooFast";
 
 export type Outcome = { ok: true; state: LobbyState } | { ok: false; error: LobbyError };
 
@@ -131,11 +166,20 @@ export function createLobby(input: {
   host: Player;
   now: number;
   config?: Partial<EngineConfig>;
+  /** Defaults to `custom`. */
+  kind?: LobbyKind;
+  /** Defaults to `defaultRaceSettings`. */
+  settings?: RaceSettings;
 }): LobbyState {
+  const kind = input.kind ?? "custom";
   const config = { ...defaultEngineConfig, ...input.config };
   config.capacity = Math.min(MAX_LOBBY_CAPACITY, Math.max(MIN_LOBBY_CAPACITY, Math.floor(config.capacity)));
+  if (kind === "training") config.capacity = 1;
+  if (kind === "quick") config.capacity = 2;
   return {
     code: input.code,
+    kind,
+    visibility: "private",
     locale: input.locale,
     config,
     phase: "waiting",
@@ -144,6 +188,9 @@ export function createLobby(input: {
     joinCount: 1,
     race: null,
     result: null,
+    settings: input.settings ?? defaultRaceSettings,
+    messages: [],
+    messageCount: 0,
   };
 }
 
@@ -196,7 +243,15 @@ function reopen(state: LobbyState): LobbyState {
   });
 }
 
+/** Joining with a code only works for custom lobbies; matchmaking adds quick players with `admitPlayer`. */
 export function joinLobby(state: LobbyState, player: Player, now: number): Outcome {
+  if (isMember(state, player.id)) return ok(state);
+  if (state.kind !== "custom") return fail("privateLobby");
+  return admitPlayer(state, player, now);
+}
+
+/** Adds a player to any kind of lobby, within its capacity. */
+export function admitPlayer(state: LobbyState, player: Player, now: number): Outcome {
   if (isMember(state, player.id)) return ok(state);
   if (state.phase === "countdown" || state.phase === "racing") return fail("raceInProgress");
   const open = reopen(state);
@@ -214,6 +269,7 @@ export function addBot(state: LobbyState, userId: string, difficulty: BotDifficu
   if (state.hostId !== userId) return fail("notHost");
   const open = reopen(state);
   if (open.phase !== "waiting") return fail("wrongPhase");
+  if (open.kind === "training") return fail("privateLobby");
   if (activeMembers(open).length >= open.config.capacity) return fail("lobbyFull");
 
   const bot: Member = {
@@ -247,6 +303,65 @@ export function removeBot(state: LobbyState, userId: string, botId: string): Out
   return ok({ ...open, members: open.members.filter((member) => member.id !== botId) });
 }
 
+/** A player picked another character on their profile: their card changes now, their runner from the next race. */
+export function setCharacter(state: LobbyState, userId: string, character: CharacterId): LobbyState {
+  const member = state.members.find((candidate) => candidate.id === userId && candidate.bot === null);
+  if (!member || member.character === character) return state;
+  return { ...state, members: state.members.map((candidate) => (candidate === member ? { ...candidate, character } : candidate)) };
+}
+
+/** The host changes the next race's rules while the lobby is waiting. `change` comes from the client and is validated here. */
+export function updateSettings(state: LobbyState, userId: string, change: unknown): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  const open = reopen(state);
+  if (open.phase !== "waiting") return fail("wrongPhase");
+  const settings = parseRaceSettings(open.settings, change);
+  if (!settings) return fail("invalidSettings");
+  return ok({ ...open, settings });
+}
+
+/** The host makes a custom lobby public (listed in the lobby browser) or private (code or link only). */
+export function setVisibility(state: LobbyState, userId: string, visibility: unknown): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  if (state.kind !== "custom") return fail("privateLobby");
+  if (visibility !== "public" && visibility !== "private") return fail("invalidSettings");
+  return ok({ ...state, visibility });
+}
+
+/** How the lobby browser shows a public lobby; null for lobbies it does not list. */
+export function publicLobbyFor(state: LobbyState): PublicLobby | null {
+  if (state.kind !== "custom" || state.visibility !== "public") return null;
+  const host = state.members.find((member) => member.id === state.hostId);
+  return {
+    code: state.code,
+    hostName: host?.name ?? "",
+    playerCount: activeMembers(state).length,
+    capacity: state.config.capacity,
+    phase: state.phase,
+    locale: state.locale,
+    settings: state.settings,
+  };
+}
+
+/** Any member can chat, in every phase. `text` comes from the client and is validated here. */
+export function sendMessage(state: LobbyState, userId: string, text: unknown, now: number): Outcome {
+  const author = state.members.find((member) => member.id === userId && member.presence !== "left");
+  if (!author) return fail("notMember");
+  const clean = cleanMessage(text);
+  if (!clean) return fail("invalidMessage");
+  const last = state.messages.findLast((message) => message.authorId === userId);
+  if (last && now - last.sentAt < MESSAGE_COOLDOWN_MS) return fail("tooFast");
+
+  const message: ChatMessage = { id: String(state.messageCount + 1), authorId: userId, author: author.name, text: clean, sentAt: now };
+  return ok({
+    ...state,
+    messages: [...state.messages, message].slice(-MAX_LOBBY_MESSAGES),
+    messageCount: state.messageCount + 1,
+  });
+}
+
 /** Leaving before a race removes the seat; leaving during one keeps the racer in the results as not finished. */
 export function leaveLobby(state: LobbyState, userId: string): LobbyState {
   if (!isMember(state, userId)) return state;
@@ -268,19 +383,23 @@ export function setReady(state: LobbyState, userId: string, isReady: boolean): O
 export function startRace(state: LobbyState, userId: string, text: string, now: number, random: () => number = Math.random): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
   if (state.hostId !== userId) return fail("notHost");
-  if (state.phase !== "waiting") return fail("wrongPhase");
-  const players = activeMembers(state);
-  if (!canStartRace(players)) return fail("notReady");
+  // A finished race reopens the lobby first, like any other lobby action.
+  const open = reopen(state);
+  if (open.phase !== "waiting") return fail("wrongPhase");
+  const players = activeMembers(open);
+  // Training is solo: the player starts whenever they want.
+  if (open.kind !== "training" && !canStartRace(players)) return fail("notReady");
 
-  const startsAt = now + state.config.countdownMs;
+  const startsAt = now + open.config.countdownMs;
   return ok({
-    ...state,
+    ...open,
     phase: "countdown",
     race: {
       text,
       startsAt,
-      endsAt: startsAt + state.config.raceTimeLimitMs,
+      endsAt: startsAt + raceDurationMs(open.settings),
       endedAt: null,
+      settings: open.settings,
       racers: players.map((member) => ({
         id: member.id,
         name: member.name,
@@ -292,6 +411,7 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         keys: {},
         samples: [],
         bot: member.bot === null ? null : { steps: planBotRun(text, member.bot, random), applied: 0 },
+        eliminatedAt: null,
       })),
     },
   });
@@ -315,7 +435,7 @@ export function applyInput(state: LobbyState, userId: string, batch: InputBatch,
   const race = state.race;
   if (state.phase !== "racing" || !race || now < race.startsAt || !isMember(state, userId)) return state;
   const racer = race.racers.find((candidate) => candidate.id === userId);
-  if (!racer || racer.typing.finishedAt !== null) return state;
+  if (!racer || isOut(racer)) return state;
   const isNext = batch.clientId === racer.inputClient ? batch.seq > racer.inputSeq : batch.seq === 1;
   if (!isNext) return state;
 
@@ -323,8 +443,8 @@ export function applyInput(state: LobbyState, userId: string, batch: InputBatch,
   let typed = racer;
   for (const event of batch.events.slice(0, MAX_EVENTS_PER_BATCH)) {
     if (event.type === "char" && (race.text[typed.typing.typed.length] === undefined || typed.typing.keystrokes >= keyBudget)) break;
-    typed = typeEvent(typed, race.text, event, now);
-    if (typed.typing.finishedAt !== null) break;
+    typed = typeEvent(typed, race, event, now);
+    if (isOut(typed)) break;
   }
 
   const updated: Racer = {
@@ -339,21 +459,37 @@ export function applyInput(state: LobbyState, userId: string, batch: InputBatch,
   };
 }
 
-/** Applies one keystroke with the shared typing rules and records it in the racer's key stats. */
-function typeEvent(racer: Racer, text: string, event: InputEvent, now: number): Racer {
+/** A racer who finished or was eliminated types no more. */
+function isOut(racer: Racer): boolean {
+  return racer.typing.finishedAt !== null || racer.eliminatedAt !== null;
+}
+
+/**
+ * Applies one keystroke with the race's typing rules and records it in the racer's key stats.
+ * In sudden death, a wrong character eliminates the racer.
+ */
+function typeEvent(racer: Racer, race: Race, event: InputEvent, now: number): Racer {
   if (event.type === "delete") return { ...racer, typing: deleteChar(racer.typing) };
+  const { text, settings } = race;
   const expected = text[racer.typing.typed.length];
   if (expected === undefined) return racer;
 
+  const char = normalizeTypedChar(expected, event.char, settings.caseSensitive);
+  const isWrong = char !== expected;
   const key = expected.toLowerCase();
   const totals = racer.keys[key] ?? { delayMs: 0, timed: 0, mistakes: 0 };
   let keyTotals = totals;
-  if (event.char !== expected) {
+  if (isWrong) {
     keyTotals = { ...totals, mistakes: totals.mistakes + 1 };
   } else if (event.delayMs > 0) {
     keyTotals = { ...totals, delayMs: totals.delayMs + Math.min(event.delayMs, MAX_KEY_DELAY_MS), timed: totals.timed + 1 };
   }
-  return { ...racer, typing: typeChar(racer.typing, text, event.char, now), keys: { ...racer.keys, [key]: keyTotals } };
+  return {
+    ...racer,
+    typing: typeChar(racer.typing, text, char, now),
+    keys: { ...racer.keys, [key]: keyTotals },
+    eliminatedAt: isWrong && settings.mode === "suddenDeath" ? now : racer.eliminatedAt,
+  };
 }
 
 /** Replays every bot keystroke planned up to `now` (or the time limit), each at its own planned time. */
@@ -365,11 +501,11 @@ function runBots(state: LobbyState, now: number): LobbyState {
 
   const racers = race.racers.map((racer) => {
     let next = racer;
-    while (next.bot && next.typing.finishedAt === null && next.bot.applied < next.bot.steps.length) {
+    while (next.bot && !isOut(next) && next.bot.applied < next.bot.steps.length) {
       const step = next.bot.steps[next.bot.applied];
       if (step.atMs > elapsedMs) break;
       const time = race.startsAt + step.atMs;
-      const typed = typeEvent(next, race.text, step.event, time);
+      const typed = typeEvent(next, race, step.event, time);
       next = {
         ...typed,
         bot: { ...next.bot, applied: next.bot.applied + 1 },
@@ -406,8 +542,8 @@ function isGone(member: Member | undefined, now: number, graceMs: number): boole
 }
 
 /**
- * Over at the time limit, once every racer finished, left or stayed disconnected past the grace period,
- * or once no player is left to race the bots.
+ * Over at the time limit, once every racer finished, was eliminated, left or stayed disconnected past
+ * the grace period, or once no player is left to race the bots.
  */
 export function isRaceOver(state: LobbyState, now: number): boolean {
   const race = state.race;
@@ -417,7 +553,7 @@ export function isRaceOver(state: LobbyState, now: number): boolean {
   if (state.members.every((member) => member.bot !== null || isGone(member, now, graceMs))) return true;
   return race.racers.every(
     (racer) =>
-      racer.typing.finishedAt !== null ||
+      isOut(racer) ||
       isGone(
         state.members.find((member) => member.id === racer.id),
         now,
@@ -435,7 +571,7 @@ function finishRace(state: LobbyState, now: number): LobbyState {
   const racers = race.racers.map((racer): ResultRacer => {
     const { typing } = racer;
     const finishMs = typing.finishedAt === null ? null : typing.finishedAt - race.startsAt;
-    const durationMs = finishMs ?? endedAt - race.startsAt;
+    const durationMs = finishMs ?? (racer.eliminatedAt ?? endedAt) - race.startsAt;
     const wpm = wordsPerMinute(correctPrefixLength(race.text, typing.typed), durationMs);
     details[racer.id] = {
       durationMs,
@@ -444,16 +580,26 @@ function finishRace(state: LobbyState, now: number): LobbyState {
       speedSamples: racer.samples,
       keyStats: keyStats(racer.keys),
     };
-    return { id: racer.id, name: racer.name, emblem: racer.emblem, wpm, accuracy: accuracy(typing.keystrokes, typing.mistakes), finishMs };
+    return { id: racer.id, name: racer.name, emblem: racer.emblem, character: racer.character, wpm, accuracy: accuracy(typing.keystrokes, typing.mistakes), finishMs };
   });
 
   return {
     ...state,
     phase: "finished",
     race: { ...race, endedAt },
-    result: { endedAt, racers: rankRacers(racers), details },
+    result: { endedAt, racers: rankWithEliminations(race, racers), details },
     members: state.members.map((member) => ({ ...member, isReady: member.bot !== null })),
   };
+}
+
+/** Usual ranking for racers still in, then eliminated racers, the last one knocked out first. */
+function rankWithEliminations(race: Race, racers: ResultRacer[]): ResultRacer[] {
+  const eliminatedAt = new Map(race.racers.flatMap((racer) => (racer.eliminatedAt === null ? [] : [[racer.id, racer.eliminatedAt] as const])));
+  const survivors = racers.filter((racer) => !eliminatedAt.has(racer.id));
+  const eliminated = racers
+    .filter((racer) => eliminatedAt.has(racer.id))
+    .sort((a, b) => (eliminatedAt.get(b.id) ?? 0) - (eliminatedAt.get(a.id) ?? 0));
+  return [...rankRacers(survivors), ...eliminated];
 }
 
 function keyStats(keys: Record<string, KeyTotals>): KeyStat[] {
@@ -472,11 +618,14 @@ function dropExpiredMembers(state: LobbyState, now: number): LobbyState {
 function liveWpm(racer: Racer, race: Race, now: number): number {
   const { typing } = racer;
   if (typing.finishedAt !== null) return wordsPerMinute(race.text.length, typing.finishedAt - race.startsAt);
-  const end = Math.min(now, race.endedAt ?? now);
+  const end = Math.min(now, race.endedAt ?? now, racer.eliminatedAt ?? now);
   return wordsPerMinute(correctPrefixLength(race.text, typing.typed), end - race.startsAt);
 }
 
-/** Racer ids by live place: finishers by finish time, then by progress; ties keep join order. */
+/**
+ * Racer ids by live place: finishers by finish time, then by progress, then eliminated racers (the last
+ * one knocked out first); ties keep join order.
+ */
 export function liveOrder(race: Race): string[] {
   return race.racers
     .map((racer, index) => ({ racer, index, progress: progress(race.text, racer.typing.typed) }))
@@ -486,6 +635,11 @@ export function liveOrder(race: Race): string[] {
       if (aDone !== null && bDone !== null) return aDone - bDone || a.index - b.index;
       if (aDone !== null) return -1;
       if (bDone !== null) return 1;
+      const aOut = a.racer.eliminatedAt;
+      const bOut = b.racer.eliminatedAt;
+      if (aOut !== null && bOut !== null) return bOut - aOut || a.index - b.index;
+      if (aOut !== null) return 1;
+      if (bOut !== null) return -1;
       return b.progress - a.progress || a.index - b.index;
     })
     .map(({ racer }) => racer.id);
@@ -502,6 +656,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       wpm: liveWpm(racer, race, now),
       mistakes: racer.typing.mistakes,
       isFinished: racer.typing.finishedAt !== null,
+      isEliminated: racer.eliminatedAt !== null,
       isBot: racer.bot !== null,
       isConnected: state.members.some((member) => member.id === racer.id && member.presence === "connected"),
     }),
@@ -511,6 +666,9 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
     text: race.text,
     startsAt: race.startsAt,
     endsAt: race.endsAt,
+    isTimed: race.settings.timeLimitSec !== null,
+    mode: race.settings.mode,
+    caseSensitive: race.settings.caseSensitive,
     racers,
     you: own
       ? {
@@ -522,6 +680,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
           inputSeq: own.inputSeq,
           place: liveOrder(race).indexOf(userId) + 1,
           finishedAt: own.typing.finishedAt,
+          eliminatedAt: own.eliminatedAt,
         }
       : null,
   };
@@ -532,6 +691,8 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
   if (!isMember(state, userId)) return null;
   return {
     code: state.code,
+    kind: state.kind,
+    visibility: state.visibility,
     phase: state.phase,
     capacity: state.config.capacity,
     locale: state.locale,
@@ -541,6 +702,7 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
       id: member.id,
       name: member.name,
       emblem: member.emblem,
+      character: member.character,
       isHost: member.id === state.hostId,
       isReady: member.isReady,
       isConnected: member.presence === "connected",
@@ -548,6 +710,8 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
     })),
     race: state.race ? raceView(state, state.race, userId, now) : null,
     hasResult: state.result?.details[userId] !== undefined,
+    settings: state.settings,
+    messages: state.messages.map(({ id, authorId, author, text }) => ({ id, authorId, author, text })),
   };
 }
 

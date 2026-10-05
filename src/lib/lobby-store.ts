@@ -1,22 +1,30 @@
 // In-memory home of every lobby: applies engine rules, runs timers and notifies subscribers.
 // State lives in this process only, so the app must run as a single Node instance (see doc/architecture.md).
 import type { Locale } from "@/i18n/locales";
-import type { BotDifficulty, LobbyView } from "@/types/lobby";
+import type { CharacterId } from "@/types/character";
+import type { BotDifficulty, LobbyView, PublicLobby } from "@/types/lobby";
 import type { InputBatch, RaceResult } from "@/types/race";
 import { generateUniqueLobbyCode, type RandomInt } from "./lobby-code";
+import { QUICK_MATCH_BOT_DELAY_MS, QUICK_MATCH_INTRO_MS, QUICK_MATCH_STALE_MS, quickMatchSettings } from "./matchmaking";
 import {
   addBot,
+  admitPlayer,
   advance,
   applyInput,
   createLobby,
   isMember,
   joinLobby,
   leaveLobby,
+  publicLobbyFor,
   removeBot,
   resultFor,
+  sendMessage,
+  setCharacter,
   setConnected,
   setReady,
+  setVisibility,
   startRace,
+  updateSettings,
   viewFor,
   type EngineConfig,
   type LobbyError,
@@ -30,6 +38,17 @@ import { pickRaceText } from "./race-texts";
 export type LobbySubscriber = (view: LobbyView | null) => void;
 
 export type StoreError = LobbyError | "lobbyNotFound";
+
+/** A racer of a quick 1v1, shown on the versus screen. */
+export type QuickMatchRacer = { id: string; name: string; character: CharacterId; bot: BotDifficulty | null };
+
+/** Where a player stands in quick 1v1 matchmaking. Once matched, `racers` lists the viewer first. */
+export type QuickMatchStatus =
+  | { state: "idle" }
+  | { state: "searching"; waitedMs: number }
+  | { state: "matched"; code: string; racers: QuickMatchRacer[] };
+
+type QueueEntry = { player: Player; locale: Locale; bot: BotDifficulty; joinedAt: number; seenAt: number };
 
 export type LobbyStoreOptions = {
   config?: Partial<EngineConfig>;
@@ -55,6 +74,10 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
   const lobbyOfUser = new Map<string, string>();
   const subscribers = new Map<string, Set<{ userId: string; send: LobbySubscriber }>>();
   const connections = new Map<string, number>();
+  /** Players searching for a quick 1v1, in arrival order. */
+  const queue = new Map<string, QueueEntry>();
+  /** Quick lobby found for a searching player, until they check their status or leave. */
+  const matches = new Map<string, string>();
   /** Lobbies with typing progress not yet broadcast; flushed on the next tick. */
   const pending = new Set<string>();
   let timer: ReturnType<typeof setInterval> | null = null;
@@ -89,7 +112,8 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
   }
 
   function reportFinish(code: string, state: LobbyState) {
-    if (!options.onRaceFinished) return;
+    // Training races are practice only and never saved.
+    if (!options.onRaceFinished || state.kind === "training") return;
     const results = (state.race?.racers ?? [])
       .filter((racer) => racer.bot === null)
       .flatMap((racer) => resultFor(state, racer.id) ?? []);
@@ -143,12 +167,102 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     if (current && current !== code) update(current, (state) => leaveLobby(state, userId));
   }
 
+  /** Opens a lobby of `kind` for these players (plus a bot if given) and starts its race at once. */
+  function startPrivateRace(kind: "quick" | "training", players: readonly Player[], locale: Locale, bot: BotDifficulty | null): string {
+    for (const player of players) leaveOtherLobby(player.id);
+    const time = now();
+    const [host, ...others] = players;
+    const code = generateUniqueLobbyCode(randomInt, (candidate) => lobbies.has(candidate));
+    const settings = kind === "quick" ? quickMatchSettings : undefined;
+    let state = createLobby({ code, locale, host, now: time, config: options.config, kind, settings });
+    for (const player of others) state = must(admitPlayer(state, player, time));
+    if (bot) state = must(addBot(state, host.id, bot, random));
+    for (const player of players) state = must(setReady(state, player.id, true));
+    // Quick races leave time for the versus screen before their countdown.
+    const startAt = kind === "quick" ? time + QUICK_MATCH_INTRO_MS : time;
+    state = must(startRace(state, host.id, pickRaceText(locale, randomInt, state.settings.numbers), startAt, random));
+    commit(code, state);
+    return code;
+  }
+
+  function dropStaleSearches(time: number) {
+    for (const [userId, entry] of queue) if (time - entry.seenAt > QUICK_MATCH_STALE_MS) queue.delete(userId);
+  }
+
+  function matchedStatus(userId: string): QuickMatchStatus | null {
+    const code = matches.get(userId);
+    if (!code) return null;
+    const state = lobbies.get(code);
+    if (!state) {
+      matches.delete(userId);
+      return null;
+    }
+    const racers = state.members
+      .filter((member) => member.presence !== "left")
+      .map(({ id, name, character, bot }) => ({ id, name, character, bot }))
+      .sort((a, b) => Number(b.id === userId) - Number(a.id === userId));
+    return { state: "matched", code, racers };
+  }
+
+  function startQuickMatch(userId: string, entries: readonly QueueEntry[], bot: BotDifficulty | null): QuickMatchStatus {
+    for (const entry of entries) queue.delete(entry.player.id);
+    const code = startPrivateRace("quick", entries.map((entry) => entry.player), entries[0].locale, bot);
+    for (const entry of entries) matches.set(entry.player.id, code);
+    return matchedStatus(userId) ?? { state: "idle" };
+  }
+
   return {
     create(host: Player, locale: Locale): string {
       leaveOtherLobby(host.id);
       const code = generateUniqueLobbyCode(randomInt, (candidate) => lobbies.has(candidate));
       commit(code, createLobby({ code, locale, host, now: now(), config: options.config }));
       return code;
+    },
+
+    /** A solo practice race that starts right away; returns its lobby code. */
+    startTraining(player: Player, locale: Locale): string {
+      return startPrivateRace("training", [player], locale, null);
+    },
+
+    /**
+     * Joins quick 1v1 matchmaking: races the first other player searching in the same language,
+     * or waits (see `quickMatchStatus`). `bot` is the level used if nobody shows up.
+     */
+    joinQuickMatch(player: Player, locale: Locale, bot: BotDifficulty): QuickMatchStatus {
+      const time = now();
+      dropStaleSearches(time);
+      // Asking again right after being matched (e.g. the page re-ran its effect) returns that match while its race
+      // has not started; an older match is forgotten so the player searches anew.
+      const current = matchedStatus(player.id);
+      if (current?.state === "matched" && lobbies.get(current.code)?.phase === "countdown") return current;
+      matches.delete(player.id);
+      const own = queue.get(player.id);
+      if (own) {
+        own.seenAt = time;
+        return { state: "searching", waitedMs: time - own.joinedAt };
+      }
+      const entry: QueueEntry = { player, locale, bot, joinedAt: time, seenAt: time };
+      const rival = [...queue.values()].find((candidate) => candidate.locale === locale);
+      if (rival) return startQuickMatch(player.id, [rival, entry], null);
+      queue.set(player.id, entry);
+      return { state: "searching", waitedMs: 0 };
+    },
+
+    /** Checked regularly by the searching page; starts a race against a bot once the wait is over. */
+    quickMatchStatus(userId: string): QuickMatchStatus {
+      const time = now();
+      const matched = matchedStatus(userId);
+      if (matched) return matched;
+      const entry = queue.get(userId);
+      if (!entry) return { state: "idle" };
+      entry.seenAt = time;
+      if (time - entry.joinedAt >= QUICK_MATCH_BOT_DELAY_MS) return startQuickMatch(userId, [entry], entry.bot);
+      return { state: "searching", waitedMs: time - entry.joinedAt };
+    },
+
+    leaveQuickMatch(userId: string) {
+      queue.delete(userId);
+      matches.delete(userId);
     },
 
     join(code: string, player: Player): StoreError | null {
@@ -171,7 +285,28 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     },
 
     start(code: string, userId: string): StoreError | null {
-      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.locale, randomInt), time, random));
+      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.locale, randomInt, state.settings.numbers), time, random));
+    },
+
+    updateSettings(code: string, userId: string, change: unknown): StoreError | null {
+      return updateOutcome(code, (state) => updateSettings(state, userId, change));
+    },
+
+    setVisibility(code: string, userId: string, visibility: unknown): StoreError | null {
+      return updateOutcome(code, (state) => setVisibility(state, userId, visibility));
+    },
+
+    /** Public lobbies for the lobby browser: open ones first, then the most players. */
+    listPublic(): PublicLobby[] {
+      const time = now();
+      const isOpen = (lobby: PublicLobby) => Number(lobby.phase === "waiting" || lobby.phase === "finished");
+      return [...lobbies.values()]
+        .flatMap((state) => publicLobbyFor(advance(state, time)) ?? [])
+        .sort((a, b) => isOpen(b) - isOpen(a) || b.playerCount - a.playerCount);
+    },
+
+    sendMessage(code: string, userId: string, text: unknown): StoreError | null {
+      return updateOutcome(code, (state, time) => sendMessage(state, userId, text, time));
     },
 
     addBot(code: string, userId: string, difficulty: BotDifficulty): StoreError | null {
@@ -244,6 +379,12 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       return lobbies.has(code);
     },
 
+    /** Shows a newly chosen character in the player's current lobby, if any. */
+    setCharacter(userId: string, character: CharacterId) {
+      const code = lobbyOfUser.get(userId);
+      if (code) update(code, (state) => setCharacter(state, userId, character));
+    },
+
     lobbyOf(userId: string): string | null {
       return lobbyOfUser.get(userId) ?? null;
     },
@@ -255,4 +396,10 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       timer = null;
     },
   };
+}
+
+/** Engine steps that cannot fail for a freshly made private lobby. */
+function must(outcome: Outcome): LobbyState {
+  if (!outcome.ok) throw new Error(`Could not prepare the race: ${outcome.error}`);
+  return outcome.state;
 }

@@ -4,13 +4,13 @@ import { PlayerAvatar } from "@/components/ui/player-avatar";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import type { LeaderboardEntry } from "@/types/player";
+import type { RadarValue } from "@/types/player";
 import type { PlayerStats } from "@/types/race";
 import type { User } from "@/types/user";
 import { DossierStats } from "./dossier-stats";
 import { GuestDossierStats } from "./guest-dossier-stats";
-import { KeyAudioToggle } from "./key-audio-toggle";
-import { RivalLeaderboard } from "./rival-leaderboard";
+import { GuestSkillRadar } from "./guest-skill-radar";
+import { RadarEmpty, SkillRadar } from "./skill-radar";
 
 type PlayerDossierProps = {
   locale: Locale;
@@ -19,11 +19,11 @@ type PlayerDossierProps = {
   user: User | null;
   /** Saved stats of the registered user; guests' stats are read from their browser tab. */
   stats: PlayerStats | null;
-  leaderboard: readonly LeaderboardEntry[];
+  /** Skill radar of the registered user from their saved races; null without races. */
+  radar: RadarValue[] | null;
 };
 
-// The radar stays empty until it is computed from saved races.
-export function PlayerDossier({ locale, dictionary, user, stats, leaderboard }: PlayerDossierProps) {
+export function PlayerDossier({ locale, dictionary, user, stats, radar }: PlayerDossierProps) {
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
 
   return (
@@ -95,16 +95,14 @@ export function PlayerDossier({ locale, dictionary, user, stats, leaderboard }: 
           <GuestDossierStats dictionary={dictionary.stats} sessionNote={dictionary.guest.sessionNote} />
         )}
 
-        <section className="flex flex-col gap-2 bg-surface-container-lowest p-4 shadow-hard-sm shadow-surface-container-high">
-          <h3 className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary">{dictionary.radar.title}</h3>
-          <p className="flex items-center gap-2 py-6 text-on-surface-variant">
-            <Icon name="analytics" size={28} className="text-primary-container" />
-            {dictionary.radar.empty}
-          </p>
-        </section>
+        {!user ? (
+          <GuestSkillRadar dictionary={dictionary.radar} />
+        ) : radar ? (
+          <SkillRadar dictionary={dictionary.radar} radar={radar} />
+        ) : (
+          <RadarEmpty dictionary={dictionary.radar} />
+        )}
 
-        <RivalLeaderboard dictionary={dictionary.leaderboard} entries={leaderboard} />
-        <KeyAudioToggle dictionary={dictionary.keyAudio} />
       </div>
     </section>
   );

@@ -21,9 +21,10 @@ type BotProfile = {
   reactionMs: readonly [number, number];
 };
 
-export const botDifficulties: readonly BotDifficulty[] = ["rookie", "master", "godspeed"];
+export const botDifficulties: readonly BotDifficulty[] = ["novice", "rookie", "master", "godspeed"];
 
 const botProfiles: Record<BotDifficulty, BotProfile> = {
+  novice: { mistakeRate: 0.08, lateNoticeRate: 0.55, rhythmSpread: 0.6, hesitationRate: 0.15, reactionMs: [400, 900] },
   rookie: { mistakeRate: 0.05, lateNoticeRate: 0.45, rhythmSpread: 0.5, hesitationRate: 0.08, reactionMs: [300, 700] },
   master: { mistakeRate: 0.025, lateNoticeRate: 0.3, rhythmSpread: 0.35, hesitationRate: 0.04, reactionMs: [200, 450] },
   godspeed: { mistakeRate: 0.012, lateNoticeRate: 0.2, rhythmSpread: 0.25, hesitationRate: 0.02, reactionMs: [150, 350] },

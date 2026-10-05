@@ -87,7 +87,7 @@ export function RaceTrack({
             <li
               key={racer.id}
               aria-label={label}
-              className={`flex h-[76px] items-stretch bg-surface-container-highest ${racer.isConnected ? "" : "opacity-50"} ${
+              className={`flex h-[76px] items-stretch bg-surface-container-highest ${racer.isConnected && !racer.isEliminated ? "" : "opacity-50"} ${
                 overtakerIds?.has(racer.id) ? "lane-overtake" : ""
               }`}
             >
