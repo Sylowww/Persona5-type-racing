@@ -47,6 +47,32 @@ To play from other devices on the same network during development, see `ALLOWED_
 
 CI runs all of them on every push and pull request.
 
+## Deployment
+
+The app needs a long-running Node server (one instance) and PostgreSQL. Both configs below build with `npm run build`, apply migrations, start with `next start` (it listens on the platform's `PORT`) and check `/fr`.
+
+### Railway (`railway.json`)
+
+1. Create a project from the GitHub repo; Railway reads `railway.json`.
+2. Add a **PostgreSQL** database to the project.
+3. In the app service variables, set `DATABASE_URL` to the database's URL (reference variable `${{Postgres.DATABASE_URL}}`) and `APP_URL` to the public URL (`https://…`).
+4. Generate a public domain (Settings → Networking). Keep **one replica**.
+
+Migrations run before each deploy (`preDeployCommand`).
+
+### Render (`render.yaml`)
+
+1. New → **Blueprint**, pick the repo; Render creates the web service and the database from `render.yaml`.
+2. When asked, set `APP_URL` to the service URL (`https://<name>.onrender.com`).
+
+Migrations run at startup. On the free plan the service sleeps when idle (the first visit takes a while and open lobbies are lost) and the free database expires after a while; a paid instance avoids both.
+
+### After deploying
+
+- HTTPS is required: the session cookie is `Secure` in production (both platforms provide HTTPS).
+- OAuth is optional. To enable a provider, set its `*_CLIENT_ID` / `*_CLIENT_SECRET` and register `{APP_URL}/api/auth/{google|github|discord}/callback` in its app.
+- Every redeploy or restart ends the lobbies in progress; accounts and stats stay in PostgreSQL.
+
 ## Documentation
 
 Detailed docs are in [`doc/`](doc/README.md): architecture and multiplayer design, design system, translations, testing, and the current status of each feature.
