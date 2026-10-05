@@ -14,8 +14,8 @@ function result(youId: string): RaceResult {
     speedSamples: [],
     keyStats: [],
     racers: [
-      { id: "slow", name: "slow", emblem, wpm: 40, accuracy: 0.9, finishMs: null },
-      { id: "fast", name: "fast", emblem, wpm: 80, accuracy: 0.95, finishMs: 20_000 },
+      { id: "slow", name: "slow", emblem, character: "joker", wpm: 40, accuracy: 0.9, finishMs: null },
+      { id: "fast", name: "fast", emblem, character: "joker", wpm: 80, accuracy: 0.95, finishMs: 20_000 },
     ],
   };
 }

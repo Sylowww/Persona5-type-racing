@@ -13,7 +13,8 @@ test("renders the page in French and English", async ({ page }) => {
 test("renders the home page sections", async ({ page }) => {
   await page.goto("/en");
   await expect(page.getByRole("button", { name: /Start a race/i })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Create heist lobby" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Quick play // 1v1" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Training dojo" })).toBeVisible();
   await expect(page.getByLabel("Lobby code")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Unknown phantom" })).toBeVisible();
 
@@ -21,13 +22,15 @@ test("renders the home page sections", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Lancer une course/i })).toBeVisible();
 });
 
-test("switches the key audio option", async ({ page }) => {
+test("keeps only home and leaderboards in the nav and pages the leaderboard", async ({ page }) => {
   await page.goto("/en");
-  const clicky = page.getByRole("radio", { name: "Clicky blue" });
-  const linear = page.getByRole("radio", { name: "Linear red" });
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(nav.getByRole("link")).toHaveText(["Home // Radar", "Leaderboards"]);
 
-  await expect(clicky).toHaveAttribute("aria-checked", "true");
-  await linear.click();
-  await expect(linear).toHaveAttribute("aria-checked", "true");
-  await expect(clicky).toHaveAttribute("aria-checked", "false");
+  await nav.getByRole("link", { name: "Leaderboards" }).click();
+  await expect(page).toHaveURL(/\/en\/leaderboard$/);
+  await expect(page.getByRole("heading", { name: "Metaverse leaderboard" })).toBeVisible();
+  // Out-of-range pages fall back to a valid one.
+  await page.goto("/en/leaderboard?page=999");
+  await expect(page.getByRole("heading", { name: "Metaverse leaderboard" })).toBeVisible();
 });

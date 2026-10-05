@@ -1,5 +1,5 @@
 import type { CharacterId } from "./character";
-import type { PlayerEmblem } from "./lobby";
+import type { PlayerEmblem, RaceMode } from "./lobby";
 
 export type RaceRacer = {
   id: string;
@@ -12,6 +12,8 @@ export type RaceRacer = {
   /** Mistakes made so far; only used to animate the runner. */
   mistakes: number;
   isFinished: boolean;
+  /** Out of the race after a mistake in sudden death. */
+  isEliminated: boolean;
   isBot: boolean;
   isConnected: boolean;
 };
@@ -29,6 +31,7 @@ export type RaceYou = {
   /** 1-based live place. */
   place: number;
   finishedAt: number | null;
+  eliminatedAt: number | null;
 };
 
 /** Race part of a lobby snapshot. Times are server epoch milliseconds. */
@@ -38,6 +41,10 @@ export type RaceView = {
   startsAt: number;
   /** Time limit: the race ends at this moment even if racers are still typing. */
   endsAt: number;
+  /** False when the lobby chose no time limit (`endsAt` is then only a safety cap). */
+  isTimed: boolean;
+  mode: RaceMode;
+  caseSensitive: boolean;
   /** In the order players joined, so lanes do not jump around. */
   racers: readonly RaceRacer[];
   /** Null when the viewer is not racing (e.g. joined after the start). */
@@ -66,6 +73,8 @@ export type ResultRacer = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
+  /** Character the racer raced as; the podium shows its portrait. */
+  character: CharacterId;
   wpm: number;
   /** From 0 to 1. */
   accuracy: number;

@@ -113,3 +113,93 @@ test("two players race from lobby creation to results", async ({ browser }) => {
   await hostContext.close();
   await guestContext.close();
 });
+
+test("the host sets the race rules and players chat in the lobby", async ({ browser }) => {
+  const hostContext = await browser.newContext();
+  const guestContext = await browser.newContext();
+  const host = await hostContext.newPage();
+  const guest = await guestContext.newPage();
+
+  const hostName = await signUp(host, "host");
+  const guestName = await signUp(guest, "guest");
+  const code = await createLobby(host);
+  await guest.goto(`/en/lobby/${code}`);
+  await guest.getByRole("button", { name: "Punch in" }).click();
+  await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
+
+  // Only the host edits, in the settings panel; everyone sees the change in the rules summary.
+  await guest.getByRole("button", { name: "Details" }).click();
+  await expect(guest.getByRole("button", { name: /Sudden death/ })).toBeDisabled();
+  await guest.getByRole("button", { name: "Close" }).click();
+  await host.getByRole("button", { name: "Lobby settings" }).click();
+  await host.getByRole("button", { name: /Sudden death/ }).click();
+  await host.getByRole("button", { name: "None" }).click();
+  await host.getByRole("switch", { name: "Case sensitive" }).click();
+  await host.keyboard.press("Escape");
+  const summary = guest.getByRole("region", { name: "Race rules" });
+  await expect(summary).toContainText("Sudden death");
+  await expect(summary).toContainText("None");
+  await expect(summary).toContainText("Case sensitive Off");
+
+  // Messages and quick taunts reach every member.
+  await host.getByLabel("Message").fill("Prepare to lose");
+  await host.getByRole("button", { name: "Send" }).click();
+  await expect(guest.getByRole("listitem").filter({ hasText: `${hostName}: Prepare to lose` })).toBeVisible();
+  await guest.getByRole("button", { name: "Too slow!" }).click();
+  await expect(host.getByRole("listitem").filter({ hasText: "Too slow!" })).toBeVisible();
+
+  await hostContext.close();
+  await guestContext.close();
+});
+
+test("the training dojo starts a solo race", async ({ page }) => {
+  await signUp(page, "dojo");
+  await page.getByRole("button", { name: /Training dojo/ }).click();
+  await expect(page).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/);
+  await expect(page.getByRole("timer", { name: /Race starts in/ })).toBeVisible();
+  await expect(page.getByLabel("Type the text")).toBeEditable({ timeout: 10_000 });
+});
+
+test("quick play pairs two searching players in the same race", async ({ browser }) => {
+  test.setTimeout(60_000);
+  const contexts = [await browser.newContext(), await browser.newContext()];
+  const [first, second] = await Promise.all(contexts.map((context) => context.newPage()));
+  await signUp(first, "quick");
+  await signUp(second, "quick");
+
+  await first.getByRole("link", { name: /Quick play/ }).click();
+  await expect(first).toHaveURL(/\/en\/quick$/);
+  await expect(first.getByRole("status")).toContainText("Searching");
+  await second.getByRole("link", { name: /Quick play/ }).click();
+
+  // Each page finds the match on its next check-in (every 1 s), shows the 2.6 s versus screen, then opens the
+  // race page, which the dev server may still be compiling in CI.
+  await expect(first).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/, { timeout: 20_000 });
+  await expect(second).toHaveURL(first.url(), { timeout: 20_000 });
+  for (const context of contexts) await context.close();
+});
+
+test("a public lobby shows in the lobby browser and can be joined from it", async ({ browser }) => {
+  const hostContext = await browser.newContext();
+  const guestContext = await browser.newContext();
+  const host = await hostContext.newPage();
+  const guest = await guestContext.newPage();
+  const hostName = await signUp(host, "pub");
+  const guestName = await signUp(guest, "pub");
+
+  const code = await createLobby(host);
+  await guest.goto("/en/lobbies");
+  await expect(guest.getByText(`Host: ${hostName}`)).toHaveCount(0);
+
+  await host.getByRole("button", { name: "Lobby settings" }).click();
+  await host.getByRole("button", { name: "Public" }).click();
+  await expect(host.getByRole("button", { name: "Public" })).toHaveAttribute("aria-pressed", "true");
+  await host.keyboard.press("Escape");
+  await guest.getByRole("button", { name: "Refresh" }).click();
+  await guest.getByRole("button", { name: `Join - Host: ${hostName}` }).click();
+
+  await expect(guest).toHaveURL(new RegExp(`/en/lobby/${code}$`));
+  await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
+  await hostContext.close();
+  await guestContext.close();
+});

@@ -1,0 +1,25 @@
+# Render Blueprint: one web service (single instance: lobbies live in its memory) and a PostgreSQL database.
+# Migrations run at startup so they also work on the free plan.
+services:
+  - name: type-strike
+    type: web
+    runtime: node
+    plan: free
+    numInstances: 1
+    buildCommand: npm ci && npm run build
+    startCommand: npm run db:migrate && npm run start
+    healthCheckPath: /fr
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: type-strike-db
+          property: connectionString
+      # Public https URL of the service (e.g. https://type-strike.onrender.com), used for OAuth callbacks.
+      - key: APP_URL
+        sync: false
+
+databases:
+  - name: type-strike-db
+    plan: free
+    databaseName: typing_race
+    postgresMajorVersion: "17"

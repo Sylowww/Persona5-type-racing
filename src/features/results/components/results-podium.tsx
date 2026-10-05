@@ -1,7 +1,8 @@
-import { PlayerEmblem } from "@/features/lobby/components/player-emblem";
+import Image from "next/image";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
+import { characterAllOutPortrait } from "@/lib/characters";
 import type { ResultRacer } from "@/types/race";
 import { SectionTag } from "./section-tag";
 
@@ -40,7 +41,7 @@ export function ResultsPodium({ dictionary, locale, racers, youId }: ResultsPodi
           <li aria-label={label(winner, 1)} className="relative rotate-[1.5deg] bg-surface-container p-5 shadow-hard-lg">
             <div className="flex items-start gap-4">
               <div className="relative size-24 shrink-0 overflow-hidden bg-surface-container-lowest shadow-hard-sm">
-                <PlayerEmblem emblem={winner.emblem} />
+                <Image src={characterAllOutPortrait(winner.character)} alt="" fill sizes="96px" className="object-cover" />
                 <span className="absolute inset-x-0 bottom-0 bg-primary-container/90 py-0.5 text-center font-hud text-label-hud font-black uppercase text-on-primary-container">
                   {dictionary.winner}
                 </span>
@@ -74,8 +75,8 @@ export function ResultsPodium({ dictionary, locale, racers, youId }: ResultsPodi
               <span className="flex size-8 shrink-0 items-center justify-center bg-surface-container-high font-hud text-headline-sm font-black text-outline">
                 {index + 2}
               </span>
-              <div className="size-10 shrink-0">
-                <PlayerEmblem emblem={racer.emblem} />
+              <div className="relative size-10 shrink-0 overflow-hidden shadow-hard-xs">
+                <Image src={characterAllOutPortrait(racer.character)} alt="" fill sizes="40px" className="object-cover" />
               </div>
               <div className="min-w-0">
                 <RacerName name={racer.name} isYou={racer.id === youId} you={dictionary.you} />

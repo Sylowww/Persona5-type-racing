@@ -144,6 +144,49 @@ export const characters = {
       victory: { row: 3, frames: 2, fps: 4, loop: false },
     },
   },
+  // Kasumi Yoshizawa. Cut from a single generated sheet (checkerboard removed); the victory is her last pose.
+  violet: {
+    src: "/sprites/violet.webp",
+    frameSize: 128,
+    columns: 8,
+    rows: 4,
+    anchorX: 88,
+    animations: {
+      idle: { row: 0, frames: 7, fps: 4, loop: true },
+      run: { row: 1, frames: 8, fps: 12, loop: true },
+      jump: { row: 2, frames: 6, fps: 12, loop: false },
+      victory: { row: 3, frames: 1, fps: 1, loop: false },
+    },
+  },
+  // Goro Akechi as Black Mask. Cut from a single generated sheet; the victory is the winged pose.
+  blackMask: {
+    src: "/sprites/black-mask.webp",
+    frameSize: 128,
+    columns: 8,
+    rows: 4,
+    anchorX: 88,
+    animations: {
+      idle: { row: 0, frames: 7, fps: 4, loop: true },
+      run: { row: 1, frames: 8, fps: 12, loop: true },
+      jump: { row: 2, frames: 6, fps: 12, loop: false },
+      victory: { row: 3, frames: 1, fps: 1, loop: false },
+    },
+  },
+  // Sophia (Persona 5 Strikers). Cut from a single generated sheet (checkerboard removed by texture so her white coat
+  // stays); her victory is the pointing pose of the idle row.
+  sophia: {
+    src: "/sprites/sophia.webp",
+    frameSize: 128,
+    columns: 8,
+    rows: 4,
+    anchorX: 88,
+    animations: {
+      idle: { row: 0, frames: 7, fps: 4, loop: true },
+      run: { row: 1, frames: 7, fps: 12, loop: true },
+      jump: { row: 2, frames: 6, fps: 12, loop: false },
+      victory: { row: 3, frames: 1, fps: 1, loop: false },
+    },
+  },
 } satisfies Record<CharacterId, CharacterSprite>;
 
 export const characterIds = Object.keys(characters) as CharacterId[];
@@ -158,6 +201,32 @@ export function isCharacterId(value: unknown): value is CharacterId {
 /** Sprite for a character id; an unknown id (e.g. a page older than the server) falls back to the default. */
 export function characterSprite(id: string): CharacterSprite {
   return isCharacterId(id) ? characters[id] : characters[DEFAULT_CHARACTER];
+}
+
+/** File name of each character's "all-out attack" portrait in `public/portraits/characters/`. */
+const portraitFiles: Record<CharacterId, string> = {
+  joker: "joker.webp",
+  mona: "mona.webp",
+  panther: "panther.webp",
+  skull: "skull.webp",
+  fox: "fox.webp",
+  queen: "queen.webp",
+  oracle: "oracle.webp",
+  noir: "noir.webp",
+  crow: "crow.webp",
+  violet: "violet.webp",
+  blackMask: "black-mask.webp",
+  sophia: "sophia.webp",
+};
+
+/** Portrait on a black background, shown on lobby player cards. */
+export function characterPortrait(id: CharacterId): string {
+  return `/portraits/characters/${portraitFiles[id]}`;
+}
+
+/** The same portrait with its original red background, shown when the character wins. */
+export function characterAllOutPortrait(id: CharacterId): string {
+  return `/portraits/characters/all-out/${portraitFiles[id]}`;
 }
 
 /** Bots get a random character. */

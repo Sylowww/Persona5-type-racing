@@ -8,7 +8,7 @@ import {
   runnerAnimation,
   updateRunner,
 } from "../../src/lib/race-runner";
-import { characterSprite, characters, isCharacterId, randomCharacter, type CharacterSprite } from "../../src/lib/characters";
+import { characterAllOutPortrait, characterPortrait, characterSprite, characters, isCharacterId, randomCharacter, type CharacterSprite } from "../../src/lib/characters";
 
 describe("crossesObstacle", () => {
   it("detects passing an obstacle, including landing exactly on it", () => {
@@ -120,8 +120,31 @@ describe("character ids", () => {
     expect(characterSprite("nobody")).toBe(characters.joker);
   });
 
+  it("has a portrait for every character", () => {
+    expect(characterPortrait("violet")).toBe("/portraits/characters/violet.webp");
+    expect(characterPortrait("oracle")).toBe("/portraits/characters/oracle.webp");
+  });
+
+  it("has the original-background portrait for the winner cut-in", () => {
+    expect(characterAllOutPortrait("blackMask")).toBe("/portraits/characters/all-out/black-mask.webp");
+  });
+
   it("picks a random character, even at the edge of the range", () => {
-    const picks = [0, 0.15, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.99, 1].map((value) => randomCharacter(() => value));
-    expect(picks).toEqual(["joker", "mona", "panther", "skull", "fox", "queen", "oracle", "noir", "crow", "crow"]);
+    const picks = [0, 0.1, 0.17, 0.26, 0.34, 0.42, 0.51, 0.59, 0.67, 0.76, 0.84, 0.95, 1].map((value) => randomCharacter(() => value));
+    expect(picks).toEqual([
+      "joker",
+      "mona",
+      "panther",
+      "skull",
+      "fox",
+      "queen",
+      "oracle",
+      "noir",
+      "crow",
+      "violet",
+      "blackMask",
+      "sophia",
+      "sophia",
+    ]);
   });
 });

@@ -1,7 +1,7 @@
 import type { Locale } from "@/i18n/locales";
 import type { RandomInt } from "./lobby-code";
 
-// Built-in texts until custom texts and race settings exist. Picked in the lobby's language.
+// Built-in texts until custom texts exist. Picked in the lobby's language.
 export const raceTexts: Record<Locale, readonly string[]> = {
   en: [
     "The world is full of corrupt adults with distorted desires who claim they own our future. We steal their twisted hearts, shatter their false reality, and rewrite destiny with absolute precision. Show no mercy!",
@@ -17,7 +17,21 @@ export const raceTexts: Record<Locale, readonly string[]> = {
   ],
 };
 
-export function pickRaceText(locale: Locale, randomInt: RandomInt): string {
-  const texts = raceTexts[locale];
+/** Texts with digits, used when the lobby turns numbers on. */
+export const numberRaceTexts: Record<Locale, readonly string[]> = {
+  en: [
+    "The heist starts at 11:45 sharp. We have 3 exits, 12 guards and only 90 seconds to reach the vault on floor 7.",
+    "Our calling card reached 2,048 inboxes before 6 a.m. By noon, 15 newspapers and 4 TV channels were talking about us.",
+    "Train for 20 minutes a day and you can gain 10 words per minute in 4 weeks. Keep at it for 365 days and nothing will stop you.",
+  ],
+  fr: [
+    "Le coup commence à 23 h 45 précises. Nous avons 3 sorties, 12 gardes et seulement 90 secondes pour atteindre le coffre au 7e étage.",
+    "Notre carte de visite a atteint 2 048 boîtes de réception avant 6 h. À midi, 15 journaux et 4 chaînes parlaient déjà de nous.",
+    "Entraîne-toi 20 minutes par jour et tu gagneras 10 mots par minute en 4 semaines. Continue pendant 365 jours et rien ne t'arrêtera.",
+  ],
+};
+
+export function pickRaceText(locale: Locale, randomInt: RandomInt, numbers = false): string {
+  const texts = (numbers ? numberRaceTexts : raceTexts)[locale];
   return texts[randomInt(texts.length)];
 }
