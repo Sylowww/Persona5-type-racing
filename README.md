@@ -58,7 +58,7 @@ The app needs a long-running Node server (one instance) and PostgreSQL. Both con
 3. In the app service variables, set `DATABASE_URL` to the database's URL (reference variable `${{Postgres.DATABASE_URL}}`) and `APP_URL` to the public URL (`https://…`).
 4. Generate a public domain (Settings → Networking). Keep **one replica**.
 
-Migrations run before each deploy (`preDeployCommand`).
+Migrations run when the app starts (the start command is `npm run db:migrate && npm run start`).
 
 ### Render (`render.yaml`)
 
