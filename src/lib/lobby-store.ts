@@ -231,6 +231,10 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     joinQuickMatch(player: Player, locale: Locale, bot: BotDifficulty): QuickMatchStatus {
       const time = now();
       dropStaleSearches(time);
+      // Asking again right after being matched (e.g. the page re-ran its effect) returns that match while its race
+      // has not started; an older match is forgotten so the player searches anew.
+      const current = matchedStatus(player.id);
+      if (current?.state === "matched" && lobbies.get(current.code)?.phase === "countdown") return current;
       matches.delete(player.id);
       const own = queue.get(player.id);
       if (own) {

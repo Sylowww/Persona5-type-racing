@@ -27,10 +27,13 @@ export function QuickMatchSearch({ dictionary, characterNames, botNames, locale 
   const [status, setStatus] = useState<QuickMatchStatus>({ state: "searching", waitedMs: 0 });
   const [isLeaving, startLeaving] = useTransition();
   const matched = useRef(false);
+  /** Leaving is deferred so a remount right after an unmount (development Strict Mode) does not cancel the search. */
+  const pendingLeave = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     let active = true;
     let timer: number | undefined;
+    window.clearTimeout(pendingLeave.current);
 
     function handle(next: QuickMatchStatus) {
       if (!active) return;
@@ -51,7 +54,7 @@ export function QuickMatchSearch({ dictionary, characterNames, botNames, locale 
     return () => {
       active = false;
       window.clearTimeout(timer);
-      if (!matched.current) void leaveQuickMatch();
+      if (!matched.current) pendingLeave.current = window.setTimeout(() => void leaveQuickMatch(), 0);
     };
   }, [locale, router]);
 
