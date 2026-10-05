@@ -227,6 +227,12 @@ describe("quick 1v1", () => {
     expect(store.join(code, { id: "cid", name: "cid" })).toBe("privateLobby");
   });
 
+  it("gives a player their fresh match again if their page asks twice", () => {
+    store.joinQuickMatch(ann, "en", "rookie");
+    const matched = store.joinQuickMatch(bob, "en", "rookie");
+    expect(store.joinQuickMatch(bob, "en", "rookie")).toEqual(matched);
+  });
+
   it("does not pair players searching in different languages", () => {
     store.joinQuickMatch(ann, "en", "rookie");
     expect(store.joinQuickMatch(bob, "fr", "rookie").state).toBe("searching");
