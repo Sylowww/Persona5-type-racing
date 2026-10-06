@@ -13,6 +13,7 @@ Detailed docs live in [`docs/`](docs/README.md). Read the relevant file before w
 * [`docs/i18n.md`](docs/i18n.md): adding translated text
 * [`docs/testing.md`](docs/testing.md): checks and test conventions
 * [`docs/status.md`](docs/status.md): what is built, mocked or undecided
+* [`docs/EXIGENCES.md`](docs/EXIGENCES.md): course requirements traceability matrix (update when a requirement changes status)
 
 Update the matching doc when a change makes it outdated.
 
