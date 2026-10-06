@@ -117,3 +117,118 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 **Playing on the local network (dev):** add your LAN IP to `ALLOWED_DEV_ORIGINS` in `.env` (e.g. `ALLOWED_DEV_ORIGINS=10.3.3.55`), restart `next dev`, and share the `Network:` URL. Other devices must be on the same network. Use email/password accounts: OAuth callbacks point to `APP_URL`. `next start` over plain HTTP on an IP does not work for sign-in, because the production session cookie is `Secure`.
 
 In development, editing `race-engine.ts` or `lobby-store.ts` does not update the store already created on `globalThis`: restart `next dev` after such changes.
+
+## Data model
+
+Persistent data only. Lobbies, races, chat and full results live in memory (see Multiplayer and the ADR below).
+
+```mermaid
+erDiagram
+  users ||--o{ oauth_accounts : "signs in with"
+  users ||--o{ sessions : "holds"
+  users ||--o{ race_results : "finished"
+
+  users {
+    uuid id PK
+    text kind "guest | registered"
+    text username "unique (case-insensitive) among registered"
+    text email "unique, nullable"
+    text password_hash "scrypt, nullable"
+    text avatar_url
+    text locale "fr | en"
+    text character_id
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz last_seen_at
+  }
+  oauth_accounts {
+    text provider PK "github | discord | google"
+    text provider_account_id PK
+    uuid user_id FK
+    timestamptz created_at
+  }
+  sessions {
+    text token_hash PK "SHA-256 of the cookie token"
+    uuid user_id FK
+    timestamptz created_at
+    timestamptz expires_at
+  }
+  race_results {
+    uuid id PK
+    uuid user_id FK
+    text lobby_code
+    timestamptz ended_at
+    int place
+    int racer_count
+    float wpm
+    float accuracy "0..1"
+    int finish_ms "null if not finished"
+    int duration_ms
+    int keystrokes
+    int mistakes
+    timestamptz created_at
+  }
+```
+
+`race_results` is unique on `(user_id, lobby_code, ended_at)`. Source of truth: `db/migrations/`.
+
+## Race state machine
+
+`LobbyPhase` in `lib/race-engine.ts`. The assignment's names (COURSE-01) map to the code as follows: `EN_ATTENTE` = `waiting`, `DÉCOMPTE` = `countdown`, `EN_COURSE` = `racing`, `RÉSULTATS` = `finished`, `FERMÉE` = the lobby is deleted from the store.
+
+```mermaid
+stateDiagram-v2
+  [*] --> waiting : host creates the lobby
+  waiting --> countdown : host starts (canStartRace: ≥ 2 racers, all ready)
+  countdown --> racing : now ≥ startsAt (3 s, advance)
+  racing --> finished : everyone finished / eliminated / left / disconnected > 30 s, or time limit
+  finished --> waiting : first lobby action (ready, join, start)
+  waiting --> closed : last human leaves or their seat expires
+  finished --> closed : last human leaves or their seat expires
+  racing --> closed : last human leaves (the race ends first)
+  closed --> [*]
+```
+
+- Every transition is a pure function of `(state, event, now)`; time-based ones (`countdown → racing`, `racing → finished`, seat expiry) happen in `advance`, called by the store's 100 ms timer.
+- Joining is refused during `countdown` and `racing` (`raceInProgress`).
+- Settings, bots and visibility can only change in `waiting`.
+
+## ADR-001: Real-time transport
+
+**Status:** accepted.
+
+**Context.** Every player must see the others move on the track several times per second (TECH-06, COURSE-05), the server must stay authoritative (COURSE-06), and the app runs as one Next.js process on a PaaS. Next.js route handlers do not support WebSocket upgrades without a custom server.
+
+**Options considered.**
+
+| Option | For | Against |
+| --- | --- | --- |
+| WebSocket (custom server or `ws`) | Two-way, low latency | Needs a custom Node server next to Next.js, its own auth, reconnection and heartbeat code |
+| Hosted service (Pusher, Ably, Supabase Realtime) | Nothing to host | Free-tier limits (TECH-08), a third party sees every message, game logic split across services |
+| MQTT | Pub/sub built in | Needs a broker; overkill for one room per lobby |
+| **Server-Sent Events + HTTP POST** | Plain route handlers, works through proxies, `EventSource` reconnects on its own, same cookie auth as the rest of the app | One-way: client → server goes through separate requests |
+
+**Decision.** Server-Sent Events for server → client (`app/api/lobbies/[code]/events`: one full snapshot per change, progress throttled to one broadcast per 100 ms per lobby) and batched HTTP POSTs for client → server keystrokes (`.../input`: numbered batches, one request in flight, retried with the same number). Lobby actions (create, join, ready, start, settings) are Server Functions.
+
+**Consequences.**
+- About 10 updates per second reach every client, above the ~4 required; the track interpolates between them.
+- Keystrokes are batched, so a player sends a few requests per second instead of one per key (PERF-02). Nothing is written to the database while racing.
+- The transport only moves events and snapshots; all rules are in `race-engine.ts`, so switching to WebSockets would only touch the transport layer.
+- State lives in one process: the app must run as a single instance (see Multiplayer).
+
+## ADR-002: Bots
+
+**Status:** accepted.
+
+**Context.** Bots must race like humans (variable speed, mistakes and corrections, BOT-02/03), obey the same rules and bonuses as players (BOT-04) and be unit-testable (BOT-05).
+
+**Decision.**
+- A bot is a regular lobby member with `bot` set to its difficulty. It goes through the same typing engine (`lib/typing.ts`) as a human: progress, WPM, accuracy, key stats and ranking are computed the same way.
+- At race start, `planBotRun(text, difficulty, random)` (`lib/bots.ts`) plans the bot's whole race as a list of timed `char` / `delete` keystrokes. The store's timer replays the steps that are due in `advance`, on the server only.
+- The plan varies speed per race (±8 %) and per key (capitals, punctuation, word gaps), injects typos on neighboring keys that are noticed late, deleted and retyped.
+- Randomness is injected (`random: () => number`), never read from a global, so tests pass a seeded generator and get the exact same race every time.
+
+**Consequences.**
+- Bots cost almost nothing at runtime (no AI, no extra process) and cannot cheat, since they use the player code path.
+- Future bonuses only need to act on the shared typing state to affect bots too.
+- Planning the whole race up front means a bonus that changes the text (e.g. +3 words) must re-plan the remaining steps.
