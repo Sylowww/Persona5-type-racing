@@ -215,6 +215,11 @@ const en = {
       },
       text: {
         title: "Directive 03 // Text",
+        language: "Text language",
+        languages: {
+          fr: "Français",
+          en: "English",
+        },
         numbers: "Numbers [0-9]",
         casing: "Case sensitive",
         on: "On",

@@ -1,6 +1,7 @@
 import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import { locales } from "@/i18n/locales";
 import { raceModes, timeLimitOptions } from "@/lib/race-settings";
 import type { LobbyVisibility, RaceSettings } from "@/types/lobby";
 import { KeySoundPicker } from "./key-sound-picker";
@@ -154,6 +155,27 @@ export function RulesDossier({
 
         <div className="flex flex-col gap-1">
           <DirectiveTitle title={text.title} tag={settings.numbers ? "0-9" : "A-Z"} />
+          <div role="group" aria-label={text.language} className="grid grid-cols-2 gap-2">
+            {locales.map((option) => {
+              const isActive = option === settings.language;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  lang={option}
+                  aria-pressed={isActive}
+                  disabled={disabled}
+                  onClick={() => onChange({ language: option })}
+                  className={`flex items-center justify-center gap-1.5 p-2 font-hud text-[12px] font-black uppercase transition-transform enabled:hover:-translate-y-0.5 ${
+                    isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
+                  }`}
+                >
+                  <Icon name="translate" size={16} />
+                  {text.languages[option]}
+                </button>
+              );
+            })}
+          </div>
           <div className="flex flex-col gap-1.5 bg-surface-container-low p-2">
             {textRules.map((rule) => (
               <ToggleRow

@@ -75,7 +75,7 @@ export function LobbyBrowser({ dictionary, modeNames, locale, lobbies }: LobbyBr
                       {formatMessage(dictionary.host, { name: lobby.hostName })}
                     </span>
                     <span className="font-hud text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
-                      {[lobby.code, lobby.locale.toUpperCase(), modeNames[lobby.settings.mode], timeLimit(dictionary, lobby.settings.timeLimitSec)].join(" // ")}
+                      {[lobby.code, lobby.settings.language.toUpperCase(), modeNames[lobby.settings.mode], timeLimit(dictionary, lobby.settings.timeLimitSec)].join(" // ")}
                     </span>
                   </div>
                   <span className="font-hud text-label-hud font-black uppercase text-secondary-fixed">

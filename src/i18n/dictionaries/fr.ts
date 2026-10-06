@@ -217,6 +217,11 @@ const fr: Dictionary = {
       },
       text: {
         title: "Directive 03 // Texte",
+        language: "Langue du texte",
+        languages: {
+          fr: "Français",
+          en: "English",
+        },
         numbers: "Chiffres [0-9]",
         casing: "Respect de la casse",
         on: "Activé",

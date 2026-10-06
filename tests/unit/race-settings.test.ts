@@ -15,10 +15,15 @@ describe("race settings", () => {
     });
   });
 
+  it("changes the text language", () => {
+    expect(parseRaceSettings(defaultRaceSettings, { language: "en" })).toEqual({ ...defaultRaceSettings, language: "en" });
+  });
+
   it("rejects unknown fields and values", () => {
     expect(parseRaceSettings(defaultRaceSettings, { mode: "hardcore" })).toBeNull();
     expect(parseRaceSettings(defaultRaceSettings, { timeLimitSec: 45 })).toBeNull();
     expect(parseRaceSettings(defaultRaceSettings, { powers: "yes" })).toBeNull();
+    expect(parseRaceSettings(defaultRaceSettings, { language: "de" })).toBeNull();
     expect(parseRaceSettings(defaultRaceSettings, { isAdmin: true })).toBeNull();
     expect(parseRaceSettings(defaultRaceSettings, null)).toBeNull();
     expect(parseRaceSettings(defaultRaceSettings, [])).toBeNull();
