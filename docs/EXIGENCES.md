@@ -34,7 +34,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | --- | --- | --- | --- | --- |
 | DES-01 | partiel | [DEMARCHE-CREATIVE.md](DEMARCHE-CREATIVE.md) | — | Le nom TYPE//STRIKE et la démarche sont documentés. Un seul nom a été envisagé, et la vérification de l'originalité du nom est sommaire. |
 | DES-02 | partiel | `app/icon.png`, `components/layout/brand-wordmark.tsx` | — | Le logo T//S est fait (Kittl) et sert de favicon. Les croquis manquent. |
-| DES-03 | partiel | [DEMARCHE-CREATIVE.md](DEMARCHE-CREATIVE.md), [design-system.md](design-system.md) | — | L'intention, la palette et les typographies sont documentées. Le moodboard n'a pas encore de références illustrées. |
+| DES-03 | complet | [DEMARCHE-CREATIVE.md](DEMARCHE-CREATIVE.md), [design-system.md](design-system.md) | — | Intention, moodboard (portraits All-Out Attack et sprites de Mona), palette et typographies. |
 | DES-04 | complet | [design-system.md](design-system.md), `features/race/` | — | Thème inspiré de Persona 5. La piste, avec ses coureurs animés, sert d'élément signature. |
 | DES-05 | partiel | `app/globals.css`, [DEMARCHE-CREATIVE.md](DEMARCHE-CREATIVE.md) | — | Seul le thème sombre est offert. Le choix mono-thème est justifié dans la démarche créative (exception prévue par DES-05). |
 | DES-06 | partiel | — | — | Les pages sont responsives. Le message qui recommande un clavier physique sur mobile n'est pas fait. |

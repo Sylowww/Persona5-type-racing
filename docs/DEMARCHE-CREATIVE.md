@@ -44,6 +44,22 @@ Comme dit en haut je cherche vraiment un thème du jeu que j'ai aodré cette ét
 
 Je peux même pas toute les dires comment y'en a. Y'a pleins de sprites de jeu, notamment dans le lobby dépendamment du Runner que tu choisis sur ton profile. Donc la PDP des joueurs est vraiment leur phatom thieves préféré. Quand Mona nous parle in-course et en fin de course dans la page des results est aussi le réelle sprite de Mona. Ya pleins de voiceline de Mona (réelle voice line du jeu) qui joue pendant la course et la fin, cette dernière change selon ta position, si dans une course tu enchaines quelques fautes, si tu dépasses quelqu'un, si tu te fais dépassé, etc. Pis le but de la course est justement la fuite des phantoms thieves d'un palais, donc ici le thème est très respecté. 
 
+#### All-Out Attack
+
+Portraits des Phantom Thieves (`public/portraits/characters/all-out/`), affichés selon le personnage choisi sur le profil.
+
+| Joker | Panther | Mona | Violet |
+| --- | --- | --- | --- |
+| <img src="../public/portraits/characters/all-out/joker.webp" alt="Joker, All-Out Attack" width="160"> | <img src="../public/portraits/characters/all-out/panther.webp" alt="Panther, All-Out Attack" width="160"> | <img src="../public/portraits/characters/all-out/mona.webp" alt="Mona, All-Out Attack" width="160"> | <img src="../public/portraits/characters/all-out/violet.webp" alt="Violet, All-Out Attack" width="160"> |
+
+#### Mona qui nous parle
+
+Sprites de Mona (`public/portraits/`) utilisés dans les cut-ins pendant la course et sur la page des résultats.
+
+| Fière | Inquiète | Choquée |
+| --- | --- | --- |
+| <img src="../public/portraits/mona-proud.webp" alt="Mona fière" width="140"> | <img src="../public/portraits/mona-worried.webp" alt="Mona inquiète" width="140"> | <img src="../public/portraits/mona-shocked.webp" alt="Mona choquée" width="140"> |
+
 ### Palette de couleurs
 
 Couleurs définies dans `src/app/globals.css` (détails dans [design-system.md](design-system.md)).
