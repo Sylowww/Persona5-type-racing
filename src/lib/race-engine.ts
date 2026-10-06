@@ -121,7 +121,6 @@ export type LobbyState = {
   kind: LobbyKind;
   /** Only custom lobbies can be public. */
   visibility: LobbyVisibility;
-  locale: Locale;
   config: EngineConfig;
   phase: LobbyPhase;
   hostId: string;
@@ -162,6 +161,7 @@ const fail = (error: LobbyError): Outcome => ({ ok: false, error });
 
 export function createLobby(input: {
   code: string;
+  /** The host's interface language, used as the race text language until the host changes it. */
   locale: Locale;
   host: Player;
   now: number;
@@ -180,7 +180,6 @@ export function createLobby(input: {
     code: input.code,
     kind,
     visibility: "private",
-    locale: input.locale,
     config,
     phase: "waiting",
     hostId: input.host.id,
@@ -188,7 +187,7 @@ export function createLobby(input: {
     joinCount: 1,
     race: null,
     result: null,
-    settings: input.settings ?? defaultRaceSettings,
+    settings: { ...(input.settings ?? defaultRaceSettings), language: input.locale },
     messages: [],
     messageCount: 0,
   };
@@ -310,6 +309,13 @@ export function setCharacter(state: LobbyState, userId: string, character: Chara
   return { ...state, members: state.members.map((candidate) => (candidate === member ? { ...candidate, character } : candidate)) };
 }
 
+/** A player renamed on their profile: the lobby shows the new name at once, the race in progress keeps the old one. */
+export function setName(state: LobbyState, userId: string, name: string): LobbyState {
+  const member = state.members.find((candidate) => candidate.id === userId && candidate.bot === null);
+  if (!member || member.name === name) return state;
+  return { ...state, members: state.members.map((candidate) => (candidate === member ? { ...candidate, name } : candidate)) };
+}
+
 /** The host changes the next race's rules while the lobby is waiting. `change` comes from the client and is validated here. */
 export function updateSettings(state: LobbyState, userId: string, change: unknown): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
@@ -340,7 +346,6 @@ export function publicLobbyFor(state: LobbyState): PublicLobby | null {
     playerCount: activeMembers(state).length,
     capacity: state.config.capacity,
     phase: state.phase,
-    locale: state.locale,
     settings: state.settings,
   };
 }
@@ -695,7 +700,6 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
     visibility: state.visibility,
     phase: state.phase,
     capacity: state.config.capacity,
-    locale: state.locale,
     youId: userId,
     serverNow: now,
     players: activeMembers(state).map((member) => ({

@@ -52,7 +52,7 @@ tests/
 ## Routing
 
 - Every page is under `app/[locale]/`; `locale` is `fr` or `en` (validated with `isLocale`, otherwise `notFound()`).
-- `/` redirects to `/fr` (`next.config.ts`).
+- `/` redirects to the saved language (`locale` cookie), else the browser language (`Accept-Language`), else `/fr` (`proxy.ts`, `preferredLocale` in `i18n/locales.ts`).
 - Pages are statically generated per locale via `generateStaticParams`.
 
 ## Data
@@ -60,9 +60,10 @@ tests/
 - PostgreSQL via `pg`; `lib/db.ts` exposes a lazy `getPool()` (server-only, needs `DATABASE_URL`).
 - Schema changes are plain SQL files in `db/migrations/` (`NNN_name.sql`), applied in order by `npm run db:migrate` (`scripts/migrate.mjs`, tracked in `schema_migrations`). Never edit an applied migration; add a new one.
 - Local database: `docker compose up -d` (or any Postgres), copy `.env.example` to `.env`, then `npm run db:migrate`.
-- Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race).
+- Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race), `user_avatars` (uploaded profile pictures).
 - Leaderboard: `lib/leaderboard-db.ts` (server-only) ranks registered players with at least one saved race by record WPM, then average WPM, then name, and reads one page of 10 at a time (`LIMIT`/`OFFSET`, top 100 only). Page math and `?page=` parsing are pure, in `lib/leaderboard.ts`.
 - `lib/users.ts` is the server-only data access for accounts and sessions. Pure auth helpers (scrypt password hashing, session tokens, input validation) live in `lib/auth/` and are unit tested.
+- Profile edits (`features/profile/actions.ts`): `changeUsername` validates like sign-up and relies on the unique index for taken names (`renameUser`); the new name shows at once in the player's current lobby (`store.setName`). `uploadAvatar` checks the size, then the real type from the file's first bytes (`lib/avatar.ts`: JPEG, PNG or WebP, 2 MB max; the browser's type and file name are ignored), stores the bytes in `user_avatars` (the server disk is not persistent) and sets `users.avatar_url` to `/api/avatars/{userId}/{version}`. That route serves the bytes with `nosniff` and an immutable cache (the version changes on every upload). `PlayerAvatar` displays it with `next/image`, which resizes it. Server Action bodies are capped at 3 MB in `next.config.ts`.
 - Lobbies and races are in memory only (see Multiplayer). When a race ends, the store calls `onRaceFinished` and `lib/race-history-db.ts` saves one `race_results` row per registered player (in the background; a database error is only logged). Pure helpers (`recordFromResult`, `summarizeRaces`, guest list parsing) are in `lib/race-history.ts`.
 - Guests' races are not stored on the server: the results page saves them in `sessionStorage` (`lib/guest-races.ts`, key `guest-races`, last 50 races), read on the home page with `features/home/use-guest-races.ts`. They are lost when the tab is closed.
 
@@ -100,10 +101,10 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 
 - The creator is host; if the host leaves or their seat expires, the longest-standing player takes over. Only the host starts, once at least two players are all ready (`canStartRace`).
 - Capacity defaults to 30 (a class), capped at 60, set with `LOBBY_CAPACITY`.
-- Settings: the host changes the next race's rules while the lobby is waiting (`updateSettings`; every field is validated server-side): mode (`normal` or `suddenDeath`: the first wrong character eliminates the racer), powers (saved only, no effect until bonuses exist), time limit (30 s, 1, 2 or 3 min, or none: untimed races still stop after a 30-minute safety cap), numbers (texts with digits) and case sensitivity (when off, a letter in the wrong case is stored as the expected one with `normalizeTypedChar`, on the server and in the race page). A race copies the settings when it starts.
+- Settings: the host changes the next race's rules while the lobby is waiting (`updateSettings`; every field is validated server-side): text language (`fr` or `en`, defaults to the host's interface language when the lobby is created), mode (`normal` or `suddenDeath`: the first wrong character eliminates the racer), powers (saved only, no effect until bonuses exist), time limit (30 s, 1, 2 or 3 min, or none: untimed races still stop after a 30-minute safety cap), numbers (texts with digits) and case sensitivity (when off, a letter in the wrong case is stored as the expected one with `normalizeTypedChar`, on the server and in the race page). A race copies the settings when it starts.
 - Sudden death: an eliminated racer stops typing (server and client), counts as done for the race end, and ranks after every racer still in, the last one knocked out first. Their WPM is measured up to the elimination.
 - Chat: any member sends messages (`sendMessage`): whitespace collapsed, 1-140 characters, one message per 500 ms per player, last 50 kept in the lobby (memory only) and sent in every snapshot. Quick taunts are preset messages in the sender's language.
-- Start: the server picks a text in the lobby's language (`lib/race-texts.ts`, from the texts with digits when numbers are on) and sets `startsAt = now + 3 s`. Snapshots carry `serverNow` so every client shows the same countdown.
+- Start: the server picks a text in the language chosen in the settings (`lib/race-texts.ts`, from the texts with digits when numbers are on) and sets `startsAt = now + 3 s`. Snapshots carry `serverNow` so every client shows the same countdown.
 - Input: the client diffs the hidden input into `char`/`delete` events and posts them in numbered batches (one request at a time, retried with the same number). The server replays them with `lib/typing.ts`, timed by its own clock, and ignores repeated batches, input outside the race and more than 30 keys/s. Progress, WPM, places, finish and results are computed server-side only. Client-measured key delays are used only for the heatmap.
 - Progress is broadcast at most every 100 ms per lobby; membership and phase changes are broadcast immediately.
 - End: when every racer finished, was eliminated, left, or stayed disconnected past the grace period, or at the time limit. Results are ranked with `rankRacers`.
@@ -117,3 +118,125 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 **Playing on the local network (dev):** add your LAN IP to `ALLOWED_DEV_ORIGINS` in `.env` (e.g. `ALLOWED_DEV_ORIGINS=10.3.3.55`), restart `next dev`, and share the `Network:` URL. Other devices must be on the same network. Use email/password accounts: OAuth callbacks point to `APP_URL`. `next start` over plain HTTP on an IP does not work for sign-in, because the production session cookie is `Secure`.
 
 In development, editing `race-engine.ts` or `lobby-store.ts` does not update the store already created on `globalThis`: restart `next dev` after such changes.
+
+## Data model
+
+Persistent data only. Lobbies, races, chat and full results live in memory (see Multiplayer and the ADR below).
+
+```mermaid
+erDiagram
+  users ||--o{ oauth_accounts : "signs in with"
+  users ||--o{ sessions : "holds"
+  users ||--o{ race_results : "finished"
+  users ||--o| user_avatars : "uploaded"
+
+  users {
+    uuid id PK
+    text kind "guest | registered"
+    text username "unique (case-insensitive) among registered"
+    text email "unique, nullable"
+    text password_hash "scrypt, nullable"
+    text avatar_url
+    text locale "fr | en"
+    text character_id
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz last_seen_at
+  }
+  oauth_accounts {
+    text provider PK "github | discord | google"
+    text provider_account_id PK
+    uuid user_id FK
+    timestamptz created_at
+  }
+  sessions {
+    text token_hash PK "SHA-256 of the cookie token"
+    uuid user_id FK
+    timestamptz created_at
+    timestamptz expires_at
+  }
+  user_avatars {
+    uuid user_id PK, FK
+    text content_type "image/jpeg | image/png | image/webp"
+    bytea data "2 MB max"
+    timestamptz updated_at
+  }
+  race_results {
+    uuid id PK
+    uuid user_id FK
+    text lobby_code
+    timestamptz ended_at
+    int place
+    int racer_count
+    float wpm
+    float accuracy "0..1"
+    int finish_ms "null if not finished"
+    int duration_ms
+    int keystrokes
+    int mistakes
+    timestamptz created_at
+  }
+```
+
+`race_results` is unique on `(user_id, lobby_code, ended_at)`. Source of truth: `db/migrations/`.
+
+## Race state machine
+
+`LobbyPhase` in `lib/race-engine.ts`. The assignment's names (COURSE-01) map to the code as follows: `EN_ATTENTE` = `waiting`, `DÉCOMPTE` = `countdown`, `EN_COURSE` = `racing`, `RÉSULTATS` = `finished`, `FERMÉE` = the lobby is deleted from the store.
+
+```mermaid
+stateDiagram-v2
+  [*] --> waiting : host creates the lobby
+  waiting --> countdown : host starts (canStartRace: ≥ 2 racers, all ready)
+  countdown --> racing : now ≥ startsAt (3 s, advance)
+  racing --> finished : everyone finished / eliminated / left / disconnected > 30 s, or time limit
+  finished --> waiting : first lobby action (ready, join, start)
+  waiting --> closed : last human leaves or their seat expires
+  finished --> closed : last human leaves or their seat expires
+  racing --> closed : last human leaves (the race ends first)
+  closed --> [*]
+```
+
+- Every transition is a pure function of `(state, event, now)`; time-based ones (`countdown → racing`, `racing → finished`, seat expiry) happen in `advance`, called by the store's 100 ms timer.
+- Joining is refused during `countdown` and `racing` (`raceInProgress`).
+- Settings, bots and visibility can only change in `waiting`.
+
+## ADR-001: Real-time transport
+
+**Status:** accepted.
+
+**Context.** Every player must see the others move on the track several times per second (TECH-06, COURSE-05), the server must stay authoritative (COURSE-06), and the app runs as one Next.js process on a PaaS. Next.js route handlers do not support WebSocket upgrades without a custom server.
+
+**Options considered.**
+
+| Option | For | Against |
+| --- | --- | --- |
+| WebSocket (custom server or `ws`) | Two-way, low latency | Needs a custom Node server next to Next.js, its own auth, reconnection and heartbeat code |
+| Hosted service (Pusher, Ably, Supabase Realtime) | Nothing to host | Free-tier limits (TECH-08), a third party sees every message, game logic split across services |
+| MQTT | Pub/sub built in | Needs a broker; overkill for one room per lobby |
+| **Server-Sent Events + HTTP POST** | Plain route handlers, works through proxies, `EventSource` reconnects on its own, same cookie auth as the rest of the app | One-way: client → server goes through separate requests |
+
+**Decision.** Server-Sent Events for server → client (`app/api/lobbies/[code]/events`: one full snapshot per change, progress throttled to one broadcast per 100 ms per lobby) and batched HTTP POSTs for client → server keystrokes (`.../input`: numbered batches, one request in flight, retried with the same number). Lobby actions (create, join, ready, start, settings) are Server Functions.
+
+**Consequences.**
+- About 10 updates per second reach every client, above the ~4 required; the track interpolates between them.
+- Keystrokes are batched, so a player sends a few requests per second instead of one per key (PERF-02). Nothing is written to the database while racing.
+- The transport only moves events and snapshots; all rules are in `race-engine.ts`, so switching to WebSockets would only touch the transport layer.
+- State lives in one process: the app must run as a single instance (see Multiplayer).
+
+## ADR-002: Bots
+
+**Status:** accepted.
+
+**Context.** Bots must race like humans (variable speed, mistakes and corrections, BOT-02/03), obey the same rules and bonuses as players (BOT-04) and be unit-testable (BOT-05).
+
+**Decision.**
+- A bot is a regular lobby member with `bot` set to its difficulty. It goes through the same typing engine (`lib/typing.ts`) as a human: progress, WPM, accuracy, key stats and ranking are computed the same way.
+- At race start, `planBotRun(text, difficulty, random)` (`lib/bots.ts`) plans the bot's whole race as a list of timed `char` / `delete` keystrokes. The store's timer replays the steps that are due in `advance`, on the server only.
+- The plan varies speed per race (±8 %) and per key (capitals, punctuation, word gaps), injects typos on neighboring keys that are noticed late, deleted and retyped.
+- Randomness is injected (`random: () => number`), never read from a global, so tests pass a seeded generator and get the exact same race every time.
+
+**Consequences.**
+- Bots cost almost nothing at runtime (no AI, no extra process) and cannot cheat, since they use the player code path.
+- Future bonuses only need to act on the shared typing state to affect bots too.
+- Planning the whole race up front means a bonus that changes the text (e.g. +3 words) must re-plan the remaining steps.

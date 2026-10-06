@@ -47,9 +47,9 @@ test("explains why a code cannot be joined", async ({ page }) => {
 
   await input.fill("nope");
   await page.getByRole("button", { name: "Punch in" }).click();
-  await expect(page.getByText("Enter a code like P5-AB12.")).toBeVisible();
+  await expect(page.getByText("Enter a 6-character code like AB23CD.")).toBeVisible();
 
-  await input.fill("P5-ZZZZ");
+  await input.fill("ZZZZZZ");
   await page.getByRole("button", { name: "Punch in" }).click();
   await expect(page.getByText("No lobby with this code.")).toBeVisible();
 });

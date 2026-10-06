@@ -3,10 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
 import { CharacterPicker } from "@/features/profile/components/character-picker";
 import { ProfileCard } from "@/features/profile/components/profile-card";
+import { ProfileEditor } from "@/features/profile/components/profile-editor";
 import { ProfileStats } from "@/features/profile/components/profile-stats";
 import { RaceHistory } from "@/features/profile/components/race-history";
 import { SignInMethods } from "@/features/profile/components/sign-in-methods";
 import { getDictionary } from "@/i18n/dictionaries";
+import { formatMessage } from "@/i18n/format";
 import { isLocale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPlayerStats, getRecentRaces } from "@/lib/race-history-db";
@@ -41,6 +43,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
 
         <div className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 py-10 md:px-10">
           <ProfileCard locale={locale} dictionary={profile} user={user} />
+          <ProfileEditor
+            dictionary={profile.edit}
+            username={user.username}
+            avatarUrl={user.avatarUrl}
+            avatarAlt={formatMessage(profile.avatarAlt, { name: user.username })}
+          />
           <CharacterPicker dictionary={profile.character} selected={user.character} />
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
             <div className="flex flex-col gap-6 lg:col-span-2">

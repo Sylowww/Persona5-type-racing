@@ -15,7 +15,7 @@ export const PASSWORD_MAX = 128;
 const USERNAME_PATTERN = /^[A-Za-z0-9_-]+$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function validateUsername(value: string): ValidationError | null {
+export function validateUsername(value: string): Extract<ValidationError, "usernameLength" | "usernameChars"> | null {
   const username = value.trim();
   if (username.length < USERNAME_MIN || username.length > USERNAME_MAX) return "usernameLength";
   if (!USERNAME_PATTERN.test(username)) return "usernameChars";

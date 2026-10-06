@@ -21,6 +21,13 @@ const en = {
         "home-2": "Theme II",
       },
     },
+    language: {
+      label: "Language",
+      names: {
+        fr: "Français",
+        en: "English",
+      },
+    },
     account: {
       profile: "My profile",
       label: "Account",
@@ -73,10 +80,10 @@ const en = {
       eyebrow: "Secret frequency",
       title: "Join with code",
       label: "Lobby code",
-      placeholder: "P5-XXXX",
+      placeholder: "XXXXXX",
       submit: "Punch in",
       errors: {
-        invalidCode: "Enter a code like P5-AB12.",
+        invalidCode: "Enter a 6-character code like AB23CD.",
         lobbyNotFound: "No lobby with this code.",
         lobbyFull: "This lobby is full.",
         raceInProgress: "A race is in progress. Try again when it ends.",
@@ -208,6 +215,11 @@ const en = {
       },
       text: {
         title: "Directive 03 // Text",
+        language: "Text language",
+        languages: {
+          fr: "Français",
+          en: "English",
+        },
         numbers: "Numbers [0-9]",
         casing: "Case sensitive",
         on: "On",
@@ -389,6 +401,15 @@ const en = {
     title: "Find a lobby",
     subtitle: "Lobbies opened to everyone. Private lobbies are only joined with their code or link.",
     empty: "No public lobby right now. Start one and make it public from its rules.",
+    emptyFiltered: "No public lobby in this language right now.",
+    filters: {
+      language: "Text language",
+      languages: {
+        all: "All",
+        fr: "Français",
+        en: "English",
+      },
+    },
     host: "Host: {name}",
     players: "{count}/{capacity} players",
     noLimit: "No limit",
@@ -452,6 +473,28 @@ const en = {
     avatarAlt: "{name}'s avatar",
     registered: "Registered phantom",
     memberSince: "Phantom since {date}",
+    edit: {
+      title: "Edit profile",
+      username: "Display name",
+      usernameHint: "3 to 20 characters: letters, digits, - and _.",
+      saveUsername: "Save name",
+      avatar: "Profile picture",
+      avatarInput: "Choose a picture",
+      avatarHint: "JPEG, PNG or WebP, 2 MB max.",
+      saveAvatar: "Upload picture",
+      pending: "Saving...",
+      saved: "Saved!",
+      errors: {
+        required: "Enter a name.",
+        usernameLength: "Use 3 to 20 characters.",
+        usernameChars: "Only letters, digits, - and _.",
+        usernameTaken: "This name is already taken.",
+        missing: "Choose a picture first.",
+        tooLarge: "This picture is over 2 MB.",
+        badType: "Use a JPEG, PNG or WebP picture.",
+        unexpected: "Something went wrong. Try again.",
+      },
+    },
     character: {
       title: "Phantom Thieves",
       hint: "Pick the thief you race as. Changes apply from the next lobby you join.",

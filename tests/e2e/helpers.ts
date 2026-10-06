@@ -16,6 +16,6 @@ export async function signUp(page: Page, role: string): Promise<string> {
 /** Opens a new lobby from the home page and returns its code. */
 export async function createLobby(page: Page): Promise<string> {
   await page.getByRole("button", { name: /Start a race/i }).click();
-  await expect(page).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}$/);
+  await expect(page).toHaveURL(/\/en\/lobby\/[A-Z2-9]{6}$/);
   return page.url().split("/").at(-1) ?? "";
 }
