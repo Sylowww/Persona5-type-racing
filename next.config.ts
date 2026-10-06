@@ -15,9 +15,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.discordapp.com", pathname: "/avatars/**" },
     ],
   },
-  async redirects() {
-    return [{ source: "/", destination: "/fr", permanent: false }];
-  },
 };
 
 export default nextConfig;

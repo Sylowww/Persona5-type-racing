@@ -23,6 +23,13 @@ const fr: Dictionary = {
         "home-2": "Thème II",
       },
     },
+    language: {
+      label: "Langue",
+      names: {
+        fr: "Français",
+        en: "English",
+      },
+    },
     account: {
       profile: "Mon profil",
       label: "Compte",
