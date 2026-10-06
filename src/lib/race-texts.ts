@@ -10,7 +10,7 @@ export const raceTexts: Record<Locale, readonly string[]> = {
     "Speed means nothing without accuracy. Breathe, find your pace, and let each word flow into the next until the finish line appears.",
   ],
   fr: [
-    "Le monde est rempli d'adultes corrompus aux désirs déformés qui prétendent posséder notre avenir. Nous volons leurs cœurs tordus et réécrivons le destin avec une précision absolue.",
+    "Le monde est rempli d'adultes corrompus aux désirs déformés qui prétendent posséder notre avenir. Nous volons leurs coeurs tordus et réécrivons le destin avec une précision absolue.",
     "Chaque carte de visite commence par une seule touche. Garde les yeux sur le texte, fais confiance à tes doigts et ne regarde jamais tes erreurs passées.",
     "La ville dort pendant que les voleurs fantômes préparent leur prochain coup. Un clavier rapide et un rythme régulier suffisent pour prendre la tête.",
     "La vitesse ne vaut rien sans précision. Respire, trouve ton rythme et laisse chaque mot glisser vers le suivant jusqu'à la ligne d'arrivée.",
