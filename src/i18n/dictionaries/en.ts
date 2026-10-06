@@ -401,6 +401,15 @@ const en = {
     title: "Find a lobby",
     subtitle: "Lobbies opened to everyone. Private lobbies are only joined with their code or link.",
     empty: "No public lobby right now. Start one and make it public from its rules.",
+    emptyFiltered: "No public lobby in this language right now.",
+    filters: {
+      language: "Text language",
+      languages: {
+        all: "All",
+        fr: "Français",
+        en: "English",
+      },
+    },
     host: "Host: {name}",
     players: "{count}/{capacity} players",
     noLimit: "No limit",

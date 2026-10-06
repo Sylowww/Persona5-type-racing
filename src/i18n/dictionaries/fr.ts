@@ -403,6 +403,15 @@ const fr: Dictionary = {
     title: "Chercher un salon",
     subtitle: "Les salons ouverts à tous. Les salons privés se rejoignent seulement avec leur code ou leur lien.",
     empty: "Aucun salon public pour l'instant. Crées-en un et rends-le public dans ses règles.",
+    emptyFiltered: "Aucun salon public dans cette langue pour l'instant.",
+    filters: {
+      language: "Langue du texte",
+      languages: {
+        all: "Toutes",
+        fr: "Français",
+        en: "English",
+      },
+    },
     host: "Hôte : {name}",
     players: "{count}/{capacity} joueurs",
     noLimit: "Sans limite",
