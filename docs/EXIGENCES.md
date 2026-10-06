@@ -46,8 +46,8 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | AUTH-01 | complet | `app/api/auth/[provider]/`, `lib/auth/`, `features/auth/actions.ts` | `oauth.test.ts`, `auth.test.ts`, `tests/e2e/auth.spec.ts` | Connexion avec Discord, GitHub ou Google, ou par nom d'utilisateur et mot de passe. |
 | AUTH-02 | non fait | `lib/users.ts` (`createGuest`) | — | Le schéma prévoit les invités, mais aucune page n'en crée encore. |
 | AUTH-03 | non fait | — | — | Dépend d'AUTH-02. |
-| AUTH-04 | non fait | — | — | |
-| AUTH-05 | non fait | — | — | |
+| AUTH-04 | complet | `features/profile/`, `lib/avatar.ts`, `app/api/avatars/`, `db/migrations/005_user_avatars.sql` | `avatar.test.ts`, `tests/e2e/profile.spec.ts` | JPEG, PNG ou WebP de 2 Mo maximum, vérifiés côté serveur. Les photos sont stockées en base de données et affichées avec `next/image`, qui les redimensionne. |
+| AUTH-05 | complet | `features/profile/actions.ts` (`changeUsername`), `lib/users.ts` (`renameUser`) | `lobby-store.test.ts`, `tests/e2e/profile.spec.ts` | Mêmes règles qu'à l'inscription (3 à 20 caractères, nom unique sans tenir compte de la casse). Le nouveau nom s'affiche aussitôt dans la salle actuelle du joueur. |
 | AUTH-06 | partiel | `app/[locale]/profile/`, `features/profile/`, `lib/race-history.ts` | `race-history.test.ts` | Affiche le meilleur MPM, le MPM moyen, la précision moyenne et le nombre de courses. Le nombre de victoires et le graphique de progression ne sont pas faits. |
 
 ## Salles et visibilité
@@ -160,5 +160,5 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | A11Y-03 | partiel | — | — | Pas encore audité. |
 | A11Y-04 | partiel | — | — | Pas encore audité. |
 | SEC-01 | partiel | `lib/race-engine.ts` | `race-engine.test.ts` | Lancer la course, configurer et gérer les bots sont des actions vérifiées côté serveur. Les liens d'invitation, l'expulsion et la fermeture de la salle n'existent pas encore. |
-| SEC-02 | non fait | — | — | Dépend d'AUTH-04. |
+| SEC-02 | complet | `lib/avatar.ts`, `features/profile/actions.ts` | `avatar.test.ts`, `tests/e2e/profile.spec.ts` | Le vrai type est lu dans les premiers octets du fichier ; le type envoyé par le navigateur et le nom du fichier sont ignorés. La taille est vérifiée avant la lecture. |
 | SEC-03 | complet | `lib/auth/` (scrypt) | `auth.test.ts` | |

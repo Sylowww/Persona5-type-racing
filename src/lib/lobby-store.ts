@@ -21,6 +21,7 @@ import {
   sendMessage,
   setCharacter,
   setConnected,
+  setName,
   setReady,
   setVisibility,
   startRace,
@@ -383,6 +384,11 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     setCharacter(userId: string, character: CharacterId) {
       const code = lobbyOfUser.get(userId);
       if (code) update(code, (state) => setCharacter(state, userId, character));
+    },
+
+    setName(userId: string, name: string) {
+      const code = lobbyOfUser.get(userId);
+      if (code) update(code, (state) => setName(state, userId, name));
     },
 
     lobbyOf(userId: string): string | null {

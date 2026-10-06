@@ -294,3 +294,16 @@ describe("character change", () => {
     expect(stream.last()?.players[0].character).toBe("blackMask");
   });
 });
+
+describe("name change", () => {
+  it("updates the player's name in their current lobby", () => {
+    const code = store.create(ann, "en");
+    const stream = listen(code, "ann");
+    store.setName("ann", "annie");
+    expect(stream.last()?.players[0].name).toBe("annie");
+  });
+
+  it("does nothing for a player outside any lobby", () => {
+    expect(() => store.setName("nobody", "ghost")).not.toThrow();
+  });
+});
