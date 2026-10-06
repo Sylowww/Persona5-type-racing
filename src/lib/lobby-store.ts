@@ -180,7 +180,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     for (const player of players) state = must(setReady(state, player.id, true));
     // Quick races leave time for the versus screen before their countdown.
     const startAt = kind === "quick" ? time + QUICK_MATCH_INTRO_MS : time;
-    state = must(startRace(state, host.id, pickRaceText(locale, randomInt, state.settings.numbers), startAt, random));
+    state = must(startRace(state, host.id, pickRaceText(state.settings.language, randomInt, state.settings.numbers), startAt, random));
     commit(code, state);
     return code;
   }
@@ -285,7 +285,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     },
 
     start(code: string, userId: string): StoreError | null {
-      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.locale, randomInt, state.settings.numbers), time, random));
+      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.settings.language, randomInt, state.settings.numbers), time, random));
     },
 
     updateSettings(code: string, userId: string, change: unknown): StoreError | null {

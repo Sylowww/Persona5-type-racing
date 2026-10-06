@@ -68,6 +68,14 @@ describe("lobby store", () => {
     ]);
   });
 
+  it("picks the race text in the language chosen by the host", () => {
+    const { code, bobStream } = readyLobby();
+    expect(store.updateSettings(code, "ann", { language: "fr" })).toBeNull();
+    store.setReady(code, "bob", true);
+    expect(store.start(code, "ann")).toBeNull();
+    expect(raceTexts.fr).toContain(bobStream.last()?.race?.text);
+  });
+
   it("runs the countdown and race on server time, then shares results", () => {
     const { code, annStream, bobStream } = readyLobby();
     expect(store.start(code, "bob")).toBe("notHost");

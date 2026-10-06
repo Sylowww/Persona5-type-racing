@@ -78,7 +78,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | CONF-01 | partiel | `lib/race-settings.ts` | `race-settings.test.ts` | Aucune limite, ou 30 s, 1, 2 ou 3 min. Il faut aller jusqu'à 10 min. |
-| CONF-02 | partiel | `lib/race-texts.ts` | — | Le texte est en français ou en anglais selon la langue de la salle. Ce n'est pas un réglage que l'hôte peut changer. |
+| CONF-02 | complet | `lib/race-settings.ts`, `features/lobby/components/rules-dossier.tsx`, `lib/race-texts.ts` | `race-settings.test.ts`, `race-engine.test.ts`, `lobby-store.test.ts`, `tests/e2e/multiplayer.spec.ts` | L'hôte choisit le français ou l'anglais dans les réglages. Par défaut, c'est la langue de l'interface de l'hôte à la création de la salle. Le réglage est indépendant de la langue de l'interface de chaque joueur. |
 | CONF-03 | partiel | `lib/race-texts.ts` | — | Les textes cohérents viennent d'une petite liste dans le code, pas de la base de données. Le texte aléatoire n'est pas fait. |
 | CONF-04 | non fait | — | — | |
 | CONF-05 | non fait | — | — | |

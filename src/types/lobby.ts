@@ -19,7 +19,6 @@ export type PublicLobby = {
   playerCount: number;
   capacity: number;
   phase: LobbyPhase;
-  locale: "fr" | "en";
   settings: RaceSettings;
 };
 
@@ -48,7 +47,6 @@ export type LobbyView = {
   visibility: LobbyVisibility;
   phase: LobbyPhase;
   capacity: number;
-  locale: "fr" | "en";
   youId: string;
   /** Server clock when the snapshot was sent, to align countdowns across clients. */
   serverNow: number;
@@ -79,6 +77,8 @@ export type RaceSettings = {
   numbers: boolean;
   /** When false, a letter typed in the wrong case counts as correct. */
   caseSensitive: boolean;
+  /** Language of the race text, independent of the interface language. */
+  language: "fr" | "en";
 };
 
 export type LobbyMessage = {

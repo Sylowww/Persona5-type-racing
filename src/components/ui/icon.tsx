@@ -35,6 +35,7 @@ export const iconNames = [
   "swords",
   "theater_comedy",
   "timer",
+  "translate",
   "tune",
   "visibility",
   "volume_off",

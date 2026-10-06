@@ -127,6 +127,10 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
   await guest.getByRole("button", { name: "Punch in" }).click();
   await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
 
+  // The text language starts as the host's interface language.
+  const summary = guest.getByRole("region", { name: "Race rules" });
+  await expect(summary).toContainText("English");
+
   // Only the host edits, in the settings panel; everyone sees the change in the rules summary.
   await guest.getByRole("button", { name: "Details" }).click();
   await expect(guest.getByRole("button", { name: /Sudden death/ })).toBeDisabled();
@@ -135,11 +139,12 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
   await host.getByRole("button", { name: /Sudden death/ }).click();
   await host.getByRole("button", { name: "None" }).click();
   await host.getByRole("switch", { name: "Case sensitive" }).click();
+  await host.getByRole("group", { name: "Text language" }).getByRole("button", { name: "Français" }).click();
   await host.keyboard.press("Escape");
-  const summary = guest.getByRole("region", { name: "Race rules" });
   await expect(summary).toContainText("Sudden death");
   await expect(summary).toContainText("None");
   await expect(summary).toContainText("Case sensitive Off");
+  await expect(summary).toContainText("Français");
 
   // Messages and quick taunts reach every member.
   await host.getByLabel("Message").fill("Prepare to lose");

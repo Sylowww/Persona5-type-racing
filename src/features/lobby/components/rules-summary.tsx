@@ -22,6 +22,7 @@ export function RulesSummary({ dictionary, settings, visibility, canEdit, onOpen
     ...(visibility ? [{ key: "visibility", icon: (visibility === "private" ? "lock" : "visibility") as IconName, label: dictionary.visibility[visibility] }] : []),
     { key: "mode", icon: "swords", label: mode[settings.mode], tone: settings.mode === "suddenDeath" ? "danger" : undefined },
     { key: "time", icon: "timer", label: timeLimitLabel(time, settings.timeLimitSec) },
+    { key: "language", icon: "translate", label: text.languages[settings.language] },
     { key: "numbers", icon: "pin", label: `${text.numbers} ${onOff(settings.numbers)}`, tone: settings.numbers ? undefined : "off" },
     { key: "casing", icon: "keyboard", label: `${text.casing} ${onOff(settings.caseSensitive)}`, tone: settings.caseSensitive ? undefined : "off" },
     { key: "powers", icon: "bolt", label: `${mode.powers} ${onOff(settings.powers)}`, tone: settings.powers ? undefined : "off" },
