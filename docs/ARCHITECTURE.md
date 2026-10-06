@@ -52,7 +52,7 @@ tests/
 ## Routing
 
 - Every page is under `app/[locale]/`; `locale` is `fr` or `en` (validated with `isLocale`, otherwise `notFound()`).
-- `/` redirects to `/fr` (`next.config.ts`).
+- `/` redirects to the saved language (`locale` cookie), else the browser language (`Accept-Language`), else `/fr` (`proxy.ts`, `preferredLocale` in `i18n/locales.ts`).
 - Pages are statically generated per locale via `generateStaticParams`.
 
 ## Data

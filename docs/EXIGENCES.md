@@ -142,7 +142,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | I18N-01 | complet | `i18n/dictionaries/` | `locales.test.ts` | |
-| I18N-02 | non fait | `next.config.ts` | — | Il n'y a pas de sélecteur de langue, et `/` redirige vers `/fr` au lieu d'utiliser la langue du navigateur. |
+| I18N-02 | complet | `components/layout/language-switcher.tsx`, `proxy.ts`, `i18n/locales.ts` | `locales.test.ts`, `tests/e2e/home.spec.ts` | Sélecteur FR/EN dans l'en-tête de toutes les pages. Le choix est conservé dans un cookie `locale` (1 an). Sans choix, `/` utilise la langue du navigateur, sinon le français. |
 | I18N-03 | complet | `Intl.DateTimeFormat` et `Intl.NumberFormat` | `format.test.ts` | |
 
 ## Qualité

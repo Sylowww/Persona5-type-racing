@@ -21,6 +21,13 @@ const en = {
         "home-2": "Theme II",
       },
     },
+    language: {
+      label: "Language",
+      names: {
+        fr: "Français",
+        en: "English",
+      },
+    },
     account: {
       profile: "My profile",
       label: "Account",
