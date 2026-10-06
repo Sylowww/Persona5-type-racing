@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { isLocale, type Locale } from "@/i18n/locales";
 import { isOAuthProvider, OAUTH_COOKIE } from "@/lib/auth/oauth";
-import { callbackUrl, fetchOAuthProfile, getCredentials } from "@/lib/auth/oauth-client";
+import { appOrigin, callbackUrl, fetchOAuthProfile, getCredentials } from "@/lib/auth/oauth-client";
 import { endSession, startSession } from "@/lib/auth/session";
 import { findOrCreateOAuthUser } from "@/lib/users";
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   cookieStore.delete({ name: OAUTH_COOKIE, path: "/api/auth" });
 
   const locale = flow?.locale ?? "fr";
-  const failure = NextResponse.redirect(new URL(`/${locale}/sign-in?error=oauth`, request.url));
+  const failure = NextResponse.redirect(new URL(`/${locale}/sign-in?error=oauth`, appOrigin(request.nextUrl.origin)));
 
   const code = request.nextUrl.searchParams.get("code");
   const state = request.nextUrl.searchParams.get("state");
@@ -59,5 +59,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return failure;
   }
 
-  return NextResponse.redirect(new URL(`/${locale}`, request.url));
+  return NextResponse.redirect(new URL(`/${locale}`, appOrigin(request.nextUrl.origin)));
 }

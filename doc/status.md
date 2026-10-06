@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-04.
+Last updated: 2026-10-05.
 
 ## Built
 
@@ -25,7 +25,8 @@ Last updated: 2026-10-04.
 - Database foundation: migration runner, `users` / `oauth_accounts` / `sessions` schema, password hashing, session tokens, account validation and data-access functions (`lib/users.ts`). Used by email/password auth.
 
 - Email/password sign up (`/fr/sign-up`, `/en/sign-up`), sign in (`/…/sign-in`), sign out, session cookie and current-user lookup. The header shows the signed-in username or Sign in / Join links.
-- OAuth sign-in with Google, GitHub and Discord (buttons appear once the provider's credentials are in `.env`). Not yet tested against real provider apps.
+- OAuth sign-in with Google, GitHub and Discord (buttons appear once the provider's credentials are in `.env`). Redirects use `APP_URL`, since behind Railway's proxy the request origin is the internal host.
+- Favicon and Apple touch icon (`src/app/icon.png`, `src/app/apple-icon.png`) from the T//S logo.
 
 ## Mocked / not wired
 
@@ -33,7 +34,7 @@ Last updated: 2026-10-04.
 - The invite observer button does nothing and the spectator list is empty. Player cards show `-- WPM` as best speed until stats are stored.
 - "Start a race" opens a new lobby to invite players into; matchmaking is only for quick 1v1.
 - Key-audio selection is UI only (no key sounds yet).
-- Avatar and logo are placeholders (icon + wordmark) until real assets exist.
+- Avatar and in-page logo are placeholders (icon + wordmark) until real assets exist.
 
 - Race texts are a small built-in list per language, with a separate list with digits (`lib/race-texts.ts`); countdown (3 s), grace period (30 s) and speed limit (30 keys/s) are fixed defaults in `lib/race-engine.ts`. Punctuation is always on.
 - Full results (podium, chart, heatmap) live in memory with the lobby and disappear when it closes or the server restarts; only each player's summary is saved (see Built). Heatmap thresholds (100 ms fast, 250 ms or a miss = slow) are placeholders.
