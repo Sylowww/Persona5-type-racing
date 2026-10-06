@@ -155,7 +155,7 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
 test("the training dojo starts a solo race", async ({ page }) => {
   await signUp(page, "dojo");
   await page.getByRole("button", { name: /Training dojo/ }).click();
-  await expect(page).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/);
+  await expect(page).toHaveURL(/\/en\/lobby\/[A-Z2-9]{6}\/race$/);
   await expect(page.getByRole("timer", { name: /Race starts in/ })).toBeVisible();
   await expect(page.getByLabel("Type the text")).toBeEditable({ timeout: 10_000 });
 });
@@ -174,7 +174,7 @@ test("quick play pairs two searching players in the same race", async ({ browser
 
   // Each page finds the match on its next check-in (every 1 s), shows the 2.6 s versus screen, then opens the
   // race page, which the dev server may still be compiling in CI.
-  await expect(first).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/, { timeout: 20_000 });
+  await expect(first).toHaveURL(/\/en\/lobby\/[A-Z2-9]{6}\/race$/, { timeout: 20_000 });
   await expect(second).toHaveURL(first.url(), { timeout: 20_000 });
   for (const context of contexts) await context.close();
 });
