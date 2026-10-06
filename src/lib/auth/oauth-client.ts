@@ -23,8 +23,13 @@ export function configuredProviders(): OAuthProvider[] {
   return oauthProviders.filter((provider) => getCredentials(provider) !== null);
 }
 
-export function callbackUrl(provider: OAuthProvider, origin: string): string {
-  return `${process.env.APP_URL ?? origin}/api/auth/${provider}/callback`;
+/** Public origin of the app. Behind a proxy (Railway), the request origin is the internal host, so APP_URL wins. */
+export function appOrigin(requestOrigin: string): string {
+  return process.env.APP_URL || requestOrigin;
+}
+
+export function callbackUrl(provider: OAuthProvider, requestOrigin: string): string {
+  return `${appOrigin(requestOrigin)}/api/auth/${provider}/callback`;
 }
 
 /** Exchanges the authorization code and loads the provider profile. Throws on any failure. */

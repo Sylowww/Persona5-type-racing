@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { isLocale } from "@/i18n/locales";
 import { buildAuthorizeUrl, isOAuthProvider, OAUTH_COOKIE, randomToken } from "@/lib/auth/oauth";
-import { callbackUrl, getCredentials } from "@/lib/auth/oauth-client";
+import { appOrigin, callbackUrl, getCredentials } from "@/lib/auth/oauth-client";
 
 const OAUTH_COOKIE_MAX_AGE = 10 * 60;
 
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const locale = isLocale(localeParam) ? localeParam : "fr";
   const credentials = isOAuthProvider(provider) ? getCredentials(provider) : null;
   if (!isOAuthProvider(provider) || !credentials) {
-    return NextResponse.redirect(new URL(`/${locale}/sign-in?error=oauth`, request.url));
+    return NextResponse.redirect(new URL(`/${locale}/sign-in?error=oauth`, appOrigin(request.nextUrl.origin)));
   }
 
   const state = randomToken();
