@@ -44,6 +44,15 @@ Comme dit en haut je cherche vraiment un thème du jeu que j'ai aodré cette ét
 
 Je peux même pas toute les dires comment y'en a. Y'a pleins de sprites de jeu, notamment dans le lobby dépendamment du Runner que tu choisis sur ton profile. Donc la PDP des joueurs est vraiment leur phatom thieves préféré. Quand Mona nous parle in-course et en fin de course dans la page des results est aussi le réelle sprite de Mona. Ya pleins de voiceline de Mona (réelle voice line du jeu) qui joue pendant la course et la fin, cette dernière change selon ta position, si dans une course tu enchaines quelques fautes, si tu dépasses quelqu'un, si tu te fais dépassé, etc. Pis le but de la course est justement la fuite des phantoms thieves d'un palais, donc ici le thème est très respecté. 
 
+#### Références
+
+| # | Image | Description |
+| --- | --- | --- |
+| 1 | <img src="images/moodboard/ref1.webp" alt="Menu principal de Persona 5" width="320"> | Menu principal du jeu : lettres découpées façon collage, rouge, noir et blanc. |
+| 2 | <img src="images/moodboard/ref2.webp" alt="Logo de Persona 5 et Joker sur fond rouge" width="320"> | Logo de Persona 5 en lettres dépareillées, Joker sur fond rouge uni. |
+| 3 | <img src="images/moodboard/ref3.webp" alt="Joker devant une étoile rouge et noire éclatée" width="320"> | Joker devant une étoile éclatée, éclaboussures rouges et trame de points. |
+| 4 | <img src="images/moodboard/ref4.webp" alt="Portrait de Joker en noir, blanc et rouge" width="240"> | Portrait de Joker en noir et blanc très contrasté, accents rouges. |
+
 #### All-Out Attack
 
 Portraits des Phantom Thieves (`public/portraits/characters/all-out/`), affichés selon le personnage choisi sur le profil.
