@@ -4,7 +4,7 @@ Reference docs for the TYPE//STRIKE typing-race app. Read only the file relevant
 
 | File | Read it when |
 | --- | --- |
-| [architecture.md](architecture.md) | Adding files, routes, features or data; deciding where code belongs. |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Adding files, routes, features or data; deciding where code belongs. |
 | [design-system.md](design-system.md) | Building or changing any UI. |
 | [i18n.md](i18n.md) | Adding or changing user-facing text. |
 | [testing.md](testing.md) | Writing tests or running checks locally / in CI. |
