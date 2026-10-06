@@ -201,6 +201,13 @@ test("a public lobby shows in the lobby browser and can be joined from it", asyn
   await expect(host.getByRole("button", { name: "Public" })).toHaveAttribute("aria-pressed", "true");
   await host.keyboard.press("Escape");
   await guest.getByRole("button", { name: "Refresh" }).click();
+  await expect(guest.getByText(`Host: ${hostName}`)).toBeVisible();
+
+  // The lobby was created in English, so the French filter hides it.
+  const filters = guest.getByRole("group", { name: "Text language" });
+  await filters.getByRole("button", { name: "Français" }).click();
+  await expect(guest.getByText(`Host: ${hostName}`)).toHaveCount(0);
+  await filters.getByRole("button", { name: "English" }).click();
   await guest.getByRole("button", { name: `Join - Host: ${hostName}` }).click();
 
   await expect(guest).toHaveURL(new RegExp(`/en/lobby/${code}$`));

@@ -70,7 +70,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | JOIN-01 | complet | `features/home/` | `tests/e2e/home.spec.ts`, `tests/e2e/lobby.spec.ts` | |
-| JOIN-02 | partiel | `app/[locale]/lobbies/`, `app/api/lobbies/` | — | La liste des salles publiques se rafraîchit toutes les 5 s. Les filtres par langue et par complexité ne sont pas faits, et la complexité n'existe pas encore. |
+| JOIN-02 | partiel | `app/[locale]/lobbies/`, `features/lobbies/components/lobby-browser.tsx` | `tests/e2e/multiplayer.spec.ts` | La liste des salles publiques se rafraîchit toutes les 5 s et se filtre par langue du texte. Le filtre par complexité n'est pas fait, car la complexité n'existe pas encore (CONF-05). |
 | JOIN-03 | non fait | `app/[locale]/quick/`, `lib/matchmaking.ts` | — | Le bouton actuel lance un jumelage 1v1 (contre un bot après 15 s). Ce n'est pas la règle de l'énoncé. |
 
 ## Configuration de la course
