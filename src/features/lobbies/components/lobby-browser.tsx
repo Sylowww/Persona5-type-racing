@@ -6,11 +6,14 @@ import { Icon } from "@/components/ui/icon";
 import { joinListedLobby } from "@/features/lobby/actions";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import type { Locale } from "@/i18n/locales";
+import { locales, type Locale } from "@/i18n/locales";
 import type { PublicLobby } from "@/types/lobby";
 
 /** The list reloads on its own this often. */
 const REFRESH_MS = 5_000;
+
+type LanguageFilter = Locale | "all";
+const languageFilters: readonly LanguageFilter[] = ["all", ...locales];
 
 type LobbyBrowserProps = {
   dictionary: Dictionary["lobbies"];
@@ -29,6 +32,8 @@ export function LobbyBrowser({ dictionary, modeNames, locale, lobbies }: LobbyBr
   const router = useRouter();
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [language, setLanguage] = useState<LanguageFilter>("all");
+  const shown = language === "all" ? lobbies : lobbies.filter((lobby) => lobby.settings.language === language);
 
   useEffect(() => {
     const timer = window.setInterval(() => router.refresh(), REFRESH_MS);
@@ -45,7 +50,26 @@ export function LobbyBrowser({ dictionary, modeNames, locale, lobbies }: LobbyBr
 
   return (
     <section className="flex flex-col gap-4 bg-surface-container p-4 shadow-hard-xl shadow-primary-container sm:p-6">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div role="group" aria-label={dictionary.filters.language} className="flex flex-wrap items-center gap-1">
+          <span className="mr-1 font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">{dictionary.filters.language}</span>
+          {languageFilters.map((option) => {
+            const isActive = option === language;
+            return (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setLanguage(option)}
+                className={`px-3 py-1 font-hud text-label-hud font-black uppercase ${
+                  isActive ? "bg-primary-container text-on-primary-container shadow-hard-xs" : "bg-surface-container-high text-on-surface-variant hover:text-secondary"
+                }`}
+              >
+                {dictionary.filters.languages[option]}
+              </button>
+            );
+          })}
+        </div>
         <button
           type="button"
           onClick={() => router.refresh()}
@@ -56,14 +80,14 @@ export function LobbyBrowser({ dictionary, modeNames, locale, lobbies }: LobbyBr
         </button>
       </div>
 
-      {lobbies.length === 0 ? (
+      {shown.length === 0 ? (
         <div className="flex flex-col items-center gap-3 bg-surface-container-lowest px-4 py-10 text-center">
           <Icon name="theater_comedy" size={40} className="text-primary-container" />
-          <p className="text-on-surface-variant">{dictionary.empty}</p>
+          <p className="text-on-surface-variant">{lobbies.length === 0 ? dictionary.empty : dictionary.emptyFiltered}</p>
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
-          {lobbies.map((lobby) => {
+          {shown.map((lobby) => {
             const isFull = lobby.playerCount >= lobby.capacity;
             const isRacing = lobby.phase === "countdown" || lobby.phase === "racing";
             const status = isRacing ? dictionary.racing : isFull ? dictionary.full : dictionary.waiting;
@@ -75,7 +99,7 @@ export function LobbyBrowser({ dictionary, modeNames, locale, lobbies }: LobbyBr
                       {formatMessage(dictionary.host, { name: lobby.hostName })}
                     </span>
                     <span className="font-hud text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
-                      {[lobby.code, lobby.locale.toUpperCase(), modeNames[lobby.settings.mode], timeLimit(dictionary, lobby.settings.timeLimitSec)].join(" // ")}
+                      {[lobby.code, lobby.settings.language.toUpperCase(), modeNames[lobby.settings.mode], timeLimit(dictionary, lobby.settings.timeLimitSec)].join(" // ")}
                     </span>
                   </div>
                   <span className="font-hud text-label-hud font-black uppercase text-secondary-fixed">

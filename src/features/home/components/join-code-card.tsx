@@ -2,12 +2,11 @@
 
 import { useActionState } from "react";
 import { Icon } from "@/components/ui/icon";
+import { LOBBY_CODE_LENGTH } from "@/lib/lobby-code";
 import { FormError } from "@/features/auth/components/form-error";
 import { joinLobby, type JoinFormState } from "@/features/lobby/actions";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-
-const CODE_LENGTH = 7;
 
 type JoinCodeCardProps = {
   dictionary: Dictionary["home"]["joinCode"];
@@ -42,7 +41,7 @@ export function JoinCodeCard({ dictionary, locale, defaultCode = "" }: JoinCodeC
             name="code"
             type="text"
             autoComplete="off"
-            maxLength={CODE_LENGTH}
+            maxLength={LOBBY_CODE_LENGTH}
             defaultValue={state.code}
             placeholder={dictionary.placeholder}
             className="w-full min-w-0 bg-surface-container-lowest px-3 py-2 font-hud text-headline-sm font-black uppercase tracking-widest text-secondary-fixed shadow-inner placeholder:text-surface-variant focus:bg-surface-container focus:outline-none"

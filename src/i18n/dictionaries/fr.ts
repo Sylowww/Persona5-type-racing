@@ -23,6 +23,13 @@ const fr: Dictionary = {
         "home-2": "Thème II",
       },
     },
+    language: {
+      label: "Langue",
+      names: {
+        fr: "Français",
+        en: "English",
+      },
+    },
     account: {
       profile: "Mon profil",
       label: "Compte",
@@ -75,10 +82,10 @@ const fr: Dictionary = {
       eyebrow: "Fréquence secrète",
       title: "Rejoindre avec un code",
       label: "Code du salon",
-      placeholder: "P5-XXXX",
+      placeholder: "XXXXXX",
       submit: "Infiltrer",
       errors: {
-        invalidCode: "Entre un code comme P5-AB12.",
+        invalidCode: "Entre un code de 6 caractères comme AB23CD.",
         lobbyNotFound: "Aucun salon avec ce code.",
         lobbyFull: "Ce salon est plein.",
         raceInProgress: "Une course est en cours. Réessaie quand elle sera terminée.",
@@ -210,6 +217,11 @@ const fr: Dictionary = {
       },
       text: {
         title: "Directive 03 // Texte",
+        language: "Langue du texte",
+        languages: {
+          fr: "Français",
+          en: "English",
+        },
         numbers: "Chiffres [0-9]",
         casing: "Respect de la casse",
         on: "Activé",
@@ -391,6 +403,15 @@ const fr: Dictionary = {
     title: "Chercher un salon",
     subtitle: "Les salons ouverts à tous. Les salons privés se rejoignent seulement avec leur code ou leur lien.",
     empty: "Aucun salon public pour l'instant. Crées-en un et rends-le public dans ses règles.",
+    emptyFiltered: "Aucun salon public dans cette langue pour l'instant.",
+    filters: {
+      language: "Langue du texte",
+      languages: {
+        all: "Toutes",
+        fr: "Français",
+        en: "English",
+      },
+    },
     host: "Hôte : {name}",
     players: "{count}/{capacity} joueurs",
     noLimit: "Sans limite",
@@ -454,6 +475,28 @@ const fr: Dictionary = {
     avatarAlt: "Avatar de {name}",
     registered: "Fantôme inscrit",
     memberSince: "Fantôme depuis le {date}",
+    edit: {
+      title: "Modifier le profil",
+      username: "Nom affiché",
+      usernameHint: "3 à 20 caractères : lettres, chiffres, - et _.",
+      saveUsername: "Enregistrer le nom",
+      avatar: "Photo de profil",
+      avatarInput: "Choisir une photo",
+      avatarHint: "JPEG, PNG ou WebP, 2 Mo maximum.",
+      saveAvatar: "Téléverser la photo",
+      pending: "Enregistrement...",
+      saved: "Enregistré !",
+      errors: {
+        required: "Entre un nom.",
+        usernameLength: "Utilise de 3 à 20 caractères.",
+        usernameChars: "Seulement des lettres, des chiffres, - et _.",
+        usernameTaken: "Ce nom est déjà pris.",
+        missing: "Choisis d'abord une photo.",
+        tooLarge: "Cette photo dépasse 2 Mo.",
+        badType: "Utilise une photo JPEG, PNG ou WebP.",
+        unexpected: "Une erreur est survenue. Réessaie.",
+      },
+    },
     character: {
       title: "Voleurs fantômes",
       hint: "Choisis le voleur avec lequel tu cours. Le changement s'applique au prochain lobby que tu rejoins.",

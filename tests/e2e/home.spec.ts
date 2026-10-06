@@ -10,6 +10,24 @@ test("renders the page in French and English", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Typing race" })).toBeVisible();
 });
 
+test("switches language from the header and remembers the choice", async ({ page }) => {
+  await page.goto("/fr/leaderboard");
+  await page.getByRole("navigation", { name: "Langue" }).getByRole("link", { name: "English" }).click();
+  await expect(page).toHaveURL(/\/en\/leaderboard$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/en$/);
+});
+
+test("sends the root URL to the browser language", async ({ browser }) => {
+  const context = await browser.newContext({ locale: "en-US" });
+  const page = await context.newPage();
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/en$/);
+  await context.close();
+});
+
 test("renders the home page sections", async ({ page }) => {
   await page.goto("/en");
   await expect(page.getByRole("button", { name: /Start a race/i })).toBeVisible();

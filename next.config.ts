@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
     "127.0.0.1",
     ...(process.env.ALLOWED_DEV_ORIGINS ?? "").split(",").map((host) => host.trim()).filter(Boolean),
   ],
+  // Profile pictures go through a Server Action: up to 2 MB (checked again on the server) plus form overhead.
+  experimental: {
+    serverActions: { bodySizeLimit: "3mb" },
+  },
   // Avatars from OAuth providers.
   images: {
     remotePatterns: [
@@ -14,9 +18,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "cdn.discordapp.com", pathname: "/avatars/**" },
     ],
-  },
-  async redirects() {
-    return [{ source: "/", destination: "/fr", permanent: false }];
   },
 };
 

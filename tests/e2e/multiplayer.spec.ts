@@ -127,6 +127,10 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
   await guest.getByRole("button", { name: "Punch in" }).click();
   await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
 
+  // The text language starts as the host's interface language.
+  const summary = guest.getByRole("region", { name: "Race rules" });
+  await expect(summary).toContainText("English");
+
   // Only the host edits, in the settings panel; everyone sees the change in the rules summary.
   await guest.getByRole("button", { name: "Details" }).click();
   await expect(guest.getByRole("button", { name: /Sudden death/ })).toBeDisabled();
@@ -135,11 +139,12 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
   await host.getByRole("button", { name: /Sudden death/ }).click();
   await host.getByRole("button", { name: "None" }).click();
   await host.getByRole("switch", { name: "Case sensitive" }).click();
+  await host.getByRole("group", { name: "Text language" }).getByRole("button", { name: "Français" }).click();
   await host.keyboard.press("Escape");
-  const summary = guest.getByRole("region", { name: "Race rules" });
   await expect(summary).toContainText("Sudden death");
   await expect(summary).toContainText("None");
   await expect(summary).toContainText("Case sensitive Off");
+  await expect(summary).toContainText("Français");
 
   // Messages and quick taunts reach every member.
   await host.getByLabel("Message").fill("Prepare to lose");
@@ -155,7 +160,7 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
 test("the training dojo starts a solo race", async ({ page }) => {
   await signUp(page, "dojo");
   await page.getByRole("button", { name: /Training dojo/ }).click();
-  await expect(page).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/);
+  await expect(page).toHaveURL(/\/en\/lobby\/[A-Z2-9]{6}\/race$/);
   await expect(page.getByRole("timer", { name: /Race starts in/ })).toBeVisible();
   await expect(page.getByLabel("Type the text")).toBeEditable({ timeout: 10_000 });
 });
@@ -174,7 +179,7 @@ test("quick play pairs two searching players in the same race", async ({ browser
 
   // Each page finds the match on its next check-in (every 1 s), shows the 2.6 s versus screen, then opens the
   // race page, which the dev server may still be compiling in CI.
-  await expect(first).toHaveURL(/\/en\/lobby\/P5-[A-Z2-9]{4}\/race$/, { timeout: 20_000 });
+  await expect(first).toHaveURL(/\/en\/lobby\/[A-Z2-9]{6}\/race$/, { timeout: 20_000 });
   await expect(second).toHaveURL(first.url(), { timeout: 20_000 });
   for (const context of contexts) await context.close();
 });
@@ -196,6 +201,13 @@ test("a public lobby shows in the lobby browser and can be joined from it", asyn
   await expect(host.getByRole("button", { name: "Public" })).toHaveAttribute("aria-pressed", "true");
   await host.keyboard.press("Escape");
   await guest.getByRole("button", { name: "Refresh" }).click();
+  await expect(guest.getByText(`Host: ${hostName}`)).toBeVisible();
+
+  // The lobby was created in English, so the French filter hides it.
+  const filters = guest.getByRole("group", { name: "Text language" });
+  await filters.getByRole("button", { name: "Français" }).click();
+  await expect(guest.getByText(`Host: ${hostName}`)).toHaveCount(0);
+  await filters.getByRole("button", { name: "English" }).click();
   await guest.getByRole("button", { name: `Join - Host: ${hostName}` }).click();
 
   await expect(guest).toHaveURL(new RegExp(`/en/lobby/${code}$`));

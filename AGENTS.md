@@ -6,13 +6,14 @@ The requirements are still preliminary. Do not treat unconfirmed ideas as final 
 
 ## Documentation
 
-Detailed docs live in [`doc/`](doc/README.md). Read the relevant file before working in that area:
+Detailed docs live in [`docs/`](docs/README.md). Read the relevant file before working in that area:
 
-* [`doc/architecture.md`](doc/architecture.md): folder layout and where code belongs
-* [`doc/design-system.md`](doc/design-system.md): Persona 5 theme, tokens and UI patterns
-* [`doc/i18n.md`](doc/i18n.md): adding translated text
-* [`doc/testing.md`](doc/testing.md): checks and test conventions
-* [`doc/status.md`](doc/status.md): what is built, mocked or undecided
+* [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): folder layout and where code belongs
+* [`docs/design-system.md`](docs/design-system.md): Persona 5 theme, tokens and UI patterns
+* [`docs/i18n.md`](docs/i18n.md): adding translated text
+* [`docs/testing.md`](docs/testing.md): checks and test conventions
+* [`docs/status.md`](docs/status.md): what is built, mocked or undecided
+* [`docs/EXIGENCES.md`](docs/EXIGENCES.md): course requirements traceability matrix (update when a requirement changes status)
 
 Update the matching doc when a change makes it outdated.
 

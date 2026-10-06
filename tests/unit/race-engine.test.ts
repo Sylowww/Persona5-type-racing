@@ -404,6 +404,13 @@ describe("race settings", () => {
     expect(updateSettings(racing("ann", "bob"), "ann", { numbers: true })).toEqual({ ok: false, error: "wrongPhase" });
   });
 
+  it("defaults the text language to the host's interface language", () => {
+    const french = createLobby({ code: "P5-TEST", locale: "fr", host: { id: "ann", name: "ann" }, now: T0 });
+    const english = createLobby({ code: "P5-TEST", locale: "en", host: { id: "ann", name: "ann" }, now: T0 });
+    expect(french.settings.language).toBe("fr");
+    expect(english.settings.language).toBe("en");
+  });
+
   it("uses the chosen time limit, or a long safety cap without one", () => {
     const timed = unwrap(updateSettings(readyAll(lobbyWith("ann", "bob")), "ann", { timeLimitSec: 30 }));
     const race = unwrap(startRace(timed, "ann", TEXT, T0)).race;

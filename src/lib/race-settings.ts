@@ -1,3 +1,4 @@
+import { isLocale } from "../i18n/locales";
 import type { RaceMode, RaceSettings } from "@/types/lobby";
 
 export const raceModes: readonly RaceMode[] = ["normal", "suddenDeath"];
@@ -11,6 +12,8 @@ export const defaultRaceSettings: RaceSettings = {
   timeLimitSec: 180,
   numbers: false,
   caseSensitive: true,
+  // Replaced by the host's interface language when a lobby is created.
+  language: "fr",
 };
 
 /** Races without a time limit still end after this long, so an idle racer cannot keep a lobby busy forever. */
@@ -23,6 +26,7 @@ export function parseRaceSettings(current: RaceSettings, value: unknown): RaceSe
   for (const [key, field] of Object.entries(value)) {
     if (key === "mode" && raceModes.some((mode) => mode === field)) next.mode = field as RaceMode;
     else if (key === "timeLimitSec" && timeLimitOptions.includes(field as number | null)) next.timeLimitSec = field as number | null;
+    else if (key === "language" && typeof field === "string" && isLocale(field)) next.language = field;
     else if ((key === "powers" || key === "numbers" || key === "caseSensitive") && typeof field === "boolean") next[key] = field;
     else return null;
   }

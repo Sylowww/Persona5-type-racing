@@ -42,12 +42,12 @@ describe("lobby store", () => {
   it("creates lobbies with unique codes", () => {
     const first = store.create(ann, "en");
     const second = store.create(bob, "fr");
-    expect(first).toBe("P5-ABCD");
+    expect(first).toBe("ABCDEF");
     expect(second).not.toBe(first);
   });
 
   it("reports unknown lobbies and keeps players in one lobby at a time", () => {
-    expect(store.join("P5-ZZZZ", bob)).toBe("lobbyNotFound");
+    expect(store.join("ZZZZZZ", bob)).toBe("lobbyNotFound");
     const first = store.create(ann, "en");
     store.join(first, bob);
     const second = store.create(bob, "en");
@@ -66,6 +66,14 @@ describe("lobby store", () => {
       ["ann", true, true],
       ["bob", true, true],
     ]);
+  });
+
+  it("picks the race text in the language chosen by the host", () => {
+    const { code, bobStream } = readyLobby();
+    expect(store.updateSettings(code, "ann", { language: "fr" })).toBeNull();
+    store.setReady(code, "bob", true);
+    expect(store.start(code, "ann")).toBeNull();
+    expect(raceTexts.fr).toContain(bobStream.last()?.race?.text);
   });
 
   it("runs the countdown and race on server time, then shares results", () => {
@@ -284,5 +292,18 @@ describe("character change", () => {
     expect(stream.last()?.players[0].character).toBe("joker");
     store.setCharacter("ann", "blackMask");
     expect(stream.last()?.players[0].character).toBe("blackMask");
+  });
+});
+
+describe("name change", () => {
+  it("updates the player's name in their current lobby", () => {
+    const code = store.create(ann, "en");
+    const stream = listen(code, "ann");
+    store.setName("ann", "annie");
+    expect(stream.last()?.players[0].name).toBe("annie");
+  });
+
+  it("does nothing for a player outside any lobby", () => {
+    expect(() => store.setName("nobody", "ghost")).not.toThrow();
   });
 });
