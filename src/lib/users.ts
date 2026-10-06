@@ -1,6 +1,7 @@
 import "server-only";
 import type { PoolClient } from "pg";
 import { getPool } from "@/lib/db";
+import { avatarPath, type AvatarType } from "@/lib/avatar";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { generateSessionToken, hashSessionToken, sessionExpiry } from "@/lib/auth/session-token";
 import { guestUsername, normalizeEmail } from "@/lib/auth/validation";
@@ -188,4 +189,47 @@ export async function getLinkedProviders(userId: string): Promise<OAuthProvider[
 
 export async function setUserCharacter(userId: string, character: CharacterId): Promise<void> {
   await getPool().query("UPDATE users SET character_id = $1, updated_at = now() WHERE id = $2", [character, userId]);
+}
+
+/** Renames a registered user; usernames stay unique case-insensitively. */
+export async function renameUser(userId: string, username: string): Promise<{ ok: true } | { ok: false; error: "usernameTaken" }> {
+  try {
+    await getPool().query("UPDATE users SET username = $1, updated_at = now() WHERE id = $2 AND kind = 'registered'", [username, userId]);
+    return { ok: true };
+  } catch (error) {
+    if (uniqueViolation(error) === null) throw error;
+    return { ok: false, error: "usernameTaken" };
+  }
+}
+
+/** Stores a validated profile picture and points the user's avatar to it. */
+export async function saveUserAvatar(userId: string, type: AvatarType, data: Uint8Array): Promise<void> {
+  const client: PoolClient = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query<{ updated_at: Date }>(
+      `INSERT INTO user_avatars (user_id, content_type, data) VALUES ($1, $2, $3)
+       ON CONFLICT (user_id) DO UPDATE SET content_type = $2, data = $3, updated_at = now()
+       RETURNING updated_at`,
+      [userId, type, Buffer.from(data)],
+    );
+    await client.query("UPDATE users SET avatar_url = $1, updated_at = now() WHERE id = $2", [
+      avatarPath(userId, rows[0].updated_at.getTime()),
+      userId,
+    ]);
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getUserAvatar(userId: string): Promise<{ contentType: AvatarType; data: Buffer } | null> {
+  const { rows } = await getPool().query<{ content_type: AvatarType; data: Buffer }>(
+    "SELECT content_type, data FROM user_avatars WHERE user_id = $1",
+    [userId],
+  );
+  return rows[0] ? { contentType: rows[0].content_type, data: rows[0].data } : null;
 }

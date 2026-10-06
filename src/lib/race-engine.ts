@@ -309,6 +309,13 @@ export function setCharacter(state: LobbyState, userId: string, character: Chara
   return { ...state, members: state.members.map((candidate) => (candidate === member ? { ...candidate, character } : candidate)) };
 }
 
+/** A player renamed on their profile: the lobby shows the new name at once, the race in progress keeps the old one. */
+export function setName(state: LobbyState, userId: string, name: string): LobbyState {
+  const member = state.members.find((candidate) => candidate.id === userId && candidate.bot === null);
+  if (!member || member.name === name) return state;
+  return { ...state, members: state.members.map((candidate) => (candidate === member ? { ...candidate, name } : candidate)) };
+}
+
 /** The host changes the next race's rules while the lobby is waiting. `change` comes from the client and is validated here. */
 export function updateSettings(state: LobbyState, userId: string, change: unknown): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
