@@ -75,7 +75,7 @@ Migrations run at startup. On the free plan the service sleeps when idle (the fi
 
 ## Documentation
 
-Detailed docs are in [`doc/`](doc/README.md): architecture and multiplayer design, design system, translations, testing, and the current status of each feature.
+Detailed docs are in [`docs/`](docs/README.md): architecture and multiplayer design, design system, translations, testing, and the current status of each feature.
 
 ## Third-party content notice
 

@@ -1,5 +1,5 @@
 // In-memory home of every lobby: applies engine rules, runs timers and notifies subscribers.
-// State lives in this process only, so the app must run as a single Node instance (see doc/architecture.md).
+// State lives in this process only, so the app must run as a single Node instance (see docs/ARCHITECTURE.md).
 import type { Locale } from "@/i18n/locales";
 import type { CharacterId } from "@/types/character";
 import type { BotDifficulty, LobbyView, PublicLobby } from "@/types/lobby";

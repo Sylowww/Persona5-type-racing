@@ -25,4 +25,4 @@ E2E tests create their accounts with `signUp` / `testUsername` from `tests/e2e/`
 
 ## Gotcha
 
-Playwright uses `http://127.0.0.1:3000` and reuses an existing server locally. A reused dev server also keeps its in-memory lobby store from before your last edit to the engine or store (see architecture.md), so restart it before running the multiplayer tests. If a dev server started on `localhost:3000` is already running, Next blocks its dev assets for the `127.0.0.1` origin, the page never hydrates, and interaction tests fail. Stop your dev server before `npm run test:e2e`.
+Playwright uses `http://127.0.0.1:3000` and reuses an existing server locally. A reused dev server also keeps its in-memory lobby store from before your last edit to the engine or store (see ARCHITECTURE.md), so restart it before running the multiplayer tests. If a dev server started on `localhost:3000` is already running, Next blocks its dev assets for the `127.0.0.1` origin, the page never hydrates, and interaction tests fail. Stop your dev server before `npm run test:e2e`.
