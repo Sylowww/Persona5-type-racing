@@ -42,12 +42,12 @@ describe("lobby store", () => {
   it("creates lobbies with unique codes", () => {
     const first = store.create(ann, "en");
     const second = store.create(bob, "fr");
-    expect(first).toBe("P5-ABCD");
+    expect(first).toBe("ABCDEF");
     expect(second).not.toBe(first);
   });
 
   it("reports unknown lobbies and keeps players in one lobby at a time", () => {
-    expect(store.join("P5-ZZZZ", bob)).toBe("lobbyNotFound");
+    expect(store.join("ZZZZZZ", bob)).toBe("lobbyNotFound");
     const first = store.create(ann, "en");
     store.join(first, bob);
     const second = store.create(bob, "en");

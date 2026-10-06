@@ -7,7 +7,7 @@ School project (Cégep, 3rd year, web programming).
 ## Features
 
 - **Real-time multiplayer races**: lobbies with a 3 s synchronized countdown, live track with animated runners, live places, results page (podium, speed chart, accuracy, keyboard heatmap).
-- **Lobbies**: private (join with a `P5-XXXX` code or link) or public (listed in the lobby browser); ready-up, host-only start, chat and quick taunts.
+- **Lobbies**: private (join with a 6-character code or link) or public (listed in the lobby browser); ready-up, host-only start, chat and quick taunts.
 - **Race settings** (host only): normal or sudden death (first mistake eliminates you), time limit (30 s to 3 min, or none), texts with numbers, case sensitivity.
 - **Game modes**: quick 1v1 matchmaking (a bot steps in after 15 s), solo training dojo (not saved).
 - **Bots** with four levels (about 30, 60, 120 and 150 WPM), human-like rhythm and typos.

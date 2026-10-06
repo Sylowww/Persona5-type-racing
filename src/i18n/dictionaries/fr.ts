@@ -75,10 +75,10 @@ const fr: Dictionary = {
       eyebrow: "Fréquence secrète",
       title: "Rejoindre avec un code",
       label: "Code du salon",
-      placeholder: "P5-XXXX",
+      placeholder: "XXXXXX",
       submit: "Infiltrer",
       errors: {
-        invalidCode: "Entre un code comme P5-AB12.",
+        invalidCode: "Entre un code de 6 caractères comme AB23CD.",
         lobbyNotFound: "Aucun salon avec ce code.",
         lobbyFull: "Ce salon est plein.",
         raceInProgress: "Une course est en cours. Réessaie quand elle sera terminée.",

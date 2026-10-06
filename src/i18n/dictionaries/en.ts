@@ -73,10 +73,10 @@ const en = {
       eyebrow: "Secret frequency",
       title: "Join with code",
       label: "Lobby code",
-      placeholder: "P5-XXXX",
+      placeholder: "XXXXXX",
       submit: "Punch in",
       errors: {
-        invalidCode: "Enter a code like P5-AB12.",
+        invalidCode: "Enter a 6-character code like AB23CD.",
         lobbyNotFound: "No lobby with this code.",
         lobbyFull: "This lobby is full.",
         raceInProgress: "A race is in progress. Try again when it ends.",

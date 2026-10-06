@@ -55,7 +55,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | SALLE-01 | partiel | `features/lobby/actions.ts`, `lib/lobby-store.ts` | `lobby-store.test.ts`, `tests/e2e/lobby.spec.ts` | Le créateur devient l'hôte, mais il ne peut pas encore choisir d'être seulement spectateur. |
-| SALLE-02 | partiel | `lib/lobby-code.ts` | `lobby-code.test.ts` | Format actuel : `P5-` suivi de 4 caractères, sans 0, O, 1 ni I. Il faut passer à 6 caractères et exclure aussi la lettre L. |
+| SALLE-02 | complet | `lib/lobby-code.ts` | `lobby-code.test.ts`, `lobby-store.test.ts` | 6 caractères parmi 31 (sans 0, O, 1, I ni L), soit environ 887 millions de codes. Le code saisi accepte les minuscules, les espaces et un tiret. |
 | SALLE-03 | partiel | `lib/race-engine.ts` (`setVisibility`), `app/[locale]/lobbies/` | `race-engine.test.ts` | Publique : complet. « Privée » dans le code correspond à « sur code » dans l'énoncé. La vraie visibilité privée, accessible seulement par lien d'invitation, n'existe pas. |
 | SALLE-04 | non fait | — | — | |
 | SALLE-05 | partiel | `lib/lobby-server.ts` | — | La capacité est globale (`LOBBY_CAPACITY`, 30 par défaut, maximum 60). L'hôte ne peut pas la configurer. |
