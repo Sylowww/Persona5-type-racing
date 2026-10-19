@@ -1,4 +1,13 @@
 export const iconNames = [
+  "radar",
+  "psychology",
+  "local_fire_department",
+  "light_mode",
+  "healing",
+  "flare",
+  "dark_mode",
+  "air",
+  "ac_unit",
   "add",
   "add_circle",
   "analytics",
