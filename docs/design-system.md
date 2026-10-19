@@ -104,6 +104,7 @@ Catch-up spells (`lib/spells.ts`) show three ways, all in the spell's element co
 
 Presentation-only layers on the race page; the server still decides places, finish and results. Moment detection is pure and tested in `lib/race-moments.ts`; highlight hooks are in `features/race/use-race-highlights.ts`.
 
+- **Lane order**: the player's lane stays on top, then the others by place; when the order changes, lanes slide to their new place (`use-lane-motion.ts`, a FLIP animation with the Web Animations API) and a racer entering the top three flashes yellow (`.lane-rise`). Reduced motion: lanes swap without sliding or flashing.
 - **Calling card**: at the start of the countdown, a red calling card ("Take their words!") flips in for 600 ms before Mona's cut-in (`countdownIntro` in `lib/cut-in.ts` skips the card, then Mona, when too little countdown time is left).
 - **Mona's comments** (`mona-comms.tsx`): a small corner box with her portrait, a bubble and a recorded line when the player passes someone ("Nice one, keep it up!"), gets passed ("Hey, come on! Wake up!"), keeps a 90-key streak ("Nice going!"), makes 3 mistakes within 2 s ("Ugh... that's not good!"), enters the last 10 % ("One more! This is it!"), when the chaos starts ("Don't panic! Stay cool and blaze through them!") and on finishing ("Well done!"). The most important moment wins, with a 3.5 s gap between comments (finish and chaos may interrupt). Texts: `race.comms`.
 - **Overtake flash**: the lane of a racer who just passed the player flashes red.
