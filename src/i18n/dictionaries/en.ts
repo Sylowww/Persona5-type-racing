@@ -82,7 +82,9 @@ const en = {
       label: "Lobby code",
       placeholder: "XXXXXX",
       submit: "Punch in",
+      leaveAndJoin: "Leave it and join",
       errors: {
+        alreadyInLobby: "You are already in lobby {code}. Leave it to join this one?",
         invalidCode: "Enter a 6-character code like AB23CD.",
         lobbyNotFound: "No lobby with this code.",
         lobbyFull: "This lobby is full.",
@@ -520,6 +522,7 @@ const en = {
     join: "Join",
     refresh: "Refresh",
     errors: {
+      alreadyInLobby: "You are already in another lobby. Leave it and join this one?",
       invalidCode: "This lobby no longer exists.",
       lobbyNotFound: "This lobby no longer exists.",
       lobbyFull: "This lobby is full.",
@@ -539,7 +542,9 @@ const en = {
     invalidTitle: "Invite not valid",
     invalidText: "This link was revoked, or its lobby is closed.",
     home: "Back to home",
+    leaveAndJoin: "Leave it and join",
     errors: {
+      alreadyInLobby: "You are already in another lobby. Leave it and join this one?",
       invalidInvite: "This link was revoked, or its lobby is closed.",
       inviteUsed: "This link was already used by someone else.",
       lobbyFull: "This lobby is full.",

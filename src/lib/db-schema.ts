@@ -127,3 +127,12 @@ export const raceTexts = pgTable(
   },
   (table) => [index("race_texts_language_idx").on(table.language, table.hasNumbers)],
 );
+
+/** Who is in which lobby right now (SALLE-06): the primary key keeps a person in one lobby at most. */
+export const lobbyMembers = pgTable("lobby_members", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  lobbyCode: text("lobby_code").notNull(),
+  joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+});

@@ -8,12 +8,14 @@ import { isBotDifficulty } from "@/lib/bots";
 import { clientIp } from "@/lib/client-ip";
 import { normalizeLobbyCode } from "@/lib/lobby-code";
 import { lobbyCodeLimiter } from "@/lib/lobby-join-limit";
+import { claimLobbySeat, releaseLobbySeat } from "@/lib/lobby-members-db";
 import { getLobbyStore } from "@/lib/lobby-server";
 import type { QuickMatchStatus, StoreError } from "@/lib/lobby-store";
 import { botForSpeed } from "@/lib/matchmaking";
 import { getPlayerStats } from "@/lib/race-history-db";
 
 export type JoinErrorCode =
+  | "alreadyInLobby"
   | "invalidCode"
   | "lobbyNotFound"
   | "lobbyFull"
@@ -22,9 +24,10 @@ export type JoinErrorCode =
   | "kicked"
   | "tooManyAttempts";
 
-export type InviteErrorCode = "invalidInvite" | "inviteUsed" | "lobbyFull" | "raceInProgress" | "kicked";
+export type InviteErrorCode = "alreadyInLobby" | "invalidInvite" | "inviteUsed" | "lobbyFull" | "raceInProgress" | "kicked";
 
-export type JoinFormState = { error: JoinErrorCode | null; code: string };
+/** `current`: the lobby the player is already in, when they must first agree to leave it (SALLE-06). */
+export type JoinFormState = { error: JoinErrorCode | null; code: string; current?: string };
 
 function toLocale(value: unknown): Locale {
   return typeof value === "string" && isLocale(value) ? value : "fr";
@@ -35,6 +38,23 @@ async function requirePlayer(locale: Locale, next: string) {
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/guest?next=${encodeURIComponent(next)}`);
   return { id: user.id, name: user.username, character: user.character };
+}
+
+/**
+ * One lobby per person (SALLE-06), guaranteed by the `lobby_members` primary key: takes the seat in `code`, or returns
+ * the lobby the person is already in. With `leaveCurrent`, they leave that lobby first. A seat left behind by a lobby
+ * that no longer holds them is freed silently. If the database is unreachable, the store's own rule still applies.
+ */
+async function takeSeat(userId: string, code: string, leaveCurrent: boolean): Promise<string | null> {
+  const current = await claimLobbySeat(userId, code).catch(() => null);
+  if (!current) return null;
+  const store = getLobbyStore();
+  const isStillThere = store.lobbyOf(userId) === current;
+  if (isStillThere && !leaveCurrent) return current;
+  if (isStillThere) store.leave(current, userId);
+  await releaseLobbySeat(userId, current).catch(() => undefined);
+  await claimLobbySeat(userId, code).catch(() => null);
+  return null;
 }
 
 /** Only registered players open lobbies (AUTH-03); guests and visitors are sent to create an account. */
@@ -60,6 +80,10 @@ export async function joinLobby(_previous: JoinFormState, form: FormData): Promi
   if (!lobbyCodeLimiter().allow(clientIp(await headers()))) return { error: "tooManyAttempts", code: typed };
 
   const player = await requirePlayer(locale, `/${locale}/lobby/${code}`);
+  const precheck = getLobbyStore().joinError(code, player);
+  if (precheck) return { error: precheck === "lobbyFull" || precheck === "privateLobby" || precheck === "raceInProgress" || precheck === "kicked" ? precheck : "lobbyNotFound", code: typed };
+  const current = await takeSeat(player.id, code, form.get("leaveCurrent") === "1");
+  if (current) return { error: "alreadyInLobby", code: typed, current };
   const error = getLobbyStore().join(code, player);
   if (error === "lobbyNotFound" || error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress" || error === "kicked") {
     return { error, code: typed };
@@ -125,10 +149,12 @@ export async function createLobbyInvite(code: string): Promise<StoreError | null
 }
 
 /** Joins the lobby of an invite link from this request's IP address (SALLE-04); returns why it failed, or redirects into it. */
-export async function joinWithInviteLink(token: string, localeValue: string): Promise<InviteErrorCode> {
+export async function joinWithInviteLink(token: string, localeValue: string, leaveCurrent = false): Promise<InviteErrorCode> {
   const locale = toLocale(localeValue);
   if (typeof token !== "string" || token.length > 64) return "invalidInvite";
   const player = await requirePlayer(locale, `/${locale}/invite/${encodeURIComponent(token)}`);
+  const target = getLobbyStore().inviteTarget(token);
+  if (target && (await takeSeat(player.id, target.code, leaveCurrent === true))) return "alreadyInLobby";
   const result = getLobbyStore().joinWithInvite(token, player, clientIp(await headers()));
   if ("code" in result) redirect(`/${locale}/lobby/${result.code}`);
   const { error } = result;
@@ -183,17 +209,19 @@ export async function setLobbyCapacity(code: string, capacity: number): Promise<
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().setCapacity(lobby, userId, capacity));
 }
 
-export type QuickRaceResult = { state: "none"; canCreate: boolean } | { state: "error"; error: JoinErrorCode };
+export type QuickRaceResult = { state: "none"; canCreate: boolean } | { state: "error"; error: JoinErrorCode; current?: string };
 
 /**
  * « Faire une course » (JOIN-03): joins the public lobby closest to full, or reports that none is available. Registered
  * players are then offered to open one; guests only see that nothing is open.
  */
-export async function quickRace(localeValue: string): Promise<QuickRaceResult> {
+export async function quickRace(localeValue: string, leaveCurrent = false): Promise<QuickRaceResult> {
   const locale = toLocale(localeValue);
   const player = await requirePlayer(locale, `/${locale}/lobbies`);
   const code = getLobbyStore().quickRaceLobby();
   if (!code) return { state: "none", canCreate: (await getCurrentUser())?.kind === "registered" };
+  const current = await takeSeat(player.id, code, leaveCurrent === true);
+  if (current) return { state: "error", error: "alreadyInLobby", current };
   const error = getLobbyStore().join(code, player);
   if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress" || error === "kicked") return { state: "error", error };
   if (error) return { state: "error", error: "lobbyNotFound" };
@@ -211,11 +239,12 @@ export async function createPublicLobby(localeValue: string): Promise<void> {
 }
 
 /** Joins a lobby picked in the lobby browser; returns why it failed, or redirects into it. */
-export async function joinListedLobby(codeValue: string, localeValue: string): Promise<JoinErrorCode> {
+export async function joinListedLobby(codeValue: string, localeValue: string, leaveCurrent = false): Promise<JoinErrorCode> {
   const locale = toLocale(localeValue);
   const code = normalizeLobbyCode(String(codeValue));
   if (!code) return "lobbyNotFound";
   const player = await requirePlayer(locale, `/${locale}/lobby/${code}`);
+  if (await takeSeat(player.id, code, leaveCurrent === true)) return "alreadyInLobby";
   const error = getLobbyStore().join(code, player);
   if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress" || error === "kicked") return error;
   if (error) return "lobbyNotFound";

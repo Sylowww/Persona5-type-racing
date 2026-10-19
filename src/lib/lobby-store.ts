@@ -72,6 +72,8 @@ export type LobbyStoreOptions = {
   corpus?: () => readonly CorpusText[];
   /** Makes invite link tokens; defaults to 128 random bits from Web Crypto. */
   inviteToken?: () => string;
+  /** Called whenever a person enters a lobby (`code`) or leaves one (`code` null, `previous` set), e.g. to record it. */
+  onMembership?: (userId: string, code: string | null, previous: string | null) => void;
   /** Called once per finished race with each player's results (bots excluded), e.g. to save them. */
   onRaceFinished?: (code: string, results: RaceResult[]) => void;
 };
@@ -113,13 +115,20 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     if (next === previous) return;
 
     for (const member of previous?.members ?? []) {
-      if (!isMember(next, member.id) && lobbyOfUser.get(member.id) === code) lobbyOfUser.delete(member.id);
+      if (!isMember(next, member.id) && lobbyOfUser.get(member.id) === code) {
+        lobbyOfUser.delete(member.id);
+        options.onMembership?.(member.id, null, code);
+      }
     }
     if (next.members.length === 0) {
       lobbies.delete(code);
     } else {
       lobbies.set(code, next);
-      for (const member of next.members) if (member.bot === null && isMember(next, member.id)) lobbyOfUser.set(member.id, code);
+      for (const member of next.members) {
+        if (member.bot !== null || !isMember(next, member.id) || lobbyOfUser.get(member.id) === code) continue;
+        lobbyOfUser.set(member.id, code);
+        options.onMembership?.(member.id, code, null);
+      }
     }
 
     if (immediate) broadcast(code);

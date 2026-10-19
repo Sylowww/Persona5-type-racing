@@ -356,3 +356,21 @@ describe("quick race (JOIN-03)", () => {
     expect(store.quickRaceLobby()).toBe(roomy);
   });
 });
+
+describe("one lobby per person (SALLE-06)", () => {
+  it("reports every lobby a person enters and leaves", () => {
+    const events: string[] = [];
+    let draws = 0;
+    store = createLobbyStore({
+      now: () => clock,
+      randomInt: (max) => draws++ % max,
+      tickMs: null,
+      onMembership: (userId, code, previous) => events.push(`${userId}:${previous ?? "-"}>${code ?? "-"}`),
+    });
+    const first = store.create(ann, "en");
+    store.join(first, bob);
+    const second = store.create(bob, "en");
+    store.close(first, "ann");
+    expect(events).toEqual([`ann:->${first}`, `bob:->${first}`, `bob:${first}>-`, `bob:->${second}`, `ann:${first}>-`]);
+  });
+});
