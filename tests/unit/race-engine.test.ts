@@ -349,6 +349,9 @@ describe("catch-up spells (BONUS-01 to BONUS-04)", () => {
   it("Zio stuns the leader: their keys do nothing for a moment", () => {
     const state = type(spellRace("zio"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
     expect(racerOf(state, "ann")?.stun).toEqual({ element: "elec", until: START + 4_500 });
+    // Everyone sees the shocked lane while it lasts.
+    expect(viewFor(state, "bob", START + 3_000)?.race?.racers.find((racer) => racer.id === "ann")?.mark).toEqual({ element: "elec", until: START + 4_500 });
+    expect(viewFor(state, "bob", START + 4_600)?.race?.racers.find((racer) => racer.id === "ann")?.mark).toBeNull();
     const stunned = type(state, "ann", "x", 2, START + 3_500);
     expect(racerOf(stunned, "ann")).toMatchObject({ inputSeq: 2, typing: { typed: FIRST_CHECKPOINT } });
     expect(racerOf(type(state, "ann", LONG[16], 2, START + 4_600), "ann")?.typing.typed).toBe(LONG.slice(0, 17));

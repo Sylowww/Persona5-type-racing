@@ -591,3 +591,107 @@
     transform: scale(1) rotate(-3deg);
   }
 }
+
+/* A lane under a malus (race-track.tsx): the spell's element covers it until it wears off, then fades ("thaws"). */
+.lane-mark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 500ms ease-out;
+}
+
+.lane-mark-ending {
+  opacity: 0;
+}
+
+.lane-mark-icon {
+  opacity: 0.75;
+}
+
+.lane-mark-ice {
+  background:
+    radial-gradient(circle at 12% 30%, color-mix(in srgb, var(--color-secondary) 55%, transparent) 0 6px, transparent 7px),
+    radial-gradient(circle at 63% 70%, color-mix(in srgb, var(--color-secondary) 45%, transparent) 0 5px, transparent 6px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-spell-ice) 50%, transparent), color-mix(in srgb, var(--color-spell-ice) 25%, transparent));
+  box-shadow: inset 0 0 0 2px var(--color-spell-ice), inset 0 0 22px color-mix(in srgb, var(--color-secondary) 60%, transparent);
+}
+
+.lane-mark-elec {
+  background: repeating-linear-gradient(115deg, transparent 0 22px, color-mix(in srgb, var(--color-spell-elec) 45%, transparent) 22px 26px);
+  box-shadow: inset 0 0 0 2px var(--color-spell-elec);
+}
+
+.lane-mark-fire {
+  background: linear-gradient(0deg, color-mix(in srgb, var(--color-spell-fire) 65%, transparent), color-mix(in srgb, var(--color-spell-elec) 25%, transparent) 55%, transparent 80%);
+  box-shadow: inset 0 -6px 14px var(--color-spell-fire);
+}
+
+.lane-mark-psy {
+  background: radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--color-spell-psy) 45%, transparent), color-mix(in srgb, var(--color-spell-psy) 15%, transparent));
+}
+
+.lane-mark-bless {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-spell-bless) 25%, transparent), color-mix(in srgb, var(--color-secondary) 70%, transparent), color-mix(in srgb, var(--color-spell-bless) 25%, transparent));
+}
+
+.lane-mark-curse {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-spell-curse) 55%, transparent), color-mix(in srgb, var(--color-surface-container-lowest) 60%, transparent));
+}
+
+.lane-mark-nuclear {
+  background: radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--color-spell-nuclear) 45%, transparent), transparent 75%);
+  box-shadow: inset 0 0 0 2px var(--color-spell-nuclear);
+}
+
+.lane-mark-phys {
+  background: repeating-linear-gradient(135deg, transparent 0 40px, color-mix(in srgb, var(--color-spell-phys) 60%, transparent) 40px 44px);
+}
+
+/* The runner takes the hit too: frozen blue, charred, shocked, cursed. */
+.lane-runner-ice {
+  filter: hue-rotate(180deg) saturate(0.5) brightness(1.3) drop-shadow(0 0 6px var(--color-spell-ice));
+}
+
+.lane-runner-fire {
+  filter: drop-shadow(0 0 6px var(--color-spell-fire)) sepia(0.5);
+}
+
+.lane-runner-elec {
+  filter: brightness(1.5) drop-shadow(0 0 6px var(--color-spell-elec));
+}
+
+.lane-runner-curse {
+  filter: brightness(0.5) drop-shadow(0 0 6px var(--color-spell-curse));
+}
+
+.lane-runner-psy {
+  filter: hue-rotate(290deg) drop-shadow(0 0 6px var(--color-spell-psy));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lane-mark-elec {
+    animation: spell-zap 160ms steps(2) infinite;
+  }
+
+  .lane-mark-fire {
+    animation: spell-flicker 240ms steps(2) infinite;
+  }
+
+  .lane-mark-psy {
+    animation: spell-wobble 900ms ease-in-out infinite;
+  }
+
+  .lane-mark-icon {
+    animation: lane-mark-float 1.4s ease-in-out infinite alternate;
+  }
+
+  .lane-runner-ice > * {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes lane-mark-float {
+  to {
+    transform: translateY(-65%) rotate(12deg);
+  }
+}
