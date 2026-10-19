@@ -87,7 +87,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | CONF-06 | partiel | `lib/race-settings.ts` | `race-settings.test.ts` | Options présentes : nombres, majuscules (sensibilité à la casse). La ponctuation est toujours activée et les accents ne sont pas configurables. |
 | CONF-07 | non fait | — | — | |
 | CONF-08 | complet | `lib/typing.ts` (`typeChar`, `netChars`, `progress`), `lib/race-settings.ts`, `lib/bots.ts` | `typing.test.ts`, `bots.test.ts` | « Correction obligatoire » (`blocking`) : une touche fausse compte comme erreur mais le curseur n'avance pas, et le caractère à corriger est marqué. « Libre » (`free`) : l'erreur reste, est comptée, et le joueur continue ; la course se termine au dernier caractère. Restent aussi « Normal » (les erreurs restent et doivent être effacées) et « Mort subite » (voir les choix plus haut). |
-| CONF-09 | partiel | `lib/race-settings.ts` | — | Le réglage existe, mais il n'a encore aucun effet. |
+| CONF-09 | complet | `lib/race-settings.ts` (`powers`), `features/lobby/components/rules-dossier.tsx` | `race-engine.test.ts`, `tests/e2e/multiplayer.spec.ts` | Interrupteur « Pouvoirs » de l'hôte : sans lui, aucun bonus n'est donné. |
 | CONF-10 | complet | `lib/race-engine.ts` (`addBot`, `removeBot`) | `race-engine.test.ts` | Chaque bot a son propre niveau. |
 | CONF-11 | complet | `features/lobby/components/rules-dossier.tsx` | `tests/e2e/lobby.spec.ts` | Visibilité et nombre de places dans le panneau des réglages de l'hôte. Voir SALLE-03 et SALLE-05. |
 | CONF-12 | complet | `features/lobby/` | `tests/e2e/multiplayer.spec.ts` | Le résumé des règles se met à jour en direct pour tout le monde. |
@@ -115,24 +115,24 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | BOT-01 | partiel | `lib/bots.ts` | `bots.test.ts` | 4 niveaux (environ 30, 60, 120 et 150 MPM) au lieu de 5. |
 | BOT-02 | complet | `lib/bots.ts` | `bots.test.ts` | Vitesse variable : ±8 % par course, ralentissements sur les majuscules et la ponctuation, pauses entre les mots. |
 | BOT-03 | complet | `lib/bots.ts` | `bots.test.ts` | Les fautes de frappe ralentissent les bots et suivent le mode d'erreur : en mode normal, remarquées en retard, effacées puis retapées ; en correction obligatoire, retapées après un temps de réaction ; en mode libre, laissées dans le texte. |
-| BOT-04 | partiel | `lib/race-engine.ts` | — | Les bots suivent les mêmes règles que les joueurs. Les bonus n'existent pas encore. |
+| BOT-04 | complet | `lib/race-engine.ts` (`applyCatchUp`, `applyBonus`), `lib/bots.ts` (`replanBotRun`), `features/lobby/components/player-card.tsx` | `race-engine.test.ts` | Les bots sont marqués « Bot » avec leur niveau dans la salle et sur la piste. Ils reçoivent et subissent les bonus : quand leur texte change, ils planifient à nouveau la suite de leur course ; sous le brouillard, ils hésitent 1,5 s. |
 | BOT-05 | complet | `lib/bots.ts` (`planBotRun`) | `bots.test.ts` (générateur à graine) | Le hasard est injecté. Voir l'ADR-002. |
 
 ## Bonus de remontée
 
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
-| BONUS-01 | non fait | — | — | |
-| BONUS-02 | non fait | — | — | |
-| BONUS-03 | non fait | — | — | |
-| BONUS-04 | non fait | — | — | |
+| BONUS-01 | complet | `lib/bonuses.ts`, `lib/race-engine.ts` (`applyCatchUp`) | `bonuses.test.ts`, `race-engine.test.ts` | Quand le meneur passe 25 %, 50 % et 75 % du texte, chaque joueur encore en course qui est dernier, ou à plus de 25 points de progression du meneur, reçoit un bonus ; jamais le meneur, et 3 au maximum par course. Si plusieurs points sont franchis d'un coup, chacun donne ses bonus. |
+| BONUS-02 | complet | `lib/bonuses.ts` | `bonuses.test.ts`, `race-engine.test.ts` | Trois bonus, attribués à tour de rôle : Raccourci (-3 mots à la fin du texte du joueur en retard, jamais le mot en cours), Fardeau (+3 mots du texte de la course ajoutés au texte du meneur) et Brouillard (les prochains mots du meneur sont flous pendant 5 s). |
+| BONUS-03 | complet | `features/race/components/bonus-feed.tsx` | `tests/e2e/multiplayer.spec.ts` | Chaque bonus est annoncé sur la piste pendant 4 s pour tout le monde, et par un bandeau plus visible chez le joueur ciblé. |
+| BONUS-04 | complet | `lib/race-engine.ts` (texte propre à chaque coureur), `lib/typing.ts` | `race-engine.test.ts` | Chaque coureur a son propre texte : la progression, le MPM et l'arrivée sont calculés sur ce texte, allongé ou réduit. |
 
 ## Résultats, statistiques et historique
 
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | RES-01 | complet | `features/results/components/results-podium.tsx` | `results.test.ts` | |
-| RES-02 | partiel | `features/results/components/results-table.tsx`, `lib/race-engine.ts` (`finishRace`) | `results.test.ts`, `race-engine.test.ts`, `tests/e2e/multiplayer.spec.ts` | Tableau complet : rang, participant, MPM, MPM brut, précision, erreurs, temps et statut (terminé, temps écoulé, éliminé, abandon). Il manque la colonne des bonus reçus (les bonus ne sont pas faits). |
+| RES-02 | complet | `features/results/components/results-table.tsx`, `lib/race-engine.ts` (`finishRace`) | `results.test.ts`, `race-engine.test.ts`, `tests/e2e/multiplayer.spec.ts` | Tableau complet : rang, participant, MPM, MPM brut, précision, erreurs, temps, bonus reçus et statut (terminé, temps écoulé, éliminé, abandon). |
 | RES-03 | partiel | `features/results/components/keyboard-heatmap.tsx` | `results.test.ts` | La carte de chaleur du clavier est faite. Le graphique du MPM de tous les participants reste à vérifier ou compléter. |
 | RES-04 | non fait | — | — | |
 | RES-05 | partiel | `lib/race-history-db.ts`, `db/migrations/003_race_results.sql` | `race-history.test.ts` | Seul un résumé par joueur est conservé. La série temporelle du MPM n'est pas enregistrée. |

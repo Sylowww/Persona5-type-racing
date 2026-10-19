@@ -47,7 +47,7 @@ Last updated: 2026-10-05.
 
 ## Not started
 
-Heatmap history, matchmaking for custom lobbies (JOIN-03), the database constraint for one lobby per person (SALLE-06), powers (the setting exists but does nothing), multi-instance deployment (shared lobby state).
+Heatmap history, matchmaking for custom lobbies (JOIN-03), the database constraint for one lobby per person (SALLE-06), multi-instance deployment (shared lobby state).
 
 ## Undecided
 
