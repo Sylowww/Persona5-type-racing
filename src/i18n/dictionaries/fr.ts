@@ -90,6 +90,7 @@ const fr: Dictionary = {
         lobbyFull: "Ce salon est plein.",
         raceInProgress: "Une course est en cours. Réessaie quand elle sera terminée.",
         privateLobby: "Cette course est privée et ne peut pas être rejointe avec son code.",
+        tooManyAttempts: "Trop de tentatives. Attends une minute avant d'essayer un autre code.",
         kicked: "L'hôte t'a retiré de ce salon.",
       },
     },
@@ -458,6 +459,7 @@ const fr: Dictionary = {
       privateLobby: "Ce salon n'est plus public.",
       raceInProgress: "Une course est en cours. Réessaie quand elle sera terminée.",
       kicked: "L'hôte t'a retiré de ce salon.",
+      tooManyAttempts: "Trop de tentatives. Attends une minute et réessaie.",
     },
   },
   invite: {

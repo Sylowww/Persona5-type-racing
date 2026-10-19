@@ -88,6 +88,7 @@ const en = {
         lobbyFull: "This lobby is full.",
         raceInProgress: "A race is in progress. Try again when it ends.",
         privateLobby: "This race is private and cannot be joined with its code.",
+        tooManyAttempts: "Too many attempts. Wait a minute before trying another code.",
         kicked: "The host removed you from this lobby.",
       },
     },
@@ -456,6 +457,7 @@ const en = {
       privateLobby: "This lobby is no longer public.",
       raceInProgress: "A race is in progress. Try again when it ends.",
       kicked: "The host removed you from this lobby.",
+      tooManyAttempts: "Too many attempts. Wait a minute and try again.",
     },
   },
   invite: {

@@ -69,6 +69,7 @@ All are documented in [`.env.example`](.env.example). Never commit `.env`.
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | no | GitHub sign-in |
 | `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | no | Discord sign-in |
 | `LOBBY_CAPACITY` | no | Seats of a new lobby (default and maximum 30; the host can change it from 2 to 30) |
+| `LOBBY_CODE_ATTEMPTS_PER_MINUTE` | no | Lobby code attempts per IP address and minute (default 10) |
 | `ALLOWED_DEV_ORIGINS` | no | Extra hosts allowed to reach the dev server (LAN play) |
 
 ## Checks

@@ -41,7 +41,15 @@ export default async function LobbyPage({ params }: Params) {
                 dictionary={dictionary.home.joinCode}
                 locale={locale}
                 defaultCode={code}
-                initialError={joinError === "lobbyFull" || joinError === "privateLobby" || joinError === "raceInProgress" || joinError === "kicked" ? joinError : null}
+                initialError={
+                  joinError === "lobbyFull" ||
+                  joinError === "privateLobby" ||
+                  joinError === "raceInProgress" ||
+                  joinError === "kicked" ||
+                  joinError === "tooManyAttempts"
+                    ? joinError
+                    : null
+                }
               />
             </div>
           )}

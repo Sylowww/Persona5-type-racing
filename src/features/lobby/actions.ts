@@ -7,12 +7,20 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { isBotDifficulty } from "@/lib/bots";
 import { clientIp } from "@/lib/client-ip";
 import { normalizeLobbyCode } from "@/lib/lobby-code";
+import { lobbyCodeLimiter } from "@/lib/lobby-join-limit";
 import { getLobbyStore } from "@/lib/lobby-server";
 import type { QuickMatchStatus, StoreError } from "@/lib/lobby-store";
 import { botForSpeed } from "@/lib/matchmaking";
 import { getPlayerStats } from "@/lib/race-history-db";
 
-export type JoinErrorCode = "invalidCode" | "lobbyNotFound" | "lobbyFull" | "privateLobby" | "raceInProgress" | "kicked";
+export type JoinErrorCode =
+  | "invalidCode"
+  | "lobbyNotFound"
+  | "lobbyFull"
+  | "privateLobby"
+  | "raceInProgress"
+  | "kicked"
+  | "tooManyAttempts";
 
 export type InviteErrorCode = "invalidInvite" | "inviteUsed" | "lobbyFull" | "raceInProgress" | "kicked";
 
@@ -49,6 +57,7 @@ export async function joinLobby(_previous: JoinFormState, form: FormData): Promi
   const typed = typeof raw === "string" ? raw.slice(0, 16) : "";
   const code = normalizeLobbyCode(typed);
   if (!code) return { error: "invalidCode", code: typed };
+  if (!lobbyCodeLimiter().allow(clientIp(await headers()))) return { error: "tooManyAttempts", code: typed };
 
   const player = await requirePlayer(locale, `/${locale}/lobby/${code}`);
   const error = getLobbyStore().join(code, player);
