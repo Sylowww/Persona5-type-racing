@@ -17,7 +17,7 @@ import type { InputBatch, InputEvent, KeyStat, RaceRacer, RaceResult, RaceView, 
 import { planBotRun, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
-import { canStartRace, lobbyVisibilities } from "./lobby";
+import { canStartRace, lobbyVisibilities, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-settings";
 import { rankRacers } from "./results";
 import {
@@ -44,8 +44,6 @@ export type EngineConfig = {
   sampleIntervalMs: number;
 };
 
-export const MIN_LOBBY_CAPACITY = 2;
-export const MAX_LOBBY_CAPACITY = 60;
 
 export const defaultEngineConfig: EngineConfig = {
   capacity: 30,
@@ -338,6 +336,20 @@ export function setVisibility(state: LobbyState, userId: string, visibility: unk
   const allowed = lobbyVisibilities.find((option) => option === visibility);
   if (!allowed) return fail("invalidSettings");
   return ok({ ...state, visibility: allowed });
+}
+
+/** The host sets the number of seats of a custom lobby, between 2 and 30 and never below the players already in. */
+export function setCapacity(state: LobbyState, userId: string, capacity: unknown): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  if (state.kind !== "custom") return fail("privateLobby");
+  const open = reopen(state);
+  if (open.phase !== "waiting") return fail("wrongPhase");
+  const min = Math.max(MIN_LOBBY_CAPACITY, activeMembers(open).length);
+  if (typeof capacity !== "number" || !Number.isInteger(capacity) || capacity < min || capacity > MAX_LOBBY_CAPACITY) {
+    return fail("invalidSettings");
+  }
+  return ok({ ...open, config: { ...open.config, capacity } });
 }
 
 /** How the lobby browser shows a public lobby; null for lobbies it does not list. */

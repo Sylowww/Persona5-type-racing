@@ -1,4 +1,5 @@
 export const iconNames = [
+  "add",
   "add_circle",
   "analytics",
   "arrow_forward",
@@ -27,6 +28,7 @@ export const iconNames = [
   "pin",
   "play_arrow",
   "push_pin",
+  "remove",
   "refresh",
   "send",
   "smart_toy",

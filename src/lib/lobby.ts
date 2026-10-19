@@ -2,6 +2,10 @@ import type { BotDifficulty, LobbyVisibility } from "@/types/lobby";
 
 export const lobbyVisibilities: readonly LobbyVisibility[] = ["public", "code", "private"];
 
+/** Players per lobby (SALLE-05). Spectators do not count. */
+export const MIN_LOBBY_CAPACITY = 2;
+export const MAX_LOBBY_CAPACITY = 30;
+
 type Readiness = { isReady: boolean };
 
 /** Target speed of each bot level; bots will vary around it once they exist. */

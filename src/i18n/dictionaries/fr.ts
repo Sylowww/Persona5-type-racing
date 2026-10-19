@@ -201,6 +201,13 @@ const fr: Dictionary = {
         public: "Public",
         publicHint: "Affiché dans la liste des salons : tout le monde peut entrer.",
       },
+      seats: {
+        title: "Places",
+        value: "{count} joueurs",
+        decrease: "Retirer une place",
+        increase: "Ajouter une place",
+        hint: "De {min} à {max} joueurs. Les spectateurs ne prennent pas de place.",
+      },
       mode: {
         title: "Directive 01 // Mode de course",
         normal: "Normal",

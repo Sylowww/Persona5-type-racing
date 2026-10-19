@@ -17,6 +17,9 @@ type RulesDossierProps = {
   /** Custom lobbies only; null hides the access choice (quick and training lobbies are always private). */
   visibility: LobbyVisibility | null;
   onVisibilityChange: (visibility: LobbyVisibility) => void;
+  /** Seats of a custom lobby and the lowest allowed value; null hides the setting (quick and training lobbies). */
+  seats: { capacity: number; min: number; max: number } | null;
+  onCapacityChange: (capacity: number) => void;
   spectators: readonly string[];
   /** Shows a close button in the title (when the dossier is in the settings panel). */
   onClose?: () => void;
@@ -37,6 +40,8 @@ export function RulesDossier({
   onChange,
   visibility,
   onVisibilityChange,
+  seats,
+  onCapacityChange,
   spectators,
   onClose,
 }: RulesDossierProps) {
@@ -91,6 +96,22 @@ export function RulesDossier({
                 {dictionary.visibility[`${visibility}Hint`]}
               </p>
             </div>
+
+            {seats && (
+              <div className="flex flex-col gap-1">
+                <DirectiveTitle title={dictionary.seats.title} tag={formatMessage(dictionary.seats.value, { count: seats.capacity })} />
+                <div className="flex items-center gap-2">
+                  <SeatButton icon="remove" label={dictionary.seats.decrease} disabled={disabled || seats.capacity <= seats.min} onClick={() => onCapacityChange(seats.capacity - 1)} />
+                  <output aria-live="polite" className="flex-1 bg-surface-container-low py-1.5 text-center font-display text-headline-sm italic text-secondary">
+                    {seats.capacity}
+                  </output>
+                  <SeatButton icon="add" label={dictionary.seats.increase} disabled={disabled || seats.capacity >= seats.max} onClick={() => onCapacityChange(seats.capacity + 1)} />
+                </div>
+                <p className="mt-1 text-[12px] italic text-on-surface-variant">
+                  {formatMessage(dictionary.seats.hint, { min: seats.min, max: seats.max })}
+                </p>
+              </div>
+            )}
 
             <hr className="border-surface-container-highest" />
           </>
@@ -217,6 +238,21 @@ export function RulesDossier({
         </div>
       </div>
     </section>
+  );
+}
+
+function SeatButton({ icon, label, disabled, onClick }: { icon: "add" | "remove"; label: string; disabled: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex size-9 items-center justify-center bg-surface-container-low text-secondary transition-transform enabled:hover:-translate-y-0.5 enabled:hover:bg-primary-container disabled:opacity-40"
+    >
+      <Icon name={icon} size={20} />
+    </button>
   );
 }
 
