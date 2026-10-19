@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
 import { LobbyBrowser } from "@/features/lobbies/components/lobby-browser";
+import { QuickRaceCard } from "@/features/lobbies/components/quick-race-card";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -19,7 +20,7 @@ export default async function LobbiesPage({ params }: { params: Promise<{ locale
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  // Joining needs an account until guest sessions exist (same as creating a lobby).
+  // Visitors pick a guest nickname first: guests can join lobbies, not open them.
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/guest?next=${encodeURIComponent(`/${locale}/lobbies`)}`);
   const { lobbies, lobby } = await getDictionary(locale);
@@ -36,6 +37,7 @@ export default async function LobbiesPage({ params }: { params: Promise<{ locale
             <h1 className="font-display text-headline-lg uppercase italic tracking-wider text-secondary">{lobbies.title}</h1>
             <p className="text-on-surface-variant">{lobbies.subtitle}</p>
           </header>
+          <QuickRaceCard dictionary={lobbies.quickRace} errors={lobbies.errors} locale={locale} />
           <LobbyBrowser dictionary={lobbies} modeNames={lobby.rules.mode} complexityNames={lobby.rules.text.complexities} locale={locale} lobbies={getLobbyStore().listPublic()} />
         </div>
       </div>
