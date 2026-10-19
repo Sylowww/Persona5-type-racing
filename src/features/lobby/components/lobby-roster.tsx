@@ -2,6 +2,7 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { openSlotCount } from "@/lib/lobby";
+import type { CharacterId } from "@/types/character";
 import type { BotDifficulty, LobbyMember } from "@/types/lobby";
 import { AddBotCard } from "./add-bot-card";
 import { EmptySlotCard } from "./empty-slot-card";
@@ -17,7 +18,8 @@ type LobbyRosterProps = {
   /** The viewer is host and the lobby is not racing. */
   canManageBots: boolean;
   isPending: boolean;
-  onAddBot: (difficulty: BotDifficulty) => void;
+  onAddBot: (difficulty: BotDifficulty, character: CharacterId | null) => void;
+  characterNames: Record<CharacterId, string>;
   onRemoveBot: (botId: string) => void;
   /** Set when the viewer is host: removes another player for good. */
   onKick: ((playerId: string) => void) | null;
@@ -33,6 +35,7 @@ export function LobbyRoster({
   canManageBots,
   isPending,
   onAddBot,
+  characterNames,
   onRemoveBot,
   onKick,
 }: LobbyRosterProps) {
@@ -74,7 +77,7 @@ export function LobbyRoster({
           return <EmptySlotCard key={slot} dictionary={roster} slot={slot} code={code} />;
         })}
         {canManageBots && openSlots > 0 && (
-          <AddBotCard dictionary={dictionary.bots} wpmLabel={roster.wpm} isPending={isPending} onAdd={onAddBot} />
+          <AddBotCard dictionary={dictionary.bots} characterNames={characterNames} wpmLabel={roster.wpm} isPending={isPending} onAdd={onAddBot} />
         )}
       </ol>
 

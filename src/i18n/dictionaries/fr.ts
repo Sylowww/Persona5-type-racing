@@ -190,7 +190,8 @@ const fr: Dictionary = {
       remove: "Retirer {name}",
       badge: "Simulateur IA",
       title: "+ Ajouter un bot",
-      subtitle: "Choisis la difficulté",
+      character: "Court en",
+      randomCharacter: "Hasard",
       difficulties: {
         noob: "Noob // Touriste",
         novice: "Novice // Stagiaire",

@@ -498,6 +498,15 @@ describe("bots", () => {
   });
 });
 
+describe("bot characters", () => {
+  it("races as the character the host picked, or a random one", () => {
+    const picked = unwrap(addBot(lobbyWith("ann"), "ann", "master", () => 0, "panther"));
+    expect(picked.members.find((member) => member.bot !== null)?.character).toBe("panther");
+    const random = unwrap(addBot(lobbyWith("ann"), "ann", "master", () => 0));
+    expect(random.members.find((member) => member.bot !== null)?.character).toBeDefined();
+  });
+});
+
 describe("parseInputBatch", () => {
   it("accepts well-formed batches", () => {
     expect(parseInputBatch({ clientId: "tab", seq: 2, events: [{ type: "char", char: "é", delayMs: 80 }, { type: "delete" }] })).toEqual({

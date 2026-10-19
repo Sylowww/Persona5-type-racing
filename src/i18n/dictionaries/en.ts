@@ -188,7 +188,8 @@ const en = {
       remove: "Remove {name}",
       badge: "AI simulator",
       title: "+ Add phantom bot",
-      subtitle: "Select synthetic difficulty",
+      character: "Races as",
+      randomCharacter: "Random",
       difficulties: {
         noob: "Noob // Tourist",
         novice: "Novice // Intern",

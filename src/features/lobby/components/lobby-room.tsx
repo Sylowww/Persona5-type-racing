@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import { canStartRace, countReady, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "@/lib/lobby";
+import type { CharacterId } from "@/types/character";
 import type { LobbyView } from "@/types/lobby";
 import {
   addLobbyBot,
@@ -32,12 +33,13 @@ import { TauntFeed } from "./taunt-feed";
 
 type LobbyRoomProps = {
   dictionary: Dictionary["lobby"];
+  characterNames: Record<CharacterId, string>;
   locale: Locale;
   initialView: LobbyView;
 };
 
 /** The live lobby: roster and readiness stay in sync through the lobby stream. */
-export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
+export function LobbyRoom({ dictionary, characterNames, locale, initialView }: LobbyRoomProps) {
   const router = useRouter();
   const { view, status } = useLobbyStream(initialView);
   const [isPending, startTransition] = useTransition();
@@ -107,7 +109,8 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
             youId={view.youId}
             canManageBots={isHost && !isTraining && view.phase !== "countdown" && view.phase !== "racing"}
             isPending={isPending}
-            onAddBot={(difficulty) => startTransition(async () => void (await addLobbyBot(code, difficulty)))}
+            onAddBot={(difficulty, character) => startTransition(async () => void (await addLobbyBot(code, difficulty, character)))}
+            characterNames={characterNames}
             onRemoveBot={(botId) => startTransition(async () => void (await removeLobbyBot(code, botId)))}
             onKick={isHost && view.kind === "custom" ? (playerId) => startTransition(async () => void (await kickLobbyMember(code, playerId))) : null}
           />
