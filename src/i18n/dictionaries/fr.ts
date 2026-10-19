@@ -367,6 +367,7 @@ const fr: Dictionary = {
         mediarama: "{name} ! Soigné : 2 mots retirés",
       },
       stunned: "Touches bloquées",
+      more: "+{count} autres sorts",
     },
     track: {
       label: "Piste de course",

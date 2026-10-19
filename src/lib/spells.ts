@@ -73,6 +73,12 @@ export function isSelfSpell(cast: Spell): boolean {
   return cast.effect.type === "shorten";
 }
 
+/**
+ * What a racer gets instead when their spell would hit a leader already under a spell: one malus at a time, so the
+ * caster still gains time (two words off their own text).
+ */
+export const FALLBACK_SPELL: Spell = spell("mediarama", "heal", "small", { type: "shorten", words: 2 });
+
 export function spellById(id: SpellId): Spell | undefined {
   return spellPool.find((candidate) => candidate.id === id);
 }

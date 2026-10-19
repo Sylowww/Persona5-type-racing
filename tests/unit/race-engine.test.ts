@@ -367,6 +367,17 @@ describe("catch-up spells (BONUS-01 to BONUS-04)", () => {
     expect(viewFor(state, "ann", START + 3_000)?.race?.you?.hex).toEqual({ element: "fire", until: START + 7_000 });
   });
 
+  it("hands out three spells at most per checkpoint and a single malus on the leader", () => {
+    for (let seed = 0; seed < 20; seed++) {
+      let state = unwrap(updateSettings(lobbyWith("ann", "bob", "cid", "dan", "eve"), "ann", { powers: true }));
+      state = advance(unwrap(startRace(readyAll(state), "ann", LONG, T0, () => seed / 20)), START);
+      state = type(state, "ann", FIRST_CHECKPOINT, 1, START + 3_000);
+      const events = state.race?.bonusEvents ?? [];
+      expect(events).toHaveLength(3);
+      expect(events.filter((event) => event.targetId === "ann").length).toBeLessThanOrEqual(1);
+    }
+  });
+
   it("lets a bot draw a spell and still finish its race", () => {
     let state = unwrap(updateSettings(lobbyWith("ann"), "ann", { powers: true }));
     state = unwrap(addBot(unwrap(setReady(state, "ann", true)), "ann", "novice"));

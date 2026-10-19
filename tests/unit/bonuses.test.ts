@@ -17,7 +17,10 @@ describe("catch-up bonuses", () => {
       { id: "far", progress: 0.3, bonuses: 0 },
       { id: "last", progress: 0.2, bonuses: 0 },
     ];
-    expect(pickBonusReceivers(contenders)).toEqual({ leaderId: "lead", receiverIds: ["far", "last"] });
+    expect(pickBonusReceivers(contenders)).toEqual({ leaderId: "lead", receiverIds: ["last", "far"] });
+    // A full class: only the three furthest behind get a spell.
+    const crowd = [{ id: "lead", progress: 0.9, bonuses: 0 }, ...Array.from({ length: 10 }, (_, index) => ({ id: `r${index}`, progress: index / 20, bonuses: 0 }))];
+    expect(pickBonusReceivers(crowd).receiverIds).toEqual(["r0", "r1", "r2"]);
     // At most three per race.
     expect(pickBonusReceivers(contenders.map((racer) => ({ ...racer, bonuses: 3 }))).receiverIds).toEqual([]);
     // Nobody to catch up with alone.

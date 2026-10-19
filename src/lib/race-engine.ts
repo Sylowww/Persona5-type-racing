@@ -34,7 +34,7 @@ import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
 import { canStartRace, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-settings";
 import { rankRacers } from "./results";
-import { characterPersonas, drawSpell, isSelfSpell, spellById, type Spell } from "./spells";
+import { characterPersonas, drawSpell, FALLBACK_SPELL, isSelfSpell, spellById, type Spell } from "./spells";
 import { inputBatchSchema, memberRoleSchema, visibilitySchema } from "./schemas";
 import {
   accuracy,
@@ -767,7 +767,12 @@ function applyCatchUp(state: LobbyState, now: number): LobbyState {
       if (!leaderId) continue;
       const id = events.length + 1;
       const gap = (progressById.get(leaderId) ?? 0) - (progressById.get(receiverId) ?? 0);
-      const spell = drawSpell(gap, seededRandom(race.seed + id));
+      const drawn = drawSpell(gap, seededRandom(race.seed + id));
+      // One malus at a time on the leader: while one is running (or was just cast), the caster helps themself instead.
+      const leader = racers.find((racer) => racer.id === leaderId);
+      const isLeaderHit =
+        (leader?.stun?.until ?? 0) > now || (leader?.hex?.until ?? 0) > now || events.some((event) => event.at === now && event.targetId === leaderId);
+      const spell = !isSelfSpell(drawn) && isLeaderHit ? FALLBACK_SPELL : drawn;
       const targetId = isSelfSpell(spell) ? receiverId : leaderId;
       update(receiverId, (racer) => ({ ...racer, bonuses: racer.bonuses + 1 }));
       update(targetId, (target) => applySpell(target, spell, race, id, now));
@@ -922,6 +927,7 @@ export function liveOrder(race: Race): string[] {
 }
 
 function raceView(state: LobbyState, race: Race, userId: string, now: number): RaceView {
+  const order = liveOrder(race);
   const racers = race.racers.map(
     (racer): RaceRacer => ({
       id: racer.id,
@@ -935,6 +941,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       isFinished: racer.typing.finishedAt !== null,
       isEliminated: racer.eliminatedAt !== null,
       isForfeited: racer.forfeitedAt !== null,
+      place: order.indexOf(racer.id) + 1,
       isBot: racer.bot !== null,
       isConnected: state.members.some((member) => member.id === racer.id && member.presence === "connected"),
     }),
@@ -978,7 +985,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
           streak: own.typing.streak,
           inputClient: own.inputClient,
           inputSeq: own.inputSeq,
-          place: liveOrder(race).indexOf(userId) + 1,
+          place: order.indexOf(userId) + 1,
           finishedAt: own.typing.finishedAt,
           eliminatedAt: own.eliminatedAt,
           forfeitedAt: own.forfeitedAt,
