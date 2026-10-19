@@ -84,7 +84,9 @@ const fr: Dictionary = {
       label: "Code du salon",
       placeholder: "XXXXXX",
       submit: "Infiltrer",
+      leaveAndJoin: "Le quitter et rejoindre",
       errors: {
+        alreadyInLobby: "Tu es déjà dans le salon {code}. Le quitter pour rejoindre celui-ci ?",
         invalidCode: "Entre un code de 6 caractères comme AB23CD.",
         lobbyNotFound: "Aucun salon avec ce code.",
         lobbyFull: "Ce salon est plein.",
@@ -522,6 +524,7 @@ const fr: Dictionary = {
     join: "Rejoindre",
     refresh: "Actualiser",
     errors: {
+      alreadyInLobby: "Tu es déjà dans un autre salon. Le quitter et rejoindre celui-ci ?",
       invalidCode: "Ce salon n'existe plus.",
       lobbyNotFound: "Ce salon n'existe plus.",
       lobbyFull: "Ce salon est complet.",
@@ -541,7 +544,9 @@ const fr: Dictionary = {
     invalidTitle: "Invitation invalide",
     invalidText: "Ce lien a été révoqué, ou son salon est fermé.",
     home: "Retour à l'accueil",
+    leaveAndJoin: "Le quitter et rejoindre",
     errors: {
+      alreadyInLobby: "Tu es déjà dans un autre salon. Le quitter et rejoindre celui-ci ?",
       invalidInvite: "Ce lien a été révoqué, ou son salon est fermé.",
       inviteUsed: "Ce lien a déjà été utilisé par quelqu'un d'autre.",
       lobbyFull: "Ce salon est complet.",

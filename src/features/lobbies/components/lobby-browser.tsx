@@ -49,7 +49,9 @@ export function LobbyBrowser({ dictionary, modeNames, complexityNames, locale, l
 
   function join(code: string) {
     startTransition(async () => {
-      const result = await joinListedLobby(code, locale);
+      let result = await joinListedLobby(code, locale);
+      // One lobby at a time (SALLE-06): ask before leaving the current one.
+      if (result === "alreadyInLobby" && window.confirm(dictionary.errors.alreadyInLobby)) result = await joinListedLobby(code, locale, true);
       setError({ code, message: dictionary.errors[result] });
       router.refresh();
     });

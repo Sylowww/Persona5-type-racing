@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { LOBBY_CODE_LENGTH } from "@/lib/lobby-code";
 import { FormError } from "@/features/auth/components/form-error";
+import { formatMessage } from "@/i18n/format";
 import { joinLobby, type JoinFormState } from "@/features/lobby/actions";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
@@ -57,8 +58,23 @@ export function JoinCodeCard({ dictionary, locale, defaultCode = "", initialErro
           </button>
         </form>
         {state.error && (
-          <div className="mt-2">
-            <FormError message={dictionary.errors[state.error]} />
+          <div className="mt-2 flex flex-col gap-2">
+            <FormError message={formatMessage(dictionary.errors[state.error], { code: state.current ?? "" })} />
+            {state.error === "alreadyInLobby" && (
+              // Same form, sent again with the player's agreement to leave their current lobby (SALLE-06).
+              <form action={action}>
+                <input type="hidden" name="locale" value={locale} />
+                <input type="hidden" name="code" value={state.code} />
+                <input type="hidden" name="leaveCurrent" value="1" />
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="w-full bg-secondary-fixed px-3 py-1.5 font-hud text-label-hud font-black uppercase text-on-secondary-fixed shadow-hard-xs"
+                >
+                  {dictionary.leaveAndJoin}
+                </button>
+              </form>
+            )}
           </div>
         )}
       </div>

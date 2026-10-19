@@ -124,3 +124,20 @@ test("runs a private lobby with invite links, spectators, kicks and closing", as
   await expect(page).toHaveURL(/\/en$/);
   expect((await page.goto(`/en/lobby/${code}`))?.status()).toBe(404);
 });
+
+test("keeps a player in one lobby and asks before moving them (SALLE-06)", async ({ page, browser }) => {
+  await signUp(page, "hosta");
+  const first = await createLobby(page);
+  const other = await (await browser.newContext()).newPage();
+  await signUp(other, "hostb");
+  const second = await createLobby(other);
+
+  // The first host tries the second lobby's code: they are asked to leave their own lobby first.
+  await page.goto("/en");
+  await page.getByLabel("Lobby code").fill(second);
+  await page.getByRole("button", { name: "Punch in" }).click();
+  await expect(page.getByText(`You are already in lobby ${first}. Leave it to join this one?`)).toBeVisible();
+  await page.getByRole("button", { name: "Leave it and join" }).click();
+  await expect(page).toHaveURL(new RegExp(`/en/lobby/${second}$`));
+  await expect(other.getByText("Seats // 2 / 30")).toBeVisible();
+});

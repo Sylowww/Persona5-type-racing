@@ -1,5 +1,6 @@
 import "server-only";
 import { randomInt } from "node:crypto";
+import { clearLobbySeats, recordLobbySeat, releaseLobbySeat } from "./lobby-members-db";
 import { createLobbyStore, type LobbyStore } from "./lobby-store";
 import { saveRaceResults } from "./race-history-db";
 import type { EngineConfig } from "./race-engine";
@@ -31,6 +32,8 @@ function configFromEnv(): Partial<EngineConfig> {
 
 export function getLobbyStore(): LobbyStore {
   if (!globalForLobbies.lobbyStore) {
+    // Seats recorded by a previous process belong to lobbies that no longer exist.
+    clearLobbySeats().catch((error: unknown) => console.error("Could not clear lobby seats", error));
     refreshCorpus();
     setInterval(refreshCorpus, CORPUS_REFRESH_MS).unref();
   }
@@ -38,6 +41,11 @@ export function getLobbyStore(): LobbyStore {
     config: configFromEnv(),
     corpus: () => globalForLobbies.raceCorpus ?? builtInCorpus,
     randomInt: (max) => randomInt(max),
+    // Keeps the lobby_members table (SALLE-06) in step with every move the store makes.
+    onMembership: (userId, code, previous) => {
+      const write = code ? recordLobbySeat(userId, code) : previous ? releaseLobbySeat(userId, previous) : Promise.resolve();
+      write.catch((error: unknown) => console.error("Could not record a lobby seat", error));
+    },
     // Saving runs in the background: a database error must not stop the race timers.
     onRaceFinished: (code, results) => {
       saveRaceResults(code, results).catch((error: unknown) => console.error("Could not save race results", error));
