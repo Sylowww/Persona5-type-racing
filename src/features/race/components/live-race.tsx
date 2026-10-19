@@ -332,6 +332,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                   blocked={mode === "blocking" && typing.mistakes > 0 && typing.streak === 0}
                   hex={hex}
                 />
+                {hex === "bless" && <div aria-hidden="true" className="spell-flash-bless absolute inset-0" />}
                 {stun && (
                   <div className={`absolute inset-0 flex items-center justify-center spell-stun-${stun}`}>
                     <span className={`spell-burst flex items-center gap-2 bg-surface-container-lowest px-4 py-1 font-display text-headline-md uppercase italic shadow-hard-md ${spellStyle[stun].text}`}>

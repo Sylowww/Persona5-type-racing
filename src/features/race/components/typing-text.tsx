@@ -23,7 +23,8 @@ export function TypingText({ text, typed, blocked = false, hex = null }: TypingT
     <p aria-hidden="true" className="flex flex-wrap gap-y-2 font-body text-typing-stream font-bold select-none">
       {splitWords(text).map(({ start, chars }) => {
         return (
-          <span key={start} className={`whitespace-pre transition-[filter] ${hex && start > typed.length ? `spell-hex-${hex}` : ""}`}>
+          // Kouga's flash covers the whole area instead (see live-race), so it adds nothing to the words.
+          <span key={start} className={`whitespace-pre transition-[filter] ${hex && hex !== "bless" && start > typed.length ? `spell-hex-${hex}` : ""}`}>
             {[...chars].map((char, charIndex) => {
               const index = start + charIndex;
               return (
