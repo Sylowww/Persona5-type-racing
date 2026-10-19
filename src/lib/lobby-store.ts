@@ -40,7 +40,8 @@ import {
   type Outcome,
   type Player,
 } from "./race-engine";
-import { pickRaceText } from "./race-texts";
+import { builtInCorpus } from "./race-texts";
+import { buildRaceText, type CorpusText } from "./text-builder";
 
 /** Receives a fresh view on every change, or null once the user is no longer in the lobby. */
 export type LobbySubscriber = (view: LobbyView | null) => void;
@@ -66,6 +67,8 @@ export type LobbyStoreOptions = {
   random?: () => number;
   /** How often timers run and typing progress is broadcast; null disables the timer (tests call `tick`). */
   tickMs?: number | null;
+  /** Coherent passages for race texts, read at each start so the server can refresh them; defaults to the built-in ones. */
+  corpus?: () => readonly CorpusText[];
   /** Makes invite link tokens; defaults to 128 random bits from Web Crypto. */
   inviteToken?: () => string;
   /** Called once per finished race with each player's results (bots excluded), e.g. to save them. */
@@ -80,6 +83,8 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
   const random = options.random ?? Math.random;
   const tickMs = options.tickMs === undefined ? 100 : options.tickMs;
   const inviteToken = options.inviteToken ?? randomToken;
+  const corpus = options.corpus ?? (() => builtInCorpus);
+  const textFor = (settings: LobbyState["settings"]) => buildRaceText(settings, corpus(), random);
 
   const lobbies = new Map<string, LobbyState>();
   const lobbyOfUser = new Map<string, string>();
@@ -191,7 +196,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     for (const player of players) state = must(setReady(state, player.id, true));
     // Quick races leave time for the versus screen before their countdown.
     const startAt = kind === "quick" ? time + QUICK_MATCH_INTRO_MS : time;
-    state = must(startRace(state, host.id, pickRaceText(state.settings.language, randomInt, state.settings.numbers), startAt, random));
+    state = must(startRace(state, host.id, textFor(state.settings), startAt, random));
     commit(code, state);
     return code;
   }
@@ -346,7 +351,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     },
 
     start(code: string, userId: string): StoreError | null {
-      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.settings.language, randomInt, state.settings.numbers), time, random));
+      return updateOutcome(code, (state, time) => startRace(state, userId, textFor(state.settings), time, random));
     },
 
     updateSettings(code: string, userId: string, change: unknown): StoreError | null {

@@ -1,7 +1,8 @@
 import type { Locale } from "@/i18n/locales";
-import type { RandomInt } from "./lobby-code";
+import type { CorpusText } from "./text-builder";
 
-// Built-in texts until custom texts exist. Picked in the lobby's language.
+// Built-in passages: the seed copies them into the `race_texts` table, and races fall back on them when the database
+// corpus is not loaded (tests, or a database error).
 export const raceTexts: Record<Locale, readonly string[]> = {
   en: [
     "The world is full of corrupt adults with distorted desires who claim they own our future. We steal their twisted hearts, shatter their false reality, and rewrite destiny with absolute precision. Show no mercy!",
@@ -31,7 +32,8 @@ export const numberRaceTexts: Record<Locale, readonly string[]> = {
   ],
 };
 
-export function pickRaceText(locale: Locale, randomInt: RandomInt, numbers = false): string {
-  const texts = (numbers ? numberRaceTexts : raceTexts)[locale];
-  return texts[randomInt(texts.length)];
-}
+/** The built-in passages as a corpus. */
+export const builtInCorpus: readonly CorpusText[] = (Object.keys(raceTexts) as Locale[]).flatMap((language) => [
+  ...raceTexts[language].map((body) => ({ language, body, hasNumbers: false })),
+  ...numberRaceTexts[language].map((body) => ({ language, body, hasNumbers: true })),
+]);

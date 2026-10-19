@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { cleanMessage, MAX_MESSAGE_LENGTH } from "../../src/lib/chat";
 import { botForSpeed } from "../../src/lib/matchmaking";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs, UNTIMED_RACE_CAP_MS } from "../../src/lib/race-settings";
-import { numberRaceTexts, pickRaceText, raceTexts } from "../../src/lib/race-texts";
+import { numberRaceTexts, raceTexts } from "../../src/lib/race-texts";
 import { normalizeTypedChar } from "../../src/lib/typing";
 
 describe("race settings", () => {
@@ -34,8 +34,7 @@ describe("race settings", () => {
     expect(raceDurationMs({ ...defaultRaceSettings, timeLimitSec: null })).toBe(UNTIMED_RACE_CAP_MS);
   });
 
-  it("picks texts with digits only when numbers are on", () => {
-    expect(pickRaceText("fr", () => 0, true)).toBe(numberRaceTexts.fr[0]);
+  it("keeps digits in the built-in texts made for the numbers option only", () => {
     expect(Object.values(numberRaceTexts).flat().every((text) => /\d/.test(text))).toBe(true);
     expect(Object.values(raceTexts).flat().some((text) => /\d/.test(text))).toBe(false);
   });
