@@ -10,6 +10,7 @@ import { ResultsActions } from "@/features/results/components/results-actions";
 import { ResultsBanner } from "@/features/results/components/results-banner";
 import { ResultsCutIn } from "@/features/results/components/results-cut-in";
 import { ResultsPodium } from "@/features/results/components/results-podium";
+import { ResultsTable } from "@/features/results/components/results-table";
 import { SaveGuestRace } from "@/features/results/components/save-guest-race";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
@@ -59,6 +60,7 @@ export default async function RaceResultsPage({ params }: Params) {
             <CombatDossier dictionary={dictionary.dossier} locale={locale} result={result} wpm={you.wpm} />
             <KeyboardHeatmap dictionary={dictionary.heatmap} keyStats={result.keyStats} />
           </div>
+          <ResultsTable dictionary={dictionary.table} locale={locale} racers={ranked} youId={result.youId} />
           <ResultsActions
             dictionary={dictionary.actions}
             lobbyHref={lobbyHref}

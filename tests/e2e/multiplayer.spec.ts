@@ -104,6 +104,11 @@ test("two players race from lobby creation to results", async ({ browser }) => {
     await expect(page.getByRole("listitem", { name: new RegExp(`^Place 1: ${hostName}, \\d+ WPM$`) })).toBeVisible();
     await expect(page.getByRole("listitem", { name: new RegExp(`^Place 2: ${guestName}, \\d+ WPM$`) })).toBeVisible();
   }
+  // Full results table (RES-02): both racers finished.
+  const rows = host.getByRole("table").getByRole("row");
+  await expect(rows).toHaveCount(3);
+  await expect(rows.nth(1)).toContainText(hostName);
+  await expect(rows.nth(2)).toContainText("Finished");
 
   // Rematch goes back to the same lobby.
   await guest.getByRole("link", { name: /Rematch/ }).click();

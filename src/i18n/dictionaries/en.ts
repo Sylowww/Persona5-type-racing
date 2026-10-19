@@ -384,6 +384,28 @@ const en = {
       wpm: "WPM",
       place: "Place",
     },
+    table: {
+      title: "Full results",
+      racers: "{count} racers",
+      you: "You",
+      seconds: "{value} s",
+      columns: {
+        rank: "Rank",
+        racer: "Racer",
+        wpm: "WPM",
+        rawWpm: "Raw WPM",
+        accuracy: "Accuracy",
+        mistakes: "Mistakes",
+        time: "Time",
+        status: "Status",
+      },
+      statuses: {
+        finished: "Finished",
+        timeout: "Time's up",
+        eliminated: "Eliminated",
+        forfeited: "Gave up",
+      },
+    },
     podium: {
       title: "Rivalry podium",
       racers: "{count} racers",
