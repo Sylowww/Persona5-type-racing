@@ -6,6 +6,7 @@ import {
   closeLobby,
   createInvite,
   createLobby,
+  forfeitRace,
   isRaceOver,
   joinLobby,
   joinWithInvite,
@@ -254,6 +255,41 @@ describe("finishing a race", () => {
     state = advance(applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 2_000), START + 2_000);
     expect(state.phase).toBe("racing");
     expect(advance(state, START + 30_000).phase).toBe("finished");
+  });
+});
+
+describe("forfeits and statuses (COURSE-07, COURSE-10, RES-02)", () => {
+  it("lets a racer give up, ranks them after everyone still in, and ends once all are done", () => {
+    let state = racing("ann", "bob", "cid");
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars("go n") }, START + 1_000);
+    state = unwrap(forfeitRace(state, "ann", START + 1_500));
+    expect(forfeitRace(state, "ann", START + 1_600)).toEqual({ ok: false, error: "wrongPhase" });
+    expect(viewFor(state, "ann", START + 1_500)?.race?.you?.forfeitedAt).toBe(START + 1_500);
+    // Typing after giving up is ignored.
+    expect(applyInput(state, "ann", { clientId: "tab", seq: 2, events: chars("ow") }, START + 1_600)).toBe(state);
+
+    state = applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars("g") }, START + 2_000);
+    state = advance(applyInput(state, "cid", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 3_000), START + 3_000);
+    expect(state.phase).toBe("racing");
+    state = advance(state, state.race?.endsAt ?? 0);
+
+    const racers = resultFor(state, "ann")?.racers ?? [];
+    expect(racers.map((racer) => [racer.id, racer.status])).toEqual([
+      ["cid", "finished"],
+      ["bob", "timeout"],
+      ["ann", "forfeited"],
+    ]);
+    const ann = racers.find((racer) => racer.id === "ann");
+    expect(ann).toMatchObject({ timeMs: 1_500, mistakes: 0, finishMs: null });
+    expect(ann?.progress).toBeCloseTo(4 / TEXT.length);
+    expect(ann?.rawWpm).toBeCloseTo(4 / 5 / (1.5 / 60));
+  });
+
+  it("counts a racer gone past the grace period as a forfeit", () => {
+    let state = racing("ann", "bob");
+    state = setConnected(state, "bob", false, START);
+    state = advance(applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 1_000), START + 31_000);
+    expect(resultFor(state, "ann")?.racers.map((racer) => racer.status)).toEqual(["finished", "forfeited"]);
   });
 });
 

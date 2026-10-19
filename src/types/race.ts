@@ -14,6 +14,8 @@ export type RaceRacer = {
   isFinished: boolean;
   /** Out of the race after a mistake in sudden death. */
   isEliminated: boolean;
+  /** Gave up the race (COURSE-07). */
+  isForfeited: boolean;
   isBot: boolean;
   isConnected: boolean;
 };
@@ -32,6 +34,7 @@ export type RaceYou = {
   place: number;
   finishedAt: number | null;
   eliminatedAt: number | null;
+  forfeitedAt: number | null;
 };
 
 /** Race part of a lobby snapshot. Times are server epoch milliseconds. */
@@ -69,17 +72,32 @@ export type InputBatch = {
   events: readonly InputEvent[];
 };
 
+/**
+ * How a racer's race ended (RES-02). `timeout`: still typing when the race ended. `forfeited`: gave up, left, or stayed
+ * disconnected past the grace period (COURSE-07, COURSE-08). `eliminated`: knocked out in sudden death.
+ */
+export type RacerStatus = "finished" | "timeout" | "eliminated" | "forfeited";
+
 export type ResultRacer = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
   /** Character the racer raced as; the podium shows its portrait. */
   character: CharacterId;
+  /** Net WPM: correct characters only (annex A). */
   wpm: number;
+  /** Raw WPM: every typed character (annex A). */
+  rawWpm: number;
   /** From 0 to 1. */
   accuracy: number;
+  mistakes: number;
+  /** Share of the text validated when the racer stopped, from 0 to 1. */
+  progress: number;
   /** Race time in ms; null if the racer did not finish. */
   finishMs: number | null;
+  /** Time the racer spent in the race, in ms (until they finished, stopped or the race ended). */
+  timeMs: number;
+  status: RacerStatus;
 };
 
 /** Speed of the local player at one moment of the race. */

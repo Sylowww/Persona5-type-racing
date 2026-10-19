@@ -1,12 +1,17 @@
-import type { KeyStat, ResultRacer, SpeedSample } from "@/types/race";
+import type { KeyStat, RacerStatus, ResultRacer, SpeedSample } from "@/types/race";
 
-/** Finishers first by time, then non-finishers by speed. */
+const statusOrder: Record<RacerStatus, number> = { finished: 0, timeout: 1, eliminated: 2, forfeited: 3 };
+
+/**
+ * Final ranking (COURSE-10): finishers by time, then racers still typing at the end by progress, then sudden-death
+ * eliminations (the last one knocked out first), then forfeits by progress when they gave up. Ties keep input order.
+ */
 export function rankRacers(racers: readonly ResultRacer[]): ResultRacer[] {
   return [...racers].sort((a, b) => {
-    if (a.finishMs !== null && b.finishMs !== null) return a.finishMs - b.finishMs;
-    if (a.finishMs !== null) return -1;
-    if (b.finishMs !== null) return 1;
-    return b.wpm - a.wpm;
+    if (a.status !== b.status) return statusOrder[a.status] - statusOrder[b.status];
+    if (a.status === "finished") return (a.finishMs ?? 0) - (b.finishMs ?? 0);
+    if (a.status === "eliminated") return b.timeMs - a.timeMs;
+    return b.progress - a.progress;
   });
 }
 

@@ -150,6 +150,11 @@ export async function setLobbyRole(code: string, role: string): Promise<StoreErr
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().setRole(lobby, userId, role));
 }
 
+/** The viewer gives up the race in progress (COURSE-07). */
+export async function forfeitLobbyRace(code: string): Promise<StoreError | null> {
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().forfeit(lobby, userId));
+}
+
 export async function startLobbyRace(code: string): Promise<StoreError | null> {
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().start(lobby, userId));
 }

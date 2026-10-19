@@ -13,7 +13,7 @@ import type {
   PublicLobby,
   RaceSettings,
 } from "@/types/lobby";
-import type { InputBatch, InputEvent, KeyStat, RaceRacer, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
+import type { InputBatch, InputEvent, KeyStat, RaceRacer, RacerStatus, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
 import { planBotRun, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
@@ -97,6 +97,8 @@ export type Racer = {
   bot: { steps: BotStep[]; applied: number } | null;
   /** When a mistake knocked the racer out (sudden death); null otherwise. */
   eliminatedAt: number | null;
+  /** When the racer gave up (COURSE-07); null otherwise. */
+  forfeitedAt: number | null;
 };
 
 export type Race = {
@@ -542,9 +544,21 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         samples: [],
         bot: member.bot === null ? null : { steps: planBotRun(text, member.bot, random, open.settings.mode), applied: 0 },
         eliminatedAt: null,
+        forfeitedAt: null,
       })),
     },
   });
+}
+
+/** A racer gives up during the countdown or the race (COURSE-07): they stop typing and rank among forfeits. */
+export function forfeitRace(state: LobbyState, userId: string, now: number): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  const race = state.race;
+  if (!race || !isRaceRunning(state)) return fail("wrongPhase");
+  const racer = race.racers.find((candidate) => candidate.id === userId);
+  if (!racer || isOut(racer)) return fail("wrongPhase");
+  const racers = race.racers.map((candidate) => (candidate === racer ? { ...candidate, forfeitedAt: Math.max(now, race.startsAt) } : candidate));
+  return ok({ ...state, race: { ...race, racers } });
 }
 
 export function setConnected(state: LobbyState, userId: string, connected: boolean, now: number): LobbyState {
@@ -589,9 +603,9 @@ export function applyInput(state: LobbyState, userId: string, batch: InputBatch,
   };
 }
 
-/** A racer who finished or was eliminated types no more. */
+/** A racer who finished, was eliminated or gave up types no more. */
 function isOut(racer: Racer): boolean {
-  return racer.typing.finishedAt !== null || racer.eliminatedAt !== null;
+  return racer.typing.finishedAt !== null || racer.eliminatedAt !== null || racer.forfeitedAt !== null;
 }
 
 /**
@@ -694,36 +708,49 @@ function finishRace(state: LobbyState, now: number): LobbyState {
 
   const racers = race.racers.map((racer): ResultRacer => {
     const { typing } = racer;
-    const finishMs = typing.finishedAt === null ? null : typing.finishedAt - race.startsAt;
-    const durationMs = finishMs ?? (racer.eliminatedAt ?? endedAt) - race.startsAt;
-    const wpm = wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), durationMs);
+    const member = state.members.find((candidate) => candidate.id === racer.id);
+    // Leaving, or staying disconnected past the grace period, counts as giving up (COURSE-08).
+    const isGoneNow = racer.bot === null && isGone(member, now, state.config.reconnectGraceMs);
+    const status: RacerStatus =
+      typing.finishedAt !== null
+        ? "finished"
+        : racer.eliminatedAt !== null
+          ? "eliminated"
+          : racer.forfeitedAt !== null || isGoneNow
+            ? "forfeited"
+            : "timeout";
+    const stoppedAt = typing.finishedAt ?? racer.eliminatedAt ?? racer.forfeitedAt ?? endedAt;
+    const timeMs = Math.max(0, stoppedAt - race.startsAt);
     details[racer.id] = {
-      durationMs,
+      durationMs: timeMs,
       keystrokes: typing.keystrokes,
       mistakes: typing.mistakes,
       speedSamples: racer.samples,
       keyStats: keyStats(racer.keys),
     };
-    return { id: racer.id, name: racer.name, emblem: racer.emblem, character: racer.character, wpm, accuracy: accuracy(typing.keystrokes, typing.mistakes), finishMs };
+    return {
+      id: racer.id,
+      name: racer.name,
+      emblem: racer.emblem,
+      character: racer.character,
+      wpm: wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), timeMs),
+      rawWpm: wordsPerMinute(typing.keystrokes, timeMs),
+      accuracy: accuracy(typing.keystrokes, typing.mistakes),
+      mistakes: typing.mistakes,
+      progress: progress(race.text, typing.typed, race.settings.mode),
+      finishMs: typing.finishedAt === null ? null : timeMs,
+      timeMs,
+      status,
+    };
   });
 
   return {
     ...state,
     phase: "finished",
     race: { ...race, endedAt },
-    result: { endedAt, racers: rankWithEliminations(race, racers), details },
+    result: { endedAt, racers: rankRacers(racers), details },
     members: state.members.map((member) => ({ ...member, isReady: member.bot !== null })),
   };
-}
-
-/** Usual ranking for racers still in, then eliminated racers, the last one knocked out first. */
-function rankWithEliminations(race: Race, racers: ResultRacer[]): ResultRacer[] {
-  const eliminatedAt = new Map(race.racers.flatMap((racer) => (racer.eliminatedAt === null ? [] : [[racer.id, racer.eliminatedAt] as const])));
-  const survivors = racers.filter((racer) => !eliminatedAt.has(racer.id));
-  const eliminated = racers
-    .filter((racer) => eliminatedAt.has(racer.id))
-    .sort((a, b) => (eliminatedAt.get(b.id) ?? 0) - (eliminatedAt.get(a.id) ?? 0));
-  return [...rankRacers(survivors), ...eliminated];
 }
 
 function keyStats(keys: Record<string, KeyTotals>): KeyStat[] {
@@ -741,28 +768,22 @@ function dropExpiredMembers(state: LobbyState, now: number): LobbyState {
 
 function liveWpm(racer: Racer, race: Race, now: number): number {
   const { typing } = racer;
-  const end = typing.finishedAt ?? Math.min(now, race.endedAt ?? now, racer.eliminatedAt ?? now);
+  const end = typing.finishedAt ?? Math.min(now, race.endedAt ?? now, racer.eliminatedAt ?? now, racer.forfeitedAt ?? now);
   return wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), end - race.startsAt);
 }
 
 /**
- * Racer ids by live place: finishers by finish time, then by progress, then eliminated racers (the last
- * one knocked out first); ties keep join order.
+ * Racer ids by live place, like the final ranking: finishers by finish time, then racers still typing by progress,
+ * then eliminated racers (the last one knocked out first), then forfeits by progress; ties keep join order.
  */
 export function liveOrder(race: Race): string[] {
+  const group = (racer: Racer) => (racer.typing.finishedAt !== null ? 0 : racer.eliminatedAt !== null ? 2 : racer.forfeitedAt !== null ? 3 : 1);
   return race.racers
-    .map((racer, index) => ({ racer, index, progress: progress(race.text, racer.typing.typed, race.settings.mode) }))
+    .map((racer, index) => ({ racer, index, group: group(racer), progress: progress(race.text, racer.typing.typed, race.settings.mode) }))
     .sort((a, b) => {
-      const aDone = a.racer.typing.finishedAt;
-      const bDone = b.racer.typing.finishedAt;
-      if (aDone !== null && bDone !== null) return aDone - bDone || a.index - b.index;
-      if (aDone !== null) return -1;
-      if (bDone !== null) return 1;
-      const aOut = a.racer.eliminatedAt;
-      const bOut = b.racer.eliminatedAt;
-      if (aOut !== null && bOut !== null) return bOut - aOut || a.index - b.index;
-      if (aOut !== null) return 1;
-      if (bOut !== null) return -1;
+      if (a.group !== b.group) return a.group - b.group;
+      if (a.group === 0) return (a.racer.typing.finishedAt ?? 0) - (b.racer.typing.finishedAt ?? 0) || a.index - b.index;
+      if (a.group === 2) return (b.racer.eliminatedAt ?? 0) - (a.racer.eliminatedAt ?? 0) || a.index - b.index;
       return b.progress - a.progress || a.index - b.index;
     })
     .map(({ racer }) => racer.id);
@@ -780,6 +801,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       mistakes: racer.typing.mistakes,
       isFinished: racer.typing.finishedAt !== null,
       isEliminated: racer.eliminatedAt !== null,
+      isForfeited: racer.forfeitedAt !== null,
       isBot: racer.bot !== null,
       isConnected: state.members.some((member) => member.id === racer.id && member.presence === "connected"),
     }),
@@ -804,6 +826,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
           place: liveOrder(race).indexOf(userId) + 1,
           finishedAt: own.typing.finishedAt,
           eliminatedAt: own.eliminatedAt,
+          forfeitedAt: own.forfeitedAt,
         }
       : null,
   };

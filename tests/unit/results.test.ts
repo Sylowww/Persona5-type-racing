@@ -2,20 +2,34 @@ import { describe, expect, it } from "vitest";
 import { chartPoints, keyHeat, peakSample, rankRacers, slowestKeys } from "../../src/lib/results";
 import type { ResultRacer } from "../../src/types/race";
 
-const racer = (id: string, wpm: number, finishMs: number | null): ResultRacer => ({
+const racer = (id: string, status: ResultRacer["status"], { finishMs = null, progress = 0, timeMs = 60_000 }: Partial<ResultRacer> = {}): ResultRacer => ({
   id,
   name: id,
   emblem: "cat",
   character: "joker",
-  wpm,
+  wpm: 50,
+  rawWpm: 55,
   accuracy: 1,
+  mistakes: 0,
+  progress,
   finishMs,
+  timeMs,
+  status,
 });
 
-describe("rankRacers", () => {
-  it("orders finishers by time, then the rest by speed", () => {
-    const ranked = rankRacers([racer("a", 90, null), racer("b", 100, 40_000), racer("c", 80, 30_000), racer("d", 120, null)]);
-    expect(ranked.map((r) => r.id)).toEqual(["c", "b", "d", "a"]);
+describe("rankRacers (COURSE-10)", () => {
+  it("orders finishers by time, then the rest by progress, then eliminations, then forfeits", () => {
+    const ranked = rankRacers([
+      racer("quit-far", "forfeited", { progress: 0.8 }),
+      racer("slow", "timeout", { progress: 0.4 }),
+      racer("out-early", "eliminated", { timeMs: 5_000 }),
+      racer("second", "finished", { finishMs: 40_000 }),
+      racer("quit-near", "forfeited", { progress: 0.1 }),
+      racer("closer", "timeout", { progress: 0.9 }),
+      racer("out-late", "eliminated", { timeMs: 20_000 }),
+      racer("first", "finished", { finishMs: 30_000 }),
+    ]);
+    expect(ranked.map((r) => r.id)).toEqual(["first", "second", "closer", "slow", "out-late", "out-early", "quit-far", "quit-near"]);
   });
 });
 

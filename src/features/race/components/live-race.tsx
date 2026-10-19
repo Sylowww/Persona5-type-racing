@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition, type ChangeEvent } from "react";
+import { forfeitLobbyRace } from "@/features/lobby/actions";
 import { useLobbyStream } from "@/features/lobby/use-lobby-stream";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -132,10 +133,14 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const finished = isFinished(typing);
   // In sudden death the first mistake ends the race; shown at once, the server confirms it.
   const eliminated = (isSuddenDeath && typing.mistakes > 0) || (race?.you?.eliminatedAt ?? null) !== null;
+  const forfeitedAt = race?.you?.forfeitedAt ?? null;
+  const [isForfeiting, startForfeit] = useTransition();
   const isCountdown = now < startsAt;
   // Keys typed before hydration would be dropped when React takes over the input, so it opens only after.
   const hydrated = useHydrated();
-  const isOpen = hydrated && !isSpectator && race !== null && !isCountdown && !finished && !eliminated && view.phase !== "finished";
+  const isOpen =
+    hydrated && !isSpectator && race !== null && !isCountdown && !finished && !eliminated && forfeitedAt === null && view.phase !== "finished";
+  const canForfeit = !isSpectator && race !== null && !finished && !eliminated && forfeitedAt === null && view.phase !== "finished";
 
   // autoFocus can run before hydration, so place the caret here too.
   useEffect(() => {
@@ -169,12 +174,12 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
     sender.push(events);
   }
 
-  const endTime = typing.finishedAt ?? race?.you?.eliminatedAt ?? now;
+  const endTime = typing.finishedAt ?? race?.you?.eliminatedAt ?? forfeitedAt ?? now;
   const elapsedMs = race === null ? 0 : Math.max(0, endTime - startsAt);
   const wpm = wordsPerMinute(netChars(text, typing.typed, mode), elapsedMs);
   const racers = (race?.racers ?? []).map((racer) =>
     racer.id === view.youId
-      ? { ...racer, progress: progress(text, typing.typed, mode), wpm, mistakes: typing.mistakes, isEliminated: eliminated }
+      ? { ...racer, progress: progress(text, typing.typed, mode), wpm, mistakes: typing.mistakes, isEliminated: eliminated, isForfeited: forfeitedAt !== null }
       : racer,
   );
   const leaderProgress = Math.max(0, ...racers.map((racer) => racer.progress));
@@ -194,7 +199,9 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
       ? dictionary.arena.reconnecting
       : eliminated
         ? dictionary.arena.eliminated
-        : finished
+        : forfeitedAt !== null
+          ? dictionary.arena.forfeited
+          : finished
           ? dictionary.arena.waitingOthers
           : isCountdown
             ? dictionary.arena.countdown
@@ -271,6 +278,20 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                   {isSuddenDeath && (
                     <span className="font-hud text-label-hud font-black uppercase text-error">{dictionary.arena.suddenDeath}</span>
                   )}
+                  {canForfeit && (
+                    <button
+                      type="button"
+                      disabled={isForfeiting}
+                      onClick={(event) => {
+                        // The arena focuses the input on click; giving up should not.
+                        event.stopPropagation();
+                        if (window.confirm(dictionary.arena.forfeitConfirm)) startForfeit(async () => void (await forfeitLobbyRace(view.code)));
+                      }}
+                      className="bg-surface-container px-2 py-0.5 font-hud text-label-hud font-black uppercase text-error transition-colors hover:bg-error-container hover:text-on-error-container disabled:opacity-60"
+                    >
+                      {dictionary.arena.forfeit}
+                    </button>
+                  )}
                   <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">
                     {formatMessage(dictionary.arena.mistakes, { count: typing.mistakes })}
                   </span>
@@ -316,6 +337,9 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                 }}
                 onSelect={(event) => keepCaretAtEnd(event.currentTarget)}
                 onBlur={() => setIsFocused(false)}
+                // Pasting or dropping text is not typing (COURSE-04); the server's speed limit backs this up.
+                onPaste={(event) => event.preventDefault()}
+                onDrop={(event) => event.preventDefault()}
                 readOnly={!isOpen}
                 autoFocus
                 autoComplete="off"
