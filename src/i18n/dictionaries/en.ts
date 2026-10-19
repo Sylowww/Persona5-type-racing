@@ -316,6 +316,11 @@ const en = {
       placeOf: "Out of {total} racers",
       spectating: "Spectating",
     },
+    mobile: {
+      title: "Grab a keyboard",
+      text: "Typing races need a physical keyboard. Open this race on a computer to take part.",
+      back: "Back to the lobby",
+    },
     bonuses: {
       announce: {
         shortcut: "{receiver} takes a shortcut: 3 words fewer",

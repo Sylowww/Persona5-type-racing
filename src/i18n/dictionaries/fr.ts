@@ -318,6 +318,11 @@ const fr: Dictionary = {
       placeOf: "Sur {total} coureurs",
       spectating: "Spectateur",
     },
+    mobile: {
+      title: "Prends un clavier",
+      text: "Les courses de frappe se jouent avec un vrai clavier. Ouvre cette course sur un ordinateur pour y participer.",
+      back: "Retour au salon",
+    },
     bonuses: {
       announce: {
         shortcut: "{receiver} prend un raccourci : 3 mots de moins",

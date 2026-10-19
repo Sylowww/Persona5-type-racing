@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Icon } from "@/components/ui/icon";
 import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
 import { loadLobby } from "@/features/lobby/load-lobby";
 import { LiveRace } from "@/features/race/components/live-race";
@@ -30,7 +32,21 @@ export default async function RacePage({ params }: Params) {
       <div className="relative flex w-full flex-col">
         <HalftoneBackdrop />
         <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 py-4 md:px-10">
-          <LiveRace dictionary={dictionary} locale={locale} initialView={view} />
+          {/* Phones get a message instead of the race (DES-06): typing races need a physical keyboard. */}
+          <section className="mx-auto flex max-w-md flex-col items-center gap-4 bg-surface-container p-6 text-center shadow-hard-xl md:hidden">
+            <Icon name="keyboard" size={48} className="text-primary-container" />
+            <h1 className="font-display text-headline-md uppercase italic text-secondary">{dictionary.mobile.title}</h1>
+            <p className="text-on-surface-variant">{dictionary.mobile.text}</p>
+            <Link
+              href={`/${locale}/lobby/${code}`}
+              className="-skew-x-6 bg-primary-container px-4 py-2 font-hud text-headline-sm font-black uppercase italic text-on-primary-container shadow-hard-sm"
+            >
+              {dictionary.mobile.back}
+            </Link>
+          </section>
+          <div className="hidden md:block">
+            <LiveRace dictionary={dictionary} locale={locale} initialView={view} />
+          </div>
         </div>
       </div>
     </main>
