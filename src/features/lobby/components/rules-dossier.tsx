@@ -3,7 +3,7 @@ import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { locales } from "@/i18n/locales";
 import { lobbyVisibilities } from "@/lib/lobby";
-import { raceModes, timeLimitOptions } from "@/lib/race-settings";
+import { MAX_CHAR_FILTER, raceModes, textComplexities, textTypes, timeLimitOptions, wordCountOptions } from "@/lib/race-settings";
 import type { LobbyVisibility, RaceSettings } from "@/types/lobby";
 import { KeySoundPicker } from "./key-sound-picker";
 
@@ -48,6 +48,10 @@ export function RulesDossier({
   const { mode, time, text } = dictionary;
   const disabled = !canEdit || isPending;
   const textRules = [
+    { key: "punctuation", label: text.punctuation, enabled: settings.punctuation },
+    { key: "capitals", label: text.capitals, enabled: settings.capitals },
+    // Accents only matter in French.
+    ...(settings.language === "fr" ? [{ key: "accents", label: text.accents, enabled: settings.accents } as const] : []),
     { key: "numbers", label: text.numbers, enabled: settings.numbers },
     { key: "caseSensitive", label: text.casing, enabled: settings.caseSensitive },
   ] as const;
@@ -152,7 +156,7 @@ export function RulesDossier({
 
         <div className="flex flex-col gap-1">
           <DirectiveTitle title={time.title} tag={timeLimitLabel(time, settings.timeLimitSec)} />
-          <div className="grid grid-cols-5 gap-1">
+          <div className="grid grid-cols-4 gap-1">
             {timeLimitOptions.map((option) => {
               const isActive = option === settings.timeLimitSec;
               return (
@@ -198,6 +202,28 @@ export function RulesDossier({
               );
             })}
           </div>
+          <ChoiceRow
+            label={text.type}
+            options={textTypes.map((option) => ({ value: option, label: text.types[option] }))}
+            value={settings.textType}
+            disabled={disabled}
+            onPick={(textType) => onChange({ textType })}
+          />
+          <ChoiceRow
+            label={text.length}
+            options={wordCountOptions.map((option) => ({ value: option, label: formatMessage(text.words, { count: option }) }))}
+            value={settings.wordCount}
+            disabled={disabled}
+            onPick={(wordCount) => onChange({ wordCount })}
+          />
+          <ChoiceRow
+            label={text.complexity}
+            options={textComplexities.map((option) => ({ value: option, label: text.complexities[option] }))}
+            value={settings.complexity}
+            disabled={disabled}
+            onPick={(complexity) => onChange({ complexity })}
+          />
+          <p className="text-[12px] italic text-on-surface-variant">{text.complexityHint}</p>
           <div className="flex flex-col gap-1.5 bg-surface-container-low p-2">
             {textRules.map((rule) => (
               <ToggleRow
@@ -211,6 +237,14 @@ export function RulesDossier({
             ))}
           </div>
         </div>
+
+        {settings.textType === "random" && (
+          <div className="flex flex-col gap-2">
+            <CharFilter label={text.include} value={settings.includeChars} disabled={disabled} onSave={(includeChars) => onChange({ includeChars })} />
+            <CharFilter label={text.exclude} value={settings.excludeChars} disabled={disabled} onSave={(excludeChars) => onChange({ excludeChars })} />
+            <p className="text-[12px] italic text-on-surface-variant">{text.filterHint}</p>
+          </div>
+        )}
 
         <hr className="border-surface-container-highest" />
 
@@ -246,6 +280,62 @@ function SeatButton({ icon, label, disabled, onClick }: { icon: "add" | "remove"
     >
       <Icon name={icon} size={20} />
     </button>
+  );
+}
+
+type ChoiceRowProps<T extends string | number> = {
+  label: string;
+  options: readonly { value: T; label: string }[];
+  value: T;
+  disabled: boolean;
+  onPick: (value: T) => void;
+};
+
+function ChoiceRow<T extends string | number>({ label, options, value, disabled, onPick }: ChoiceRowProps<T>) {
+  return (
+    <div role="group" aria-label={label} className="flex flex-col gap-1">
+      <span className="font-hud text-[11px] font-black uppercase text-outline">{label}</span>
+      <div className="flex flex-wrap gap-1">
+        {options.map((option) => {
+          const isActive = option.value === value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={isActive}
+              disabled={disabled}
+              onClick={() => onPick(option.value)}
+              className={`flex-1 px-2 py-1.5 font-hud text-[12px] font-black uppercase ${
+                isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
+              }`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Letters field saved when it loses focus or on Enter; the server keeps distinct letters only. */
+function CharFilter({ label, value, disabled, onSave }: { label: string; value: string; disabled: boolean; onSave: (value: string) => void }) {
+  return (
+    <label className="flex items-center justify-between gap-2">
+      <span className="text-on-surface">{label}</span>
+      <input
+        // Remount when the server changes the value, so the field shows it.
+        key={value}
+        defaultValue={value}
+        disabled={disabled}
+        maxLength={MAX_CHAR_FILTER * 2}
+        spellCheck={false}
+        autoComplete="off"
+        onBlur={(event) => event.currentTarget.value !== value && onSave(event.currentTarget.value)}
+        onKeyDown={(event) => event.key === "Enter" && event.currentTarget.blur()}
+        className="w-28 bg-surface-container-lowest px-2 py-1 font-body text-body-md font-bold text-secondary disabled:opacity-60"
+      />
+    </label>
   );
 }
 
