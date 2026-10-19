@@ -33,6 +33,7 @@ export function ResultsTable({ dictionary, locale, racers, youId }: ResultsTable
               <th scope="col" className="px-3 py-2 text-right">{columns.accuracy}</th>
               <th scope="col" className="px-3 py-2 text-right">{columns.mistakes}</th>
               <th scope="col" className="px-3 py-2 text-right">{columns.time}</th>
+              <th scope="col" className="px-3 py-2 text-right">{columns.bonuses}</th>
               <th scope="col" className="px-3 py-2">{columns.status}</th>
             </tr>
           </thead>
@@ -53,6 +54,7 @@ export function ResultsTable({ dictionary, locale, racers, youId }: ResultsTable
                   <td className="px-3 py-2 text-right text-on-surface-variant tabular-nums">
                     {formatMessage(dictionary.seconds, { value: seconds.format(racer.timeMs / 1000) })}
                   </td>
+                  <td className="px-3 py-2 text-right text-on-surface-variant tabular-nums">{number.format(racer.bonuses)}</td>
                   <td className={`px-3 py-2 font-hud text-label-hud font-black uppercase ${racer.status === "finished" ? "text-secondary-fixed" : "text-error"}`}>
                     {dictionary.statuses[racer.status]}
                   </td>

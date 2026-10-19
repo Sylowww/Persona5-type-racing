@@ -237,7 +237,7 @@ const fr: Dictionary = {
         suddenDeathValue: "1 erreur = éliminé",
         note: "* Mort subite : la première erreur met fin à ta course.",
         powers: "Pouvoirs",
-        powersSoon: "Bientôt : aucun effet sur les courses pour l'instant.",
+        powersHint: "Bonus de remontée : quand le meneur passe 25, 50 et 75 % du texte, les joueurs en retard prennent un raccourci, ou ralentissent le meneur avec des mots en plus ou du brouillard (3 par joueur au maximum).",
       },
       time: {
         title: "Directive 02 // Limite de temps",
@@ -303,6 +303,18 @@ const fr: Dictionary = {
       place: "Position {place}",
       placeOf: "Sur {total} coureurs",
       spectating: "Spectateur",
+    },
+    bonuses: {
+      announce: {
+        shortcut: "{receiver} prend un raccourci : 3 mots de moins",
+        burden: "{receiver} ajoute 3 mots au texte de {target}",
+        fog: "{receiver} embrume la vue de {target}",
+      },
+      onYou: {
+        shortcut: "Raccourci ! 3 mots retirés de ton texte",
+        burden: "Fardeau ! 3 mots ajoutés à ton texte",
+        fog: "Brouillard ! Tes prochains mots sont flous",
+      },
     },
     track: {
       label: "Piste de course",
@@ -400,6 +412,7 @@ const fr: Dictionary = {
         mistakes: "Erreurs",
         time: "Temps",
         status: "Statut",
+        bonuses: "Bonus",
       },
       statuses: {
         finished: "Terminé",

@@ -220,3 +220,26 @@ test("a public lobby shows in the lobby browser and can be joined from it", asyn
   await hostContext.close();
   await guestContext.close();
 });
+
+test("catch-up bonuses go to the lagging racer and are announced on the track", async ({ page }) => {
+  test.setTimeout(90_000);
+  await signUp(page, "bonus");
+  const code = await createLobby(page);
+  await page.request.get(`/en/lobby/${code}/race`, { maxRedirects: 0 });
+
+  await page.getByRole("button", { name: "Lobby settings" }).click();
+  await page.getByRole("switch", { name: "Powers" }).click();
+  await expect(page.getByRole("switch", { name: "Powers" })).toHaveAttribute("aria-checked", "true");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /Novice \/\/ Intern/ }).click();
+  await page.getByRole("button", { name: "Ready up" }).click();
+  await page.getByRole("button", { name: /Start the race/i }).click();
+
+  await expect(page).toHaveURL(new RegExp(`/en/lobby/${code}/race$`));
+  const input = page.getByLabel("Type the text");
+  await expect(input).toBeEditable({ timeout: 10_000 });
+  const text = await raceText(page);
+  // Pass the first checkpoint (25%) well ahead of a 30 WPM bot.
+  await input.pressSequentially(text.slice(0, Math.ceil(text.length * 0.3)), { delay: KEY_DELAY_MS });
+  await expect(page.getByRole("status").getByText(/takes a shortcut: 3 words fewer/)).toBeVisible({ timeout: 5_000 });
+});

@@ -11,16 +11,18 @@ type TypingTextProps = {
   typed: string;
   /** The last key was wrong and not typed (blocking mode): mark the character waiting to be fixed. */
   blocked?: boolean;
+  /** Fog bonus: the words after the cursor are blurred. */
+  fog?: boolean;
 };
 
 /** The target text, colored by what was typed. Kept flat and calm: no rotation on the text itself. */
-export function TypingText({ text, typed, blocked = false }: TypingTextProps) {
+export function TypingText({ text, typed, blocked = false, fog = false }: TypingTextProps) {
   // Each word keeps its trailing space so a mistyped space is visible.
   return (
     <p aria-hidden="true" className="flex flex-wrap gap-y-2 font-body text-typing-stream font-bold select-none">
       {splitWords(text).map(({ start, chars }) => {
         return (
-          <span key={start} className="whitespace-pre">
+          <span key={start} className={`whitespace-pre transition-[filter] ${fog && start > typed.length ? "blur-sm" : ""}`}>
             {[...chars].map((char, charIndex) => {
               const index = start + charIndex;
               return (

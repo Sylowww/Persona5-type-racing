@@ -235,7 +235,7 @@ const en = {
         suddenDeathValue: "1 mistake = out",
         note: "* Sudden death: the first mistake ends your race.",
         powers: "Powers",
-        powersSoon: "Coming soon: no effect on races yet.",
+        powersHint: "Catch-up bonuses: when the leader passes 25, 50 and 75% of the text, lagging racers get a shortcut, or slow the leader with extra words or fog (3 per racer at most).",
       },
       time: {
         title: "Directive 02 // Time limit",
@@ -301,6 +301,18 @@ const en = {
       place: "Place {place}",
       placeOf: "Out of {total} racers",
       spectating: "Spectating",
+    },
+    bonuses: {
+      announce: {
+        shortcut: "{receiver} takes a shortcut: 3 words fewer",
+        burden: "{receiver} drops 3 extra words on {target}",
+        fog: "{receiver} fogs {target}'s view",
+      },
+      onYou: {
+        shortcut: "Shortcut! 3 words removed from your text",
+        burden: "Burden! 3 words added to your text",
+        fog: "Fog! Your next words are blurred",
+      },
     },
     track: {
       label: "Race track",
@@ -398,6 +410,7 @@ const en = {
         mistakes: "Mistakes",
         time: "Time",
         status: "Status",
+        bonuses: "Bonuses",
       },
       statuses: {
         finished: "Finished",
