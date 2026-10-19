@@ -80,6 +80,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
         onLeave={() => startTransition(() => leaveLobby(code, locale))}
         onShowSettings={() => setSettingsOpen(true)}
         onShowChat={() => focusSection("lobby-chat-input")}
+        close={isHost && isWaiting && view.kind === "custom" ? { code, locale } : null}
       />
 
       <div className="grid grid-cols-1 items-start gap-7 xl:grid-cols-12">

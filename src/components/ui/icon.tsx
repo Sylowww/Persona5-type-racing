@@ -4,6 +4,7 @@ export const iconNames = [
   "analytics",
   "arrow_forward",
   "assignment",
+  "block",
   "bolt",
   "chat",
   "check",

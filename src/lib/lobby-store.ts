@@ -11,6 +11,7 @@ import {
   admitPlayer,
   advance,
   applyInput,
+  closeLobby,
   createLobby,
   isMember,
   joinLobby,
@@ -281,6 +282,11 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     leave(code: string, userId: string) {
       update(code, (state) => leaveLobby(state, userId));
+    },
+
+    /** The host closes the lobby: every member receives a null view and the code stops working. */
+    close(code: string, userId: string): StoreError | null {
+      return updateOutcome(code, (state) => closeLobby(state, userId));
     },
 
     /** The host removes a player, who then receives a null view and cannot join again. */
