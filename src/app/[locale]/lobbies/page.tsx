@@ -36,7 +36,7 @@ export default async function LobbiesPage({ params }: { params: Promise<{ locale
             <h1 className="font-display text-headline-lg uppercase italic tracking-wider text-secondary">{lobbies.title}</h1>
             <p className="text-on-surface-variant">{lobbies.subtitle}</p>
           </header>
-          <LobbyBrowser dictionary={lobbies} modeNames={lobby.rules.mode} locale={locale} lobbies={getLobbyStore().listPublic()} />
+          <LobbyBrowser dictionary={lobbies} modeNames={lobby.rules.mode} complexityNames={lobby.rules.text.complexities} locale={locale} lobbies={getLobbyStore().listPublic()} />
         </div>
       </div>
     </main>
