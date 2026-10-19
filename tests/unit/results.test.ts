@@ -12,6 +12,7 @@ const racer = (id: string, status: ResultRacer["status"], { finishMs = null, pro
   accuracy: 1,
   mistakes: 0,
   progress,
+  bonuses: 0,
   finishMs,
   timeMs,
   status,

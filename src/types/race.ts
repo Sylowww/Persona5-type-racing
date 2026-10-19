@@ -16,6 +16,8 @@ export type RaceRacer = {
   isEliminated: boolean;
   /** Gave up the race (COURSE-07). */
   isForfeited: boolean;
+  /** Catch-up bonuses received so far. */
+  bonuses: number;
   isBot: boolean;
   isConnected: boolean;
 };
@@ -35,6 +37,22 @@ export type RaceYou = {
   finishedAt: number | null;
   eliminatedAt: number | null;
   forfeitedAt: number | null;
+  /** The next words are blurred until then (fog bonus); null otherwise. */
+  fogUntil: number | null;
+};
+
+/** `shortcut`: -3 words for its receiver. `burden`: +3 words for the leader. `fog`: blurs the leader's next words. */
+export type BonusKind = "shortcut" | "burden" | "fog";
+
+/** A catch-up bonus just handed out, announced on the track (BONUS-03). */
+export type RaceBonusEvent = {
+  id: number;
+  kind: BonusKind;
+  receiverId: string;
+  receiver: string;
+  /** The receiver for a shortcut, the leader otherwise. */
+  targetId: string;
+  target: string;
 };
 
 /** Race part of a lobby snapshot. Times are server epoch milliseconds. */
@@ -48,6 +66,10 @@ export type RaceView = {
   isTimed: boolean;
   mode: RaceMode;
   caseSensitive: boolean;
+  /** Catch-up bonuses are on for this race (CONF-09). */
+  bonusesOn: boolean;
+  /** Bonuses handed out in the last few seconds. */
+  bonusEvents: readonly RaceBonusEvent[];
   /** In the order players joined, so lanes do not jump around. */
   racers: readonly RaceRacer[];
   /** Null when the viewer is not racing (e.g. joined after the start). */
@@ -93,6 +115,8 @@ export type ResultRacer = {
   mistakes: number;
   /** Share of the text validated when the racer stopped, from 0 to 1. */
   progress: number;
+  /** Catch-up bonuses received. */
+  bonuses: number;
   /** Race time in ms; null if the racer did not finish. */
   finishMs: number | null;
   /** Time the racer spent in the race, in ms (until they finished, stopped or the race ended). */

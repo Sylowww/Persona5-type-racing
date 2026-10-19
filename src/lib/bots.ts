@@ -76,6 +76,37 @@ function keyEffort(char: string, profile: BotProfile, random: () => number): num
   return Math.max(0.3, (1 + noise) * (isSlowKey ? 1.5 : 1));
 }
 
+/** Small seeded generator (mulberry32), so bot plans made during a race stay reproducible (BOT-05). */
+export function seededRandom(seed: number): () => number {
+  let value = seed | 0;
+  return () => {
+    value = (value + 0x6d2b79f5) | 0;
+    let t = Math.imul(value ^ (value >>> 15), 1 | value);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
+  };
+}
+
+/**
+ * Plans the rest of a bot's race after its text changed (a bonus added or removed words): first erases what it got
+ * wrong (except in free mode, where mistakes stay), then types the rest of the new text. Times start at `fromMs`.
+ */
+export function replanBotRun(
+  text: string,
+  typed: string,
+  difficulty: BotDifficulty,
+  random: () => number,
+  mode: RaceMode,
+  fromMs: number,
+): BotStep[] {
+  let kept = typed.length;
+  if (mode !== "free") while (kept > 0 && typed.slice(0, kept) !== text.slice(0, kept)) kept--;
+  const deletes: BotStep[] = Array.from({ length: typed.length - kept }, (_, index) => ({ atMs: fromMs + (index + 1) * 120, event: { type: "delete" } }));
+  const start = (deletes.at(-1)?.atMs ?? fromMs);
+  const rest = planBotRun(text.slice(kept), difficulty, random, mode).map((step) => ({ ...step, atMs: start + step.atMs }));
+  return [...deletes, ...rest];
+}
+
 /**
  * Plans a bot's race over `text`. The pace is scaled so the bot finishes at about its target speed
  * (varied per race), while typos and pauses still slow it down where they happen.
