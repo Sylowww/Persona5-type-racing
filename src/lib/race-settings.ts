@@ -1,4 +1,5 @@
-import { isLocale } from "../i18n/locales";
+import { z } from "zod";
+import { locales } from "../i18n/locales";
 import type { RaceMode, RaceSettings, TextComplexity, TextType } from "@/types/lobby";
 
 export const raceModes: readonly RaceMode[] = ["normal", "blocking", "free", "suddenDeath"];
@@ -34,36 +35,47 @@ export const defaultRaceSettings: RaceSettings = {
 /** Races without a time limit still end after this long, so an idle racer cannot keep a lobby busy forever. */
 export const UNTIMED_RACE_CAP_MS = 30 * 60_000;
 
-const booleanFields = ["powers", "numbers", "caseSensitive", "punctuation", "capitals", "accents"] as const;
+/** Distinct lowercase letters, at most `MAX_CHAR_FILTER` of them. */
+const charFilterSchema = z
+  .string()
+  .transform((value) => [...new Set([...value.toLowerCase()].filter((char) => char.trim() !== ""))])
+  .refine((letters) => letters.length <= MAX_CHAR_FILTER && letters.every((char) => /^\p{L}$/u.test(char)))
+  .transform((letters) => letters.join(""));
+
+/** A change the host sends from the settings panel: any subset of the fields, nothing else (TECH-07). */
+const settingsChangeSchema = z
+  .object({
+    mode: z.enum(raceModes),
+    timeLimitSec: z.union(timeLimitOptions.map((option) => z.literal(option)) as [z.ZodLiteral<number | null>, ...z.ZodLiteral<number | null>[]]),
+    language: z.enum(locales),
+    textType: z.enum(textTypes),
+    wordCount: z.union(wordCountOptions.map((option) => z.literal(option)) as [z.ZodLiteral<number>, ...z.ZodLiteral<number>[]]),
+    complexity: z.enum(textComplexities),
+    powers: z.boolean(),
+    numbers: z.boolean(),
+    caseSensitive: z.boolean(),
+    punctuation: z.boolean(),
+    capitals: z.boolean(),
+    accents: z.boolean(),
+    includeChars: charFilterSchema,
+    excludeChars: charFilterSchema,
+  })
+  .partial()
+  .strict();
 
 /** Distinct lowercase letters of a filter field; null when it holds anything else or too many letters. */
 export function parseCharFilter(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const letters = [...new Set([...value.toLowerCase()].filter((char) => char.trim() !== ""))];
-  if (letters.length > MAX_CHAR_FILTER || letters.some((char) => !/^\p{L}$/u.test(char))) return null;
-  return letters.join("");
+  const result = charFilterSchema.safeParse(value);
+  return result.success ? result.data : null;
 }
 
 /** Applies a partial change sent by a client; null when any field is invalid. */
 export function parseRaceSettings(current: RaceSettings, value: unknown): RaceSettings | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
-  const next: RaceSettings = { ...current };
-  for (const [key, field] of Object.entries(value)) {
-    const mode = raceModes.find((option) => option === field);
-    const textType = textTypes.find((option) => option === field);
-    const complexity = textComplexities.find((option) => option === field);
-    const filter = parseCharFilter(field);
-    if (key === "mode" && mode) next.mode = mode;
-    else if (key === "timeLimitSec" && timeLimitOptions.includes(field as number | null)) next.timeLimitSec = field as number | null;
-    else if (key === "language" && typeof field === "string" && isLocale(field)) next.language = field;
-    else if (key === "textType" && textType) next.textType = textType;
-    else if (key === "complexity" && complexity) next.complexity = complexity;
-    else if (key === "wordCount" && wordCountOptions.includes(field as number)) next.wordCount = field as number;
-    else if ((key === "includeChars" || key === "excludeChars") && filter !== null) next[key] = filter;
-    else if (booleanFields.some((name) => name === key) && typeof field === "boolean") next[key as (typeof booleanFields)[number]] = field;
-    else return null;
-  }
-  return next;
+  const result = settingsChangeSchema.safeParse(value);
+  if (!result.success) return null;
+  // `{ mode: undefined }` passes an optional field: keep the current value rather than erase it.
+  const change = Object.fromEntries(Object.entries(result.data).filter(([, field]) => field !== undefined));
+  return { ...current, ...change };
 }
 
 /** Race length in ms for these settings. */
