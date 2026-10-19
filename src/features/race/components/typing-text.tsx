@@ -9,10 +9,12 @@ const charClass: Record<CharStatus, string> = {
 type TypingTextProps = {
   text: string;
   typed: string;
+  /** The last key was wrong and not typed (blocking mode): mark the character waiting to be fixed. */
+  blocked?: boolean;
 };
 
 /** The target text, colored by what was typed. Kept flat and calm: no rotation on the text itself. */
-export function TypingText({ text, typed }: TypingTextProps) {
+export function TypingText({ text, typed, blocked = false }: TypingTextProps) {
   // Each word keeps its trailing space so a mistyped space is visible.
   return (
     <p aria-hidden="true" className="flex flex-wrap gap-y-2 font-body text-typing-stream font-bold select-none">
@@ -22,7 +24,7 @@ export function TypingText({ text, typed }: TypingTextProps) {
             {[...chars].map((char, charIndex) => {
               const index = start + charIndex;
               return (
-                <span key={index} className={`relative ${charClass[charStatus(text, typed, index)]}`}>
+                <span key={index} className={`relative ${charClass[blocked && index === typed.length ? "incorrect" : charStatus(text, typed, index)]}`}>
                   {index === typed.length && (
                     <span className="absolute top-1 -left-0.5 h-9 w-[3px] bg-primary-container shadow-[0_0_8px] shadow-primary-container motion-safe:animate-pulse" />
                   )}

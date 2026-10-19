@@ -1,7 +1,8 @@
 // Human-like bot typists. A bot's whole race is planned when the race starts, as timed keystrokes that the
 // engine replays with the same typing rules as players: uneven rhythm, pauses between words, and typos
 // that the bot sometimes notices a few keys late before deleting them and typing the right character.
-import type { BotDifficulty } from "@/types/lobby";
+// Typos follow the race's error mode (BOT-03): fixed after a reaction in blocking mode, left behind in free mode.
+import type { BotDifficulty, RaceMode } from "@/types/lobby";
 import type { InputEvent } from "@/types/race";
 import { botTargetWpm } from "./lobby";
 
@@ -79,7 +80,7 @@ function keyEffort(char: string, profile: BotProfile, random: () => number): num
  * Plans a bot's race over `text`. The pace is scaled so the bot finishes at about its target speed
  * (varied per race), while typos and pauses still slow it down where they happen.
  */
-export function planBotRun(text: string, difficulty: BotDifficulty, random: () => number): BotStep[] {
+export function planBotRun(text: string, difficulty: BotDifficulty, random: () => number, mode: RaceMode = "normal"): BotStep[] {
   if (text.length === 0) return [];
   const profile = botProfiles[difficulty];
   const wpm = botTargetWpm[difficulty] * between(random, [1 - FORM_VARIATION, 1 + FORM_VARIATION]);
@@ -100,6 +101,14 @@ export function planBotRun(text: string, difficulty: BotDifficulty, random: () =
 
     if (random() < profile.mistakeRate) {
       press(wrongKeyFor(text[index], random), efforts[index]);
+      // Free mode: the typo stays and the bot moves on.
+      if (mode === "free") continue;
+      // Blocking mode: the cursor did not move, so the bot just reacts and types the right key.
+      if (mode === "blocking") {
+        time += pause(profile.reactionMs);
+        press(text[index], efforts[index]);
+        continue;
+      }
       let extra = 0;
       while (extra < 3 && index + 1 + extra < text.length && random() < profile.lateNoticeRate) {
         press(text[index + 1 + extra], efforts[index + 1 + extra]);

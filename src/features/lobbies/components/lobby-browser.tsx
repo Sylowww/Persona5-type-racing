@@ -7,7 +7,7 @@ import { joinListedLobby } from "@/features/lobby/actions";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { locales, type Locale } from "@/i18n/locales";
-import type { PublicLobby } from "@/types/lobby";
+import type { PublicLobby, RaceMode } from "@/types/lobby";
 
 /** The list reloads on its own this often. */
 const REFRESH_MS = 5_000;
@@ -17,7 +17,7 @@ const languageFilters: readonly LanguageFilter[] = ["all", ...locales];
 
 type LobbyBrowserProps = {
   dictionary: Dictionary["lobbies"];
-  modeNames: Pick<Dictionary["lobby"]["rules"]["mode"], "normal" | "suddenDeath">;
+  modeNames: Pick<Dictionary["lobby"]["rules"]["mode"], RaceMode>;
   locale: Locale;
   lobbies: readonly PublicLobby[];
 };

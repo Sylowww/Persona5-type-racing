@@ -22,9 +22,9 @@ import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-s
 import { rankRacers } from "./results";
 import {
   accuracy,
-  correctPrefixLength,
   deleteChar,
   initialTypingState,
+  netChars,
   normalizeTypedChar,
   progress,
   typeChar,
@@ -540,7 +540,7 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         inputSeq: 0,
         keys: {},
         samples: [],
-        bot: member.bot === null ? null : { steps: planBotRun(text, member.bot, random), applied: 0 },
+        bot: member.bot === null ? null : { steps: planBotRun(text, member.bot, random, open.settings.mode), applied: 0 },
         eliminatedAt: null,
       })),
     },
@@ -616,7 +616,7 @@ function typeEvent(racer: Racer, race: Race, event: InputEvent, now: number): Ra
   }
   return {
     ...racer,
-    typing: typeChar(racer.typing, text, char, now),
+    typing: typeChar(racer.typing, text, char, now, settings.mode),
     keys: { ...racer.keys, [key]: keyTotals },
     eliminatedAt: isWrong && settings.mode === "suddenDeath" ? now : racer.eliminatedAt,
   };
@@ -653,7 +653,7 @@ function withSample(racer: Racer, race: Race, typing: TypingState, now: number, 
   const last = racer.samples.at(-1);
   const isDue = !last || atMs - last.atMs >= config.sampleIntervalMs || typing.finishedAt !== null;
   if (!isDue || typing === racer.typing) return racer.samples;
-  return [...racer.samples, { atMs, wpm: wordsPerMinute(correctPrefixLength(race.text, typing.typed), atMs) }];
+  return [...racer.samples, { atMs, wpm: wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), atMs) }];
 }
 
 /** Applies time-based transitions: countdown end, race end and expired seats. Returns the same object when nothing changed. */
@@ -696,7 +696,7 @@ function finishRace(state: LobbyState, now: number): LobbyState {
     const { typing } = racer;
     const finishMs = typing.finishedAt === null ? null : typing.finishedAt - race.startsAt;
     const durationMs = finishMs ?? (racer.eliminatedAt ?? endedAt) - race.startsAt;
-    const wpm = wordsPerMinute(correctPrefixLength(race.text, typing.typed), durationMs);
+    const wpm = wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), durationMs);
     details[racer.id] = {
       durationMs,
       keystrokes: typing.keystrokes,
@@ -741,9 +741,8 @@ function dropExpiredMembers(state: LobbyState, now: number): LobbyState {
 
 function liveWpm(racer: Racer, race: Race, now: number): number {
   const { typing } = racer;
-  if (typing.finishedAt !== null) return wordsPerMinute(race.text.length, typing.finishedAt - race.startsAt);
-  const end = Math.min(now, race.endedAt ?? now, racer.eliminatedAt ?? now);
-  return wordsPerMinute(correctPrefixLength(race.text, typing.typed), end - race.startsAt);
+  const end = typing.finishedAt ?? Math.min(now, race.endedAt ?? now, racer.eliminatedAt ?? now);
+  return wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), end - race.startsAt);
 }
 
 /**
@@ -752,7 +751,7 @@ function liveWpm(racer: Racer, race: Race, now: number): number {
  */
 export function liveOrder(race: Race): string[] {
   return race.racers
-    .map((racer, index) => ({ racer, index, progress: progress(race.text, racer.typing.typed) }))
+    .map((racer, index) => ({ racer, index, progress: progress(race.text, racer.typing.typed, race.settings.mode) }))
     .sort((a, b) => {
       const aDone = a.racer.typing.finishedAt;
       const bDone = b.racer.typing.finishedAt;
@@ -776,7 +775,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       name: racer.name,
       emblem: racer.emblem,
       character: racer.character,
-      progress: progress(race.text, racer.typing.typed),
+      progress: progress(race.text, racer.typing.typed, race.settings.mode),
       wpm: liveWpm(racer, race, now),
       mistakes: racer.typing.mistakes,
       isFinished: racer.typing.finishedAt !== null,

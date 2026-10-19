@@ -8,10 +8,10 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import {
   accuracy,
-  correctPrefixLength,
   deleteChar,
   initialTypingState,
   isFinished,
+  netChars,
   normalizeTypedChar,
   progress,
   typeChar,
@@ -97,7 +97,8 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const text = race?.text ?? "";
   const startsAt = race?.startsAt ?? 0;
   const caseSensitive = race?.caseSensitive ?? true;
-  const isSuddenDeath = race?.mode === "suddenDeath";
+  const mode = race?.mode ?? "normal";
+  const isSuddenDeath = mode === "suddenDeath";
 
   const [now, setNow] = useState(initialView.serverNow);
   const [isFocused, setIsFocused] = useState(false);
@@ -160,7 +161,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
     }
     for (const char of value.slice(next.typed.length)) {
       if (isFinished(next) || (isSuddenDeath && next.mistakes > 0)) break;
-      next = typeChar(next, text, normalizeTypedChar(text[next.typed.length], char, caseSensitive), serverTime);
+      next = typeChar(next, text, normalizeTypedChar(text[next.typed.length], char, caseSensitive), serverTime, mode);
       events.push({ type: "char", char, delayMs: lastKeyAt.current === null ? 0 : time - lastKeyAt.current });
       lastKeyAt.current = time;
     }
@@ -170,10 +171,10 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
 
   const endTime = typing.finishedAt ?? race?.you?.eliminatedAt ?? now;
   const elapsedMs = race === null ? 0 : Math.max(0, endTime - startsAt);
-  const wpm = wordsPerMinute(correctPrefixLength(text, typing.typed), elapsedMs);
+  const wpm = wordsPerMinute(netChars(text, typing.typed, mode), elapsedMs);
   const racers = (race?.racers ?? []).map((racer) =>
     racer.id === view.youId
-      ? { ...racer, progress: progress(text, typing.typed), wpm, mistakes: typing.mistakes, isEliminated: eliminated }
+      ? { ...racer, progress: progress(text, typing.typed, mode), wpm, mistakes: typing.mistakes, isEliminated: eliminated }
       : racer,
   );
   const leaderProgress = Math.max(0, ...racers.map((racer) => racer.progress));
@@ -217,7 +218,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
         active={race !== null && !isCountdown && !raceOver && !isSpectator}
         place={place}
         streak={typing.streak}
-        progress={progress(text, typing.typed)}
+        progress={progress(text, typing.typed, mode)}
         mistakes={typing.mistakes}
         finished={finished}
         chaos={chaos}
@@ -285,7 +286,8 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                   isFocused ? "outline-2 outline-secondary-fixed" : ""
                 }`}
               >
-                <TypingText text={text} typed={typing.typed} />
+                {/* In blocking mode a wrong key is not typed: the character to fix is marked instead. */}
+              <TypingText text={text} typed={typing.typed} blocked={mode === "blocking" && typing.mistakes > 0 && typing.streak === 0} />
                 {isCountdown && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-container-lowest/85">
                     <span className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">

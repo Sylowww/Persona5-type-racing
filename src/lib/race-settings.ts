@@ -1,7 +1,7 @@
 import { isLocale } from "../i18n/locales";
 import type { RaceMode, RaceSettings } from "@/types/lobby";
 
-export const raceModes: readonly RaceMode[] = ["normal", "suddenDeath"];
+export const raceModes: readonly RaceMode[] = ["normal", "blocking", "free", "suddenDeath"];
 
 /** Time limits the host can pick, in seconds; null means no limit. */
 export const timeLimitOptions: readonly (number | null)[] = [30, 60, 120, 180, null];
