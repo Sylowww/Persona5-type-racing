@@ -408,8 +408,8 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       return updateOutcome(code, (state, time) => sendMessage(state, userId, text, time));
     },
 
-    addBot(code: string, userId: string, difficulty: BotDifficulty): StoreError | null {
-      return updateOutcome(code, (state) => addBot(state, userId, difficulty, random));
+    addBot(code: string, userId: string, difficulty: BotDifficulty, character?: CharacterId): StoreError | null {
+      return updateOutcome(code, (state) => addBot(state, userId, difficulty, random, character));
     },
 
     removeBot(code: string, userId: string, botId: string): StoreError | null {

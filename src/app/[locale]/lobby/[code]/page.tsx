@@ -33,7 +33,7 @@ export default async function LobbyPage({ params }: Params) {
 
         <div className="relative z-10 mx-auto flex w-full max-w-[1720px] flex-col gap-7 px-4 py-4 md:px-10">
           {view ? (
-            <LobbyRoom dictionary={dictionary.lobby} locale={locale} initialView={view} />
+            <LobbyRoom dictionary={dictionary.lobby} characterNames={dictionary.profile.character.names} locale={locale} initialView={view} />
           ) : (
             // Opened from a lobby link: join first (or see why the code is not enough).
             <div className="mx-auto w-full max-w-md py-10">

@@ -369,8 +369,14 @@ export function setRole(state: LobbyState, userId: string, role: unknown): Outco
   return ok({ ...open, members: open.members.map((candidate) => (candidate === member ? { ...candidate, role: parsed.data, isReady: false } : candidate)) });
 }
 
-/** The host adds a bot of the chosen difficulty while the lobby is waiting. `random` picks its character. */
-export function addBot(state: LobbyState, userId: string, difficulty: BotDifficulty, random: () => number = Math.random): Outcome {
+/** The host adds a bot of the chosen difficulty while the lobby is waiting, as `character` or a random one. */
+export function addBot(
+  state: LobbyState,
+  userId: string,
+  difficulty: BotDifficulty,
+  random: () => number = Math.random,
+  character?: CharacterId,
+): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
   if (state.hostId !== userId) return fail("notHost");
   const open = reopen(state);
@@ -382,7 +388,7 @@ export function addBot(state: LobbyState, userId: string, difficulty: BotDifficu
     id: `bot-${open.joinCount}`,
     name: botName(open),
     emblem: emblems[open.joinCount % emblems.length],
-    character: randomCharacter(random),
+    character: character ?? randomCharacter(random),
     isReady: true,
     presence: "connected",
     disconnectedAt: null,

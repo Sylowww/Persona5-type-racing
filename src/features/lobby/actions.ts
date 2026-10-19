@@ -12,7 +12,7 @@ import { getLobbyStore } from "@/lib/lobby-server";
 import type { QuickMatchStatus, StoreError } from "@/lib/lobby-store";
 import { botForSpeed } from "@/lib/matchmaking";
 import { getPlayerStats } from "@/lib/race-history-db";
-import { botDifficultySchema, inviteTokenSchema, lobbyCodeSchema, localeSchema, memberIdSchema } from "@/lib/schemas";
+import { botDifficultySchema, characterSchema, inviteTokenSchema, lobbyCodeSchema, localeSchema, memberIdSchema } from "@/lib/schemas";
 
 export type JoinErrorCode =
   | "alreadyInLobby"
@@ -195,10 +195,12 @@ export async function startLobbyRace(code: string): Promise<StoreError | null> {
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().start(lobby, userId));
 }
 
-export async function addLobbyBot(code: string, difficulty: string): Promise<StoreError | null> {
+/** Host only: adds a bot of `difficulty`, racing as `character` (the host's pick) or a random one when it is null. */
+export async function addLobbyBot(code: string, difficulty: string, character: string | null = null): Promise<StoreError | null> {
   const level = botDifficultySchema.safeParse(difficulty);
-  if (!level.success) return "wrongPhase";
-  return lobbyCommand(code, (lobby, userId) => getLobbyStore().addBot(lobby, userId, level.data));
+  const look = characterSchema.nullable().safeParse(character);
+  if (!level.success || !look.success) return "wrongPhase";
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().addBot(lobby, userId, level.data, look.data ?? undefined));
 }
 
 export async function removeLobbyBot(code: string, botId: string): Promise<StoreError | null> {

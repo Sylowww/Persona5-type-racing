@@ -1,15 +1,22 @@
+"use client";
+
+import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { botDifficulties } from "@/lib/bots";
+import { characterIds } from "@/lib/characters";
 import { botTargetWpm } from "@/lib/lobby";
+import type { CharacterId } from "@/types/character";
 import type { BotDifficulty } from "@/types/lobby";
 
 type AddBotCardProps = {
   dictionary: Dictionary["lobby"]["bots"];
+  characterNames: Record<CharacterId, string>;
   wpmLabel: string;
   isPending: boolean;
-  onAdd: (difficulty: BotDifficulty) => void;
+  /** `character` is the host's pick, or null for a random one. */
+  onAdd: (difficulty: BotDifficulty, character: CharacterId | null) => void;
 };
 
 const buttonStyles: Record<BotDifficulty, { button: string; wpm: string }> = {
@@ -27,7 +34,9 @@ const buttonStyles: Record<BotDifficulty, { button: string; wpm: string }> = {
 };
 
 /** Host only: each button adds one bot of that difficulty, so bots in a lobby can all differ. */
-export function AddBotCard({ dictionary, wpmLabel, isPending, onAdd }: AddBotCardProps) {
+export function AddBotCard({ dictionary, characterNames, wpmLabel, isPending, onAdd }: AddBotCardProps) {
+  // The host picks who the bot races as (and so which Persona power it casts), or leaves it to chance.
+  const [character, setCharacter] = useState<CharacterId | null>(null);
   return (
     <li className="relative h-[290px]">
       <div aria-hidden="true" className="absolute inset-0 rotate-1 translate-x-1 translate-y-1 bg-surface-container-high" />
@@ -40,9 +49,22 @@ export function AddBotCard({ dictionary, wpmLabel, isPending, onAdd }: AddBotCar
         </div>
         <div className="flex flex-col">
           <h3 className="font-hud text-headline-sm font-black uppercase italic leading-tight text-secondary">{dictionary.title}</h3>
-          <span className="mt-1 font-hud text-[11px] font-black uppercase tracking-wider text-on-surface-variant">
-            {dictionary.subtitle}
-          </span>
+          <label className="mt-1 flex items-center justify-between gap-2 font-hud text-[11px] font-black uppercase tracking-wider text-on-surface-variant">
+            {dictionary.character}
+            <select
+              value={character ?? ""}
+              disabled={isPending}
+              onChange={(event) => setCharacter(characterIds.find((id) => id === event.target.value) ?? null)}
+              className="min-w-0 flex-1 bg-surface-container-lowest px-2 py-1 font-hud text-[12px] font-black uppercase text-secondary"
+            >
+              <option value="">{dictionary.randomCharacter}</option>
+              {characterIds.map((id) => (
+                <option key={id} value={id}>
+                  {characterNames[id]}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <div className="flex flex-col gap-1.5">
           {botDifficulties.map((difficulty) => (
@@ -50,7 +72,7 @@ export function AddBotCard({ dictionary, wpmLabel, isPending, onAdd }: AddBotCar
               key={difficulty}
               type="button"
               disabled={isPending}
-              onClick={() => onAdd(difficulty)}
+              onClick={() => onAdd(difficulty, character)}
               className={`group flex w-full items-center justify-between px-2 py-1 text-left transition-colors disabled:opacity-60 ${buttonStyles[difficulty].button}`}
             >
               <span className="font-bold uppercase">{dictionary.difficulties[difficulty]}</span>
