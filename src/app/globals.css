@@ -467,9 +467,15 @@
 }
 
 /* Persona spells (features/race/components/spell-*.tsx). Hexes act on the words after the cursor. */
+/* Agi: the upcoming words burn away behind flames; only their place on the line is left. */
+.spell-hex-fire,
+.spell-hex-fire * {
+  color: transparent;
+}
+
 .spell-hex-fire {
-  color: var(--color-spell-fire);
-  text-shadow: 0 0 6px var(--color-spell-fire), 0 -2px 10px var(--color-spell-elec);
+  background: linear-gradient(0deg, var(--color-spell-fire), var(--color-spell-elec) 70%, transparent);
+  box-shadow: 0 0 10px var(--color-spell-fire);
 }
 
 .spell-hex-psy {
@@ -477,10 +483,9 @@
   filter: blur(3px);
 }
 
-.spell-hex-bless {
-  color: var(--color-spell-bless);
-  filter: blur(2px) brightness(1.8);
-  text-shadow: 0 0 14px var(--color-spell-bless);
+/* Kouga: a blinding flash over the whole typing area (an overlay, not a hex on the words). */
+.spell-flash-bless {
+  background: radial-gradient(circle at 50% 50%, var(--color-secondary), var(--color-spell-bless) 70%);
 }
 
 .spell-hex-curse {
@@ -509,6 +514,10 @@
     animation: spell-wobble 900ms ease-in-out infinite;
   }
 
+  .spell-flash-bless {
+    animation: spell-glare 600ms ease-in-out infinite alternate;
+  }
+
   .spell-stun-elec {
     animation: spell-zap 160ms steps(2) infinite;
   }
@@ -533,6 +542,12 @@
   50% {
     filter: blur(4px) hue-rotate(60deg);
     transform: skewX(-4deg);
+  }
+}
+
+@keyframes spell-glare {
+  to {
+    filter: brightness(0.9);
   }
 }
 

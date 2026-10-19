@@ -31,7 +31,8 @@ export const characterSpells: Record<Exclude<CharacterId, "joker">, Spell> = {
   queen: spell("frei", "Johanna", "nuclear", { type: "lengthen", words: 3 }),
   oracle: spell("navi", "Necronomicon", "support", { type: "shorten", words: 2 }),
   noir: spell("psi", "Milady", "psy", { type: "hex", ms: 5_000 }),
-  crow: spell("kouga", "Robin Hood", "bless", { type: "hex", ms: 4_000 }),
+  // A full blinding flash: shorter than the other hexes, since it hides even the word being typed.
+  crow: spell("kouga", "Robin Hood", "bless", { type: "hex", ms: 2_500 }),
   violet: spell("swordDance", "Cendrillon", "phys", { type: "lengthen", words: 2 }),
   blackMask: spell("eiga", "Loki", "curse", { type: "hex", ms: 4_000 }),
   sophia: spell("mediarama", "Pandora", "heal", { type: "shorten", words: 2 }),
