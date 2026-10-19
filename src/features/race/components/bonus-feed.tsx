@@ -23,7 +23,7 @@ export function BonusFeed({ dictionary, events: received, youId }: BonusFeedProp
   const forYou = events.filter((event) => event.targetId === youId);
 
   return (
-    <div role="status" aria-live="polite" className="flex flex-col gap-4">
+    <div role="status" aria-live="polite" className="flex h-full flex-col justify-end gap-3">
       {forYou.map((event) => {
         const style = spellStyle[event.element];
         return (
@@ -36,7 +36,7 @@ export function BonusFeed({ dictionary, events: received, youId }: BonusFeedProp
           </p>
         );
       })}
-      <ul className="flex flex-wrap gap-2">
+      <ul className="flex gap-2 overflow-hidden">
         {events.slice(-MAX_LISTED).map((event) => {
           const style = spellStyle[event.element];
           return (
