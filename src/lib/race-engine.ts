@@ -13,8 +13,28 @@ import type {
   PublicLobby,
   RaceSettings,
 } from "@/types/lobby";
-import type { InputBatch, InputEvent, KeyStat, RaceRacer, RacerStatus, RaceResult, RaceView, ResultRacer, SpeedSample } from "@/types/race";
-import { planBotRun, type BotStep } from "./bots";
+import type {
+  BonusKind,
+  InputBatch,
+  InputEvent,
+  KeyStat,
+  RaceRacer,
+  RacerStatus,
+  RaceResult,
+  RaceView,
+  ResultRacer,
+  SpeedSample,
+} from "@/types/race";
+import {
+  appendWords,
+  BOT_FOG_DELAY_MS,
+  bonusFor,
+  checkpointsReached,
+  FOG_MS,
+  pickBonusReceivers,
+  removeLastWords,
+} from "./bonuses";
+import { planBotRun, replanBotRun, seededRandom, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
 import { canStartRace, lobbyVisibilities, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
@@ -87,6 +107,8 @@ export type Racer = {
   name: string;
   emblem: PlayerEmblem;
   character: CharacterId;
+  /** This racer's own text: the race text, with words added or removed by bonuses (BONUS-04). */
+  text: string;
   typing: TypingState;
   /** Page currently sending this racer's input, and its last applied batch. */
   inputClient: string | null;
@@ -94,11 +116,26 @@ export type Racer = {
   keys: Record<string, KeyTotals>;
   samples: SpeedSample[];
   /** A bot's planned keystrokes and how many were already applied; null for human players. */
-  bot: { steps: BotStep[]; applied: number } | null;
+  bot: { difficulty: BotDifficulty; steps: BotStep[]; applied: number } | null;
   /** When a mistake knocked the racer out (sudden death); null otherwise. */
   eliminatedAt: number | null;
   /** When the racer gave up (COURSE-07); null otherwise. */
   forfeitedAt: number | null;
+  /** Catch-up bonuses received this race (at most 3). */
+  bonuses: number;
+  /** The racer's next words are blurred until then (fog bonus); null otherwise. */
+  fogUntil: number | null;
+};
+
+/** One catch-up bonus handed out at a checkpoint, announced on the track (BONUS-03). */
+export type BonusEvent = {
+  id: number;
+  kind: BonusKind;
+  /** The lagging racer who got the bonus. */
+  receiverId: string;
+  /** Who it acts on: the receiver for a shortcut, the leader otherwise. */
+  targetId: string;
+  at: number;
 };
 
 export type Race = {
@@ -110,6 +147,11 @@ export type Race = {
   settings: RaceSettings;
   /** Everyone in the lobby when the race started, in join order. */
   racers: Racer[];
+  /** Bonus checkpoints already handed out (0 to 3). */
+  checkpoints: number;
+  bonusEvents: BonusEvent[];
+  /** Seeds the bot plans made during the race, so they stay reproducible. */
+  seed: number;
 };
 
 export type ChatMessage = LobbyMessage & { sentAt: number };
@@ -532,19 +574,25 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
       endsAt: startsAt + raceDurationMs(open.settings),
       endedAt: null,
       settings: open.settings,
+      checkpoints: 0,
+      bonusEvents: [],
+      seed: Math.floor(random() * 2 ** 31),
       racers: players.map((member) => ({
         id: member.id,
         name: member.name,
         emblem: member.emblem,
         character: member.character,
+        text,
         typing: initialTypingState,
         inputClient: null,
         inputSeq: 0,
         keys: {},
         samples: [],
-        bot: member.bot === null ? null : { steps: planBotRun(text, member.bot, random, open.settings.mode), applied: 0 },
+        bot: member.bot === null ? null : { difficulty: member.bot, steps: planBotRun(text, member.bot, random, open.settings.mode), applied: 0 },
         eliminatedAt: null,
         forfeitedAt: null,
+        bonuses: 0,
+        fogUntil: null,
       })),
     },
   });
@@ -586,7 +634,7 @@ export function applyInput(state: LobbyState, userId: string, batch: InputBatch,
   const keyBudget = Math.floor(((now - race.startsAt) / 1000 + 1) * state.config.maxKeysPerSecond);
   let typed = racer;
   for (const event of batch.events.slice(0, MAX_EVENTS_PER_BATCH)) {
-    if (event.type === "char" && (race.text[typed.typing.typed.length] === undefined || typed.typing.keystrokes >= keyBudget)) break;
+    if (event.type === "char" && (typed.text[typed.typing.typed.length] === undefined || typed.typing.keystrokes >= keyBudget)) break;
     typed = typeEvent(typed, race, event, now);
     if (isOut(typed)) break;
   }
@@ -614,7 +662,8 @@ function isOut(racer: Racer): boolean {
  */
 function typeEvent(racer: Racer, race: Race, event: InputEvent, now: number): Racer {
   if (event.type === "delete") return { ...racer, typing: deleteChar(racer.typing) };
-  const { text, settings } = race;
+  const { settings } = race;
+  const { text } = racer;
   const expected = text[racer.typing.typed.length];
   if (expected === undefined) return racer;
 
@@ -667,7 +716,61 @@ function withSample(racer: Racer, race: Race, typing: TypingState, now: number, 
   const last = racer.samples.at(-1);
   const isDue = !last || atMs - last.atMs >= config.sampleIntervalMs || typing.finishedAt !== null;
   if (!isDue || typing === racer.typing) return racer.samples;
-  return [...racer.samples, { atMs, wpm: wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), atMs) }];
+  return [...racer.samples, { atMs, wpm: wordsPerMinute(netChars(racer.text, typing.typed, race.settings.mode), atMs) }];
+}
+
+/** How long the track announces a bonus. */
+export const BONUS_ANNOUNCE_MS = 4_000;
+
+/**
+ * Hands out catch-up bonuses when the leader passes a checkpoint (BONUS-01): each lagging racer gets one, which either
+ * shortens their own text or slows the leader down. Bots get and suffer bonuses like players (BOT-04).
+ */
+function applyCatchUp(state: LobbyState, now: number): LobbyState {
+  const race = state.race;
+  if (state.phase !== "racing" || !race || !race.settings.powers) return state;
+  const progressOf = (racer: Racer) => progress(racer.text, racer.typing.typed, race.settings.mode);
+  const reached = checkpointsReached(Math.max(0, ...race.racers.map(progressOf)));
+  if (reached <= race.checkpoints) return state;
+
+  let racers = race.racers;
+  const events = [...race.bonusEvents];
+  const update = (racerId: string, change: (racer: Racer) => Racer) => {
+    racers = racers.map((racer) => (racer.id === racerId ? change(racer) : racer));
+  };
+  for (let checkpoint = race.checkpoints; checkpoint < reached; checkpoint++) {
+    const contenders = racers.filter((racer) => !isOut(racer)).map((racer) => ({ id: racer.id, progress: progressOf(racer), bonuses: racer.bonuses }));
+    const { leaderId, receiverIds } = pickBonusReceivers(contenders);
+    receiverIds.forEach((receiverId, index) => {
+      if (!leaderId) return;
+      const kind = bonusFor(checkpoint, index);
+      const targetId = kind === "shortcut" ? receiverId : leaderId;
+      const id = events.length + 1;
+      update(receiverId, (racer) => ({ ...racer, bonuses: racer.bonuses + 1 }));
+      update(targetId, (target) => applyBonus(target, kind, race, id, now));
+      events.push({ id, kind, receiverId, targetId, at: now });
+    });
+  }
+  return { ...state, race: { ...race, racers, checkpoints: reached, bonusEvents: events } };
+}
+
+/** The effect of one bonus on its target. A bot whose text changed plans the rest of its race again. */
+function applyBonus(target: Racer, kind: BonusKind, race: Race, eventId: number, now: number): Racer {
+  const elapsedMs = now - race.startsAt;
+  if (kind === "fog") {
+    const { bot } = target;
+    if (!bot) return { ...target, fogUntil: now + FOG_MS };
+    // A bot cannot be blinded: it hesitates instead.
+    const steps = bot.steps.map((step, index) => (index < bot.applied ? step : { ...step, atMs: step.atMs + BOT_FOG_DELAY_MS }));
+    return { ...target, bot: { ...bot, steps } };
+  }
+  const text =
+    kind === "shortcut" ? removeLastWords(target.text, target.typing.typed.length) : appendWords(target.text, race.text, race.seed + eventId);
+  if (text === target.text) return target;
+  if (!target.bot) return { ...target, text };
+  const difficulty = target.bot.difficulty;
+  const steps = replanBotRun(text, target.typing.typed, difficulty, seededRandom(race.seed + eventId), race.settings.mode, elapsedMs);
+  return { ...target, text, bot: { difficulty, steps, applied: 0 } };
 }
 
 /** Applies time-based transitions: countdown end, race end and expired seats. Returns the same object when nothing changed. */
@@ -675,6 +778,7 @@ export function advance(state: LobbyState, now: number): LobbyState {
   let next = state;
   if (next.phase === "countdown" && next.race && now >= next.race.startsAt) next = { ...next, phase: "racing" };
   next = runBots(next, now);
+  next = applyCatchUp(next, now);
   if (next.phase === "racing" && isRaceOver(next, now)) next = finishRace(next, now);
   if (next.phase === "waiting" || next.phase === "finished") next = dropExpiredMembers(next, now);
   return next;
@@ -733,11 +837,12 @@ function finishRace(state: LobbyState, now: number): LobbyState {
       name: racer.name,
       emblem: racer.emblem,
       character: racer.character,
-      wpm: wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), timeMs),
+      wpm: wordsPerMinute(netChars(racer.text, typing.typed, race.settings.mode), timeMs),
       rawWpm: wordsPerMinute(typing.keystrokes, timeMs),
       accuracy: accuracy(typing.keystrokes, typing.mistakes),
       mistakes: typing.mistakes,
-      progress: progress(race.text, typing.typed, race.settings.mode),
+      progress: progress(racer.text, typing.typed, race.settings.mode),
+      bonuses: racer.bonuses,
       finishMs: typing.finishedAt === null ? null : timeMs,
       timeMs,
       status,
@@ -769,7 +874,7 @@ function dropExpiredMembers(state: LobbyState, now: number): LobbyState {
 function liveWpm(racer: Racer, race: Race, now: number): number {
   const { typing } = racer;
   const end = typing.finishedAt ?? Math.min(now, race.endedAt ?? now, racer.eliminatedAt ?? now, racer.forfeitedAt ?? now);
-  return wordsPerMinute(netChars(race.text, typing.typed, race.settings.mode), end - race.startsAt);
+  return wordsPerMinute(netChars(racer.text, typing.typed, race.settings.mode), end - race.startsAt);
 }
 
 /**
@@ -779,7 +884,7 @@ function liveWpm(racer: Racer, race: Race, now: number): number {
 export function liveOrder(race: Race): string[] {
   const group = (racer: Racer) => (racer.typing.finishedAt !== null ? 0 : racer.eliminatedAt !== null ? 2 : racer.forfeitedAt !== null ? 3 : 1);
   return race.racers
-    .map((racer, index) => ({ racer, index, group: group(racer), progress: progress(race.text, racer.typing.typed, race.settings.mode) }))
+    .map((racer, index) => ({ racer, index, group: group(racer), progress: progress(racer.text, racer.typing.typed, race.settings.mode) }))
     .sort((a, b) => {
       if (a.group !== b.group) return a.group - b.group;
       if (a.group === 0) return (a.racer.typing.finishedAt ?? 0) - (b.racer.typing.finishedAt ?? 0) || a.index - b.index;
@@ -796,8 +901,9 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       name: racer.name,
       emblem: racer.emblem,
       character: racer.character,
-      progress: progress(race.text, racer.typing.typed, race.settings.mode),
+      progress: progress(racer.text, racer.typing.typed, race.settings.mode),
       wpm: liveWpm(racer, race, now),
+      bonuses: racer.bonuses,
       mistakes: racer.typing.mistakes,
       isFinished: racer.typing.finishedAt !== null,
       isEliminated: racer.eliminatedAt !== null,
@@ -807,13 +913,27 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
     }),
   );
   const own = race.racers.find((racer) => racer.id === userId);
+  const nameOf = (racerId: string) => race.racers.find((racer) => racer.id === racerId)?.name ?? "";
   return {
-    text: race.text,
+    // Bonuses change texts per racer: each racer sees their own, spectators the original.
+    text: own?.text ?? race.text,
     startsAt: race.startsAt,
     endsAt: race.endsAt,
     isTimed: race.settings.timeLimitSec !== null,
     mode: race.settings.mode,
     caseSensitive: race.settings.caseSensitive,
+    bonusesOn: race.settings.powers,
+    // Recent bonuses only: the track announces them for a few seconds.
+    bonusEvents: race.bonusEvents
+      .filter((event) => now - event.at < BONUS_ANNOUNCE_MS)
+      .map((event) => ({
+        id: event.id,
+        kind: event.kind,
+        receiverId: event.receiverId,
+        receiver: nameOf(event.receiverId),
+        targetId: event.targetId,
+        target: nameOf(event.targetId),
+      })),
     racers,
     you: own
       ? {
@@ -827,6 +947,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
           finishedAt: own.typing.finishedAt,
           eliminatedAt: own.eliminatedAt,
           forfeitedAt: own.forfeitedAt,
+          fogUntil: own.fogUntil,
         }
       : null,
   };

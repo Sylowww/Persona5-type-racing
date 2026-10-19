@@ -293,6 +293,68 @@ describe("forfeits and statuses (COURSE-07, COURSE-10, RES-02)", () => {
   });
 });
 
+describe("catch-up bonuses (BONUS-01 to BONUS-04)", () => {
+  const LONG = "one two three four five six seven eight nine ten eleven twelve";
+
+  function bonusRace(...names: string[]): LobbyState {
+    let state = unwrap(updateSettings(lobbyWith(...names), names[0], { powers: true }));
+    state = unwrap(startRace(readyAll(state), names[0], LONG, T0));
+    return advance(state, START);
+  }
+
+  const type = (state: LobbyState, userId: string, text: string, seq: number, at: number) =>
+    advance(applyInput(state, userId, { clientId: "tab", seq, events: chars(text) }, at), at);
+
+  it("does nothing when bonuses are off", () => {
+    let state = racing("ann", "bob");
+    state = type(state, "ann", TEXT.slice(0, 3), 1, START + 1_000);
+    expect(state.race?.bonusEvents).toEqual([]);
+  });
+
+  it("gives the lagging racer a bonus at each checkpoint the leader passes, three at most", () => {
+    let state = bonusRace("ann", "bob");
+    // 25%: bob is last and gets a shortcut: three words fewer at the end of his own text.
+    state = type(state, "ann", LONG.slice(0, 16), 1, START + 3_000);
+    const bob = state.race?.racers.find((racer) => racer.id === "bob");
+    expect(bob?.text).toBe("one two three four five six seven eight nine");
+    expect(bob?.bonuses).toBe(1);
+    expect(viewFor(state, "bob", START + 3_000)?.race?.text).toBe(bob?.text);
+    expect(viewFor(state, "bob", START + 3_000)?.race?.bonusEvents).toMatchObject([{ kind: "shortcut", receiver: "bob", target: "bob" }]);
+
+    // 50%: a burden on the leader, three words more for ann.
+    state = type(state, "ann", LONG.slice(16, 32), 2, START + 6_000);
+    const ann = state.race?.racers.find((racer) => racer.id === "ann");
+    expect(ann?.text.startsWith(LONG)).toBe(true);
+    expect(ann?.text.split(" ")).toHaveLength(15);
+
+    // 75%: fog on the leader.
+    const annText = ann?.text ?? "";
+    state = type(state, "ann", annText.slice(32, Math.ceil(annText.length * 0.8)), 3, START + 9_000);
+    const fogged = state.race?.racers.find((racer) => racer.id === "ann");
+    expect(fogged?.fogUntil).toBe(START + 9_000 + 5_000);
+    expect(state.race?.racers.find((racer) => racer.id === "bob")?.bonuses).toBe(3);
+    expect(state.race?.checkpoints).toBe(3);
+
+    // Progress and WPM are measured against each racer's own text (BONUS-04).
+    const view = viewFor(state, "bob", START + 9_000);
+    expect(view?.race?.racers.find((racer) => racer.id === "ann")?.progress).toBeCloseTo(Math.ceil(annText.length * 0.8) / annText.length);
+  });
+
+  it("lets a bot that got a shorter text finish it", () => {
+    let state = unwrap(updateSettings(lobbyWith("ann"), "ann", { powers: true }));
+    state = unwrap(addBot(unwrap(setReady(state, "ann", true)), "ann", "novice"));
+    state = advance(unwrap(startRace(state, "ann", LONG, T0, () => 0.5)), START);
+    state = type(state, "ann", LONG.slice(0, 20), 1, START + 1_000);
+    const bot = state.race?.racers.find((racer) => racer.bot !== null);
+    expect(bot?.bonuses).toBe(1);
+    expect(bot?.text.length).toBeLessThan(LONG.length);
+
+    state = advance(unwrap(forfeitRace(state, "ann", START + 2_000)), START + 120_000);
+    const result = resultFor(state, "ann");
+    expect(result?.racers.find((racer) => racer.id === bot?.id)).toMatchObject({ status: "finished", bonuses: 1 });
+  });
+});
+
 describe("after a race", () => {
   function finished(): LobbyState {
     let state = racing("ann", "bob");
