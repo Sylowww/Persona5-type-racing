@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   customType,
   doublePrecision,
   index,
@@ -12,6 +13,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { Locale } from "@/i18n/locales";
 import type { AvatarType } from "@/lib/avatar";
 import type { OAuthProvider, User } from "@/types/user";
 
@@ -113,3 +115,15 @@ export const userAvatars = pgTable("user_avatars", {
   data: bytea("data").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const raceTexts = pgTable(
+  "race_texts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    language: text("language").$type<Locale>().notNull(),
+    body: text("body").notNull().unique(),
+    hasNumbers: boolean("has_numbers").notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [index("race_texts_language_idx").on(table.language, table.hasNumbers)],
+);
