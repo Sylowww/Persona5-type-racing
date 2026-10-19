@@ -1,5 +1,7 @@
-// Fills the database with demo data: the race text corpus, a demo account, a few rivals and their race history.
+// Fills the database with demo data: the race text corpus and a demo account. The demo account starts with no
+// races, so its stats are empty until someone plays with it.
 // Usage: npm run db:seed (needs DATABASE_URL, loaded from .env if present; run npm run db:migrate first).
+// Add `-- --rivals` to also create five rival accounts with a race history, so a local leaderboard is not empty.
 // Safe to run again: texts are upserted, and only the seed accounts (email domain below) are recreated.
 import { drizzle } from "drizzle-orm/node-postgres";
 import { and, eq, like } from "drizzle-orm";
@@ -13,6 +15,7 @@ import { numberRaceTexts, raceTexts as builtInTexts } from "../src/lib/race-text
 const SEED_EMAIL_DOMAIN = "demo.typestrike.test";
 /** Demo account documented in the README. */
 const DEMO = { username: "demo", password: "typestrike-demo" };
+/** Created only with --rivals: production already has real players. */
 const RIVALS = [
   { username: "Ryuji", wpm: 48 },
   { username: "Ann", wpm: 62 },
@@ -101,7 +104,8 @@ try {
     await tx.delete(users).where(and(eq(users.kind, "registered"), like(users.email, `%@${SEED_EMAIL_DOMAIN}`)));
 
     const now = Date.now();
-    const players = [{ username: DEMO.username, wpm: 70 }, ...RIVALS];
+    const withRivals = process.argv.includes("--rivals");
+    const players = [{ username: DEMO.username, wpm: null }, ...(withRivals ? RIVALS : [])];
     for (const player of players) {
       const password = player.username === DEMO.username ? DEMO.password : crypto.randomUUID();
       const [user] = await tx
@@ -120,9 +124,10 @@ try {
         console.log(`skipped ${player.username}: username taken`);
         continue;
       }
-      await tx.insert(raceResults).values(history(user.id, player.wpm, now));
+      if (player.wpm !== null) await tx.insert(raceResults).values(history(user.id, player.wpm, now));
     }
-    console.log(`demo accounts: ${players.length} players with ${RACES_PER_PLAYER} races each`);
+    console.log(`demo account: ${DEMO.username}, no races yet`);
+    if (withRivals) console.log(`rivals: ${RIVALS.map((rival) => rival.username).join(", ")} (${RACES_PER_PLAYER} races each)`);
   });
   console.log(`sign in with ${DEMO.username}@${SEED_EMAIL_DOMAIN} / ${DEMO.password}`);
 } finally {
