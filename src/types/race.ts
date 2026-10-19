@@ -18,6 +18,8 @@ export type RaceRacer = {
   isForfeited: boolean;
   /** Catch-up bonuses received so far. */
   bonuses: number;
+  /** 1-based live place, as the server ranks it. */
+  place: number;
   isBot: boolean;
   isConnected: boolean;
 };
