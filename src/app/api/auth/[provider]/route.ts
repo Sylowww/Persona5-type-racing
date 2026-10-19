@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
-import { isLocale } from "@/i18n/locales";
 import { buildAuthorizeUrl, isOAuthProvider, OAUTH_COOKIE, randomToken } from "@/lib/auth/oauth";
+import { localeSchema } from "@/lib/schemas";
 import { appOrigin, callbackUrl, getCredentials } from "@/lib/auth/oauth-client";
 
 const OAUTH_COOKIE_MAX_AGE = 10 * 60;
@@ -10,7 +10,7 @@ const OAUTH_COOKIE_MAX_AGE = 10 * 60;
 export async function GET(request: NextRequest, { params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params;
   const localeParam = request.nextUrl.searchParams.get("locale") ?? "";
-  const locale = isLocale(localeParam) ? localeParam : "fr";
+  const locale = localeSchema.catch("fr").parse(localeParam);
   const credentials = isOAuthProvider(provider) ? getCredentials(provider) : null;
   if (!isOAuthProvider(provider) || !credentials) {
     return NextResponse.redirect(new URL(`/${locale}/sign-in?error=oauth`, appOrigin(request.nextUrl.origin)));

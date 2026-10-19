@@ -1,11 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { isLocale, type Locale } from "@/i18n/locales";
+import type { Locale } from "@/i18n/locales";
 import { parseGuestForm, parseSignInForm, parseSignUpForm, safeNextPath, type AuthErrorCode } from "@/lib/auth/forms";
 import { endSession, getCurrentUser, startSession } from "@/lib/auth/session";
-import { normalizeLobbyCode } from "@/lib/lobby-code";
 import { getLobbyStore } from "@/lib/lobby-server";
+import { lobbyCodeSchema, localeSchema } from "@/lib/schemas";
 import { createAccount, createGuest, verifyCredentials } from "@/lib/users";
 
 export type AuthFormState = {
@@ -16,7 +16,7 @@ export type AuthFormState = {
 
 function localeFrom(form: FormData): Locale {
   const locale = form.get("locale");
-  return typeof locale === "string" && isLocale(locale) ? locale : "fr";
+  return localeSchema.catch("fr").parse(locale);
 }
 
 function textValue(form: FormData, name: string): string {
@@ -75,7 +75,7 @@ export async function continueAsGuest(_previous: AuthFormState, form: FormData):
     if (!parsed.ok) return { errors: parsed.errors, values };
     const guest = await createGuest(parsed.values.username);
     await startSession(guest.id);
-    const code = normalizeLobbyCode(next.match(/^\/[a-z]{2}\/lobby\/([^/]+)$/)?.[1] ?? "");
+    const code = lobbyCodeSchema.safeParse(next.match(/^\/[a-z]{2}\/lobby\/([^/]+)$/)?.[1]).data;
     if (code) getLobbyStore().join(code, { id: guest.id, name: guest.username, character: guest.character });
   }
   redirect(next);

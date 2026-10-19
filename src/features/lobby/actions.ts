@@ -2,17 +2,17 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { isLocale, type Locale } from "@/i18n/locales";
+import { z } from "zod";
+import type { Locale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
-import { isBotDifficulty } from "@/lib/bots";
 import { clientIp } from "@/lib/client-ip";
-import { normalizeLobbyCode } from "@/lib/lobby-code";
 import { lobbyCodeLimiter } from "@/lib/lobby-join-limit";
 import { claimLobbySeat, releaseLobbySeat } from "@/lib/lobby-members-db";
 import { getLobbyStore } from "@/lib/lobby-server";
 import type { QuickMatchStatus, StoreError } from "@/lib/lobby-store";
 import { botForSpeed } from "@/lib/matchmaking";
 import { getPlayerStats } from "@/lib/race-history-db";
+import { botDifficultySchema, inviteTokenSchema, lobbyCodeSchema, localeSchema, memberIdSchema } from "@/lib/schemas";
 
 export type JoinErrorCode =
   | "alreadyInLobby"
@@ -29,9 +29,19 @@ export type InviteErrorCode = "alreadyInLobby" | "invalidInvite" | "inviteUsed" 
 /** `current`: the lobby the player is already in, when they must first agree to leave it (SALLE-06). */
 export type JoinFormState = { error: JoinErrorCode | null; code: string; current?: string };
 
+// Every argument of these Server Functions comes from the client: each one is checked with a schema (TECH-07).
+
 function toLocale(value: unknown): Locale {
-  return typeof value === "string" && isLocale(value) ? value : "fr";
+  return localeSchema.catch("fr").parse(value);
 }
+
+/** The canonical lobby code, or null for anything that is not one. */
+function toCode(value: unknown): string | null {
+  const result = lobbyCodeSchema.safeParse(value);
+  return result.success ? result.data : null;
+}
+
+const flagSchema = z.boolean().catch(false);
 
 /** The current player (guest or registered); without a session, a redirect to pick a guest nickname, then to `next`. */
 async function requirePlayer(locale: Locale, next: string) {
@@ -75,7 +85,7 @@ export async function joinLobby(_previous: JoinFormState, form: FormData): Promi
   const locale = toLocale(form.get("locale"));
   const raw = form.get("code");
   const typed = typeof raw === "string" ? raw.slice(0, 16) : "";
-  const code = normalizeLobbyCode(typed);
+  const code = toCode(typed);
   if (!code) return { error: "invalidCode", code: typed };
   if (!lobbyCodeLimiter().allow(clientIp(await headers()))) return { error: "tooManyAttempts", code: typed };
 
@@ -120,7 +130,7 @@ export async function leaveQuickMatch(): Promise<void> {
 
 export async function leaveLobby(codeValue: string, localeValue: string): Promise<void> {
   const locale = toLocale(localeValue);
-  const code = normalizeLobbyCode(String(codeValue));
+  const code = toCode(codeValue);
   const user = await getCurrentUser();
   if (user && code) getLobbyStore().leave(code, user.id);
   redirect(`/${locale}`);
@@ -128,7 +138,7 @@ export async function leaveLobby(codeValue: string, localeValue: string): Promis
 
 /** Lobby commands return an error code, or null when applied; the new state arrives through the event stream. */
 async function lobbyCommand(codeValue: unknown, run: (code: string, userId: string) => StoreError | null): Promise<StoreError | null> {
-  const code = normalizeLobbyCode(String(codeValue));
+  const code = toCode(codeValue);
   const user = await getCurrentUser();
   if (!code) return "lobbyNotFound";
   if (!user) return "notMember";
@@ -151,10 +161,10 @@ export async function createLobbyInvite(code: string): Promise<StoreError | null
 /** Joins the lobby of an invite link from this request's IP address (SALLE-04); returns why it failed, or redirects into it. */
 export async function joinWithInviteLink(token: string, localeValue: string, leaveCurrent = false): Promise<InviteErrorCode> {
   const locale = toLocale(localeValue);
-  if (typeof token !== "string" || token.length > 64) return "invalidInvite";
+  if (!inviteTokenSchema.safeParse(token).success) return "invalidInvite";
   const player = await requirePlayer(locale, `/${locale}/invite/${encodeURIComponent(token)}`);
   const target = getLobbyStore().inviteTarget(token);
-  if (target && (await takeSeat(player.id, target.code, leaveCurrent === true))) return "alreadyInLobby";
+  if (target && (await takeSeat(player.id, target.code, flagSchema.parse(leaveCurrent)))) return "alreadyInLobby";
   const result = getLobbyStore().joinWithInvite(token, player, clientIp(await headers()));
   if ("code" in result) redirect(`/${locale}/lobby/${result.code}`);
   const { error } = result;
@@ -163,12 +173,12 @@ export async function joinWithInviteLink(token: string, localeValue: string, lea
 
 /** Host only: removes a player from the lobby for good. */
 export async function kickLobbyMember(code: string, targetId: string): Promise<StoreError | null> {
-  if (typeof targetId !== "string") return "notMember";
+  if (!memberIdSchema.safeParse(targetId).success) return "notMember";
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().kick(lobby, userId, targetId));
 }
 
 export async function setLobbyReady(code: string, isReady: boolean): Promise<StoreError | null> {
-  return lobbyCommand(code, (lobby, userId) => getLobbyStore().setReady(lobby, userId, isReady === true));
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().setReady(lobby, userId, flagSchema.parse(isReady)));
 }
 
 /** Switches the viewer between racing and spectating (custom lobbies, while waiting). */
@@ -186,12 +196,13 @@ export async function startLobbyRace(code: string): Promise<StoreError | null> {
 }
 
 export async function addLobbyBot(code: string, difficulty: string): Promise<StoreError | null> {
-  if (!isBotDifficulty(difficulty)) return "wrongPhase";
-  return lobbyCommand(code, (lobby, userId) => getLobbyStore().addBot(lobby, userId, difficulty));
+  const level = botDifficultySchema.safeParse(difficulty);
+  if (!level.success) return "wrongPhase";
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().addBot(lobby, userId, level.data));
 }
 
 export async function removeLobbyBot(code: string, botId: string): Promise<StoreError | null> {
-  if (typeof botId !== "string") return "notMember";
+  if (!memberIdSchema.safeParse(botId).success) return "notMember";
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().removeBot(lobby, userId, botId));
 }
 
@@ -220,7 +231,7 @@ export async function quickRace(localeValue: string, leaveCurrent = false): Prom
   const player = await requirePlayer(locale, `/${locale}/lobbies`);
   const code = getLobbyStore().quickRaceLobby();
   if (!code) return { state: "none", canCreate: (await getCurrentUser())?.kind === "registered" };
-  const current = await takeSeat(player.id, code, leaveCurrent === true);
+  const current = await takeSeat(player.id, code, flagSchema.parse(leaveCurrent));
   if (current) return { state: "error", error: "alreadyInLobby", current };
   const error = getLobbyStore().join(code, player);
   if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress" || error === "kicked") return { state: "error", error };
@@ -241,10 +252,10 @@ export async function createPublicLobby(localeValue: string): Promise<void> {
 /** Joins a lobby picked in the lobby browser; returns why it failed, or redirects into it. */
 export async function joinListedLobby(codeValue: string, localeValue: string, leaveCurrent = false): Promise<JoinErrorCode> {
   const locale = toLocale(localeValue);
-  const code = normalizeLobbyCode(String(codeValue));
+  const code = toCode(codeValue);
   if (!code) return "lobbyNotFound";
   const player = await requirePlayer(locale, `/${locale}/lobby/${code}`);
-  if (await takeSeat(player.id, code, leaveCurrent === true)) return "alreadyInLobby";
+  if (await takeSeat(player.id, code, flagSchema.parse(leaveCurrent))) return "alreadyInLobby";
   const error = getLobbyStore().join(code, player);
   if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress" || error === "kicked") return error;
   if (error) return "lobbyNotFound";

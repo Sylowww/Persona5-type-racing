@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
-import { isLocale, type Locale } from "@/i18n/locales";
+import type { Locale } from "@/i18n/locales";
 import { isOAuthProvider, OAUTH_COOKIE } from "@/lib/auth/oauth";
+import { oauthFlowSchema } from "@/lib/schemas";
 import { appOrigin, callbackUrl, fetchOAuthProfile, getCredentials } from "@/lib/auth/oauth-client";
 import { endSession, startSession } from "@/lib/auth/session";
 import { findOrCreateOAuthUser } from "@/lib/users";
@@ -11,11 +12,8 @@ type PendingFlow = { provider: string; state: string; verifier: string; locale: 
 function readPendingFlow(value: string | undefined): PendingFlow | null {
   if (!value) return null;
   try {
-    const data: unknown = JSON.parse(value);
-    if (typeof data !== "object" || data === null) return null;
-    const { provider, state, verifier, locale } = data as Record<string, unknown>;
-    if (typeof provider !== "string" || typeof state !== "string" || typeof verifier !== "string") return null;
-    return { provider, state, verifier, locale: typeof locale === "string" && isLocale(locale) ? locale : "fr" };
+    const flow = oauthFlowSchema.safeParse(JSON.parse(value));
+    return flow.success ? flow.data : null;
   } catch {
     return null;
   }
