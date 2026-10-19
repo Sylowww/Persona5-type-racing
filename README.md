@@ -19,7 +19,7 @@ The server is authoritative: clients only send keystrokes; progress, places, res
 
 ## Stack
 
-Next.js (App Router) · React · TypeScript (strict) · Tailwind CSS · PostgreSQL · Vitest · Playwright · GitHub Actions.
+Next.js (App Router) · React · TypeScript (strict) · Tailwind CSS · PostgreSQL (Drizzle ORM) · Vitest · Playwright · GitHub Actions.
 
 Real-time updates use Server-Sent Events from Next.js route handlers (no separate socket server). Lobbies and races live in the memory of the Node process, so the app must run as a **single long-running instance** (`next start`), not on serverless hosting.
 

@@ -1,6 +1,7 @@
 import "server-only";
-import type { PoolClient } from "pg";
-import { getPool } from "@/lib/db";
+import { and, asc, eq, gt, sql } from "drizzle-orm";
+import { getDb } from "@/lib/db";
+import { oauthAccounts, sessions, userAvatars, users } from "@/lib/db-schema";
 import { avatarPath, type AvatarType } from "@/lib/avatar";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { generateSessionToken, hashSessionToken, sessionExpiry } from "@/lib/auth/session-token";
@@ -9,37 +10,29 @@ import { DEFAULT_CHARACTER, isCharacterId } from "@/lib/characters";
 import type { CharacterId } from "@/types/character";
 import type { OAuthProvider, User } from "@/types/user";
 
-type UserRow = {
-  id: string;
-  kind: User["kind"];
-  username: string;
-  email: string | null;
-  avatar_url: string | null;
-  locale: User["locale"];
-  character_id: string;
-  created_at: Date;
+const userColumns = {
+  id: users.id,
+  kind: users.kind,
+  username: users.username,
+  email: users.email,
+  avatarUrl: users.avatarUrl,
+  locale: users.locale,
+  characterId: users.characterId,
+  createdAt: users.createdAt,
 };
 
-const USER_COLUMNS = "id, kind, username, email, avatar_url, locale, character_id, created_at";
+type UserRow = { [K in keyof typeof userColumns]: (typeof users.$inferSelect)[K] };
 
-function toUser(row: UserRow): User {
-  return {
-    id: row.id,
-    kind: row.kind,
-    username: row.username,
-    email: row.email,
-    avatarUrl: row.avatar_url,
-    locale: row.locale,
-    // A character removed from the game falls back to the default.
-    character: isCharacterId(row.character_id) ? row.character_id : DEFAULT_CHARACTER,
-    createdAt: row.created_at,
-  };
+function toUser({ characterId, ...row }: UserRow): User {
+  // A character removed from the game falls back to the default.
+  return { ...row, character: isCharacterId(characterId) ? characterId : DEFAULT_CHARACTER };
 }
 
-/** Name of the violated unique index, or null for any other error. */
+/** Name of the violated unique index, or null for any other error. Drizzle wraps driver errors in `cause`. */
 function uniqueViolation(error: unknown): string | null {
-  if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "23505") return null;
-  return "constraint" in error && typeof error.constraint === "string" ? error.constraint : "";
+  const cause = error instanceof Error && error.cause ? error.cause : error;
+  if (typeof cause !== "object" || cause === null || !("code" in cause) || cause.code !== "23505") return null;
+  return "constraint" in cause && typeof cause.constraint === "string" ? cause.constraint : "";
 }
 
 export type CreateAccountResult =
@@ -47,11 +40,8 @@ export type CreateAccountResult =
   | { ok: false; error: "usernameTaken" | "emailTaken" };
 
 export async function createGuest(): Promise<User> {
-  const { rows } = await getPool().query<UserRow>(
-    `INSERT INTO users (kind, username) VALUES ('guest', $1) RETURNING ${USER_COLUMNS}`,
-    [guestUsername()],
-  );
-  return toUser(rows[0]);
+  const [row] = await getDb().insert(users).values({ kind: "guest", username: guestUsername() }).returning(userColumns);
+  return toUser(row);
 }
 
 /**
@@ -64,24 +54,25 @@ export async function createAccount(input: {
   password: string;
   guestId?: string;
 }): Promise<CreateAccountResult> {
-  const passwordHash = await hashPassword(input.password);
-  const values = [input.username.trim(), normalizeEmail(input.email), passwordHash];
+  const account = {
+    kind: "registered" as const,
+    username: input.username.trim(),
+    email: normalizeEmail(input.email),
+    passwordHash: await hashPassword(input.password),
+  };
+  const db = getDb();
   try {
-    const { rows } = input.guestId
-      ? await getPool().query<UserRow>(
-          `UPDATE users SET kind = 'registered', username = $1, email = $2, password_hash = $3, updated_at = now()
-           WHERE id = $4 AND kind = 'guest' RETURNING ${USER_COLUMNS}`,
-          [...values, input.guestId],
-        )
-      : { rows: [] };
-    if (rows[0]) return { ok: true, user: toUser(rows[0]) };
+    if (input.guestId) {
+      const [upgraded] = await db
+        .update(users)
+        .set({ ...account, updatedAt: sql`now()` })
+        .where(and(eq(users.id, input.guestId), eq(users.kind, "guest")))
+        .returning(userColumns);
+      if (upgraded) return { ok: true, user: toUser(upgraded) };
+    }
 
-    const inserted = await getPool().query<UserRow>(
-      `INSERT INTO users (kind, username, email, password_hash) VALUES ('registered', $1, $2, $3)
-       RETURNING ${USER_COLUMNS}`,
-      values,
-    );
-    return { ok: true, user: toUser(inserted.rows[0]) };
+    const [inserted] = await db.insert(users).values(account).returning(userColumns);
+    return { ok: true, user: toUser(inserted) };
   } catch (error) {
     const constraint = uniqueViolation(error);
     if (constraint === null) throw error;
@@ -91,13 +82,12 @@ export async function createAccount(input: {
 
 /** Returns the user when email and password match, otherwise null. */
 export async function verifyCredentials(email: string, password: string): Promise<User | null> {
-  const { rows } = await getPool().query<UserRow & { password_hash: string | null }>(
-    `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE lower(email) = $1`,
-    [normalizeEmail(email)],
-  );
-  const row = rows[0];
-  if (!row?.password_hash || !(await verifyPassword(password, row.password_hash))) return null;
-  return toUser(row);
+  const [row] = await getDb()
+    .select({ user: userColumns, passwordHash: users.passwordHash })
+    .from(users)
+    .where(sql`lower(${users.email}) = ${normalizeEmail(email)}`);
+  if (!row?.passwordHash || !(await verifyPassword(password, row.passwordHash))) return null;
+  return toUser(row.user);
 }
 
 /** Finds the user linked to an OAuth identity, creating the account on first sign-in. */
@@ -108,93 +98,88 @@ export async function findOrCreateOAuthUser(input: {
   email: string | null;
   avatarUrl: string | null;
 }): Promise<User> {
-  const client: PoolClient = await getPool().connect();
-  try {
-    await client.query("BEGIN");
-    const existing = await client.query<UserRow>(
-      `SELECT ${USER_COLUMNS.replace(/(\w+)/g, "u.$1")} FROM oauth_accounts a JOIN users u ON u.id = a.user_id
-       WHERE a.provider = $1 AND a.provider_account_id = $2`,
-      [input.provider, input.providerAccountId],
-    );
-    if (existing.rows[0]) {
-      await client.query("COMMIT");
-      return toUser(existing.rows[0]);
-    }
+  return getDb().transaction(async (tx) => {
+    const [existing] = await tx
+      .select(userColumns)
+      .from(oauthAccounts)
+      .innerJoin(users, eq(users.id, oauthAccounts.userId))
+      .where(and(eq(oauthAccounts.provider, input.provider), eq(oauthAccounts.providerAccountId, input.providerAccountId)));
+    if (existing) return toUser(existing);
 
     // Usernames must be unique: add a numeric suffix on collision.
     let username = input.username;
     for (let attempt = 1; ; attempt++) {
-      const taken = await client.query(
-        "SELECT 1 FROM users WHERE kind = 'registered' AND lower(username) = lower($1)",
-        [username],
-      );
-      if (taken.rowCount === 0) break;
+      const taken = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.kind, "registered"), sql`lower(${users.username}) = lower(${username})`))
+        .limit(1);
+      if (taken.length === 0) break;
       username = `${input.username.slice(0, 16)}${attempt}`;
     }
 
     // Emails from providers are not trusted for linking to existing accounts.
-    const { rows } = await client.query<UserRow>(
-      `INSERT INTO users (kind, username, avatar_url) VALUES ('registered', $1, $2) RETURNING ${USER_COLUMNS}`,
-      [username, input.avatarUrl],
-    );
-    await client.query(
-      "INSERT INTO oauth_accounts (provider, provider_account_id, user_id) VALUES ($1, $2, $3)",
-      [input.provider, input.providerAccountId, rows[0].id],
-    );
-    await client.query("COMMIT");
-    return toUser(rows[0]);
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+    const [row] = await tx
+      .insert(users)
+      .values({ kind: "registered", username, avatarUrl: input.avatarUrl })
+      .returning(userColumns);
+    await tx
+      .insert(oauthAccounts)
+      .values({ provider: input.provider, providerAccountId: input.providerAccountId, userId: row.id });
+    return toUser(row);
+  });
 }
 
 /** Creates a session and returns the raw token to store in a cookie. */
 export async function createSession(userId: string): Promise<{ token: string; expiresAt: Date }> {
   const token = generateSessionToken();
   const expiresAt = sessionExpiry();
-  await getPool().query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1, $2, $3)", [
-    hashSessionToken(token),
-    userId,
-    expiresAt,
-  ]);
+  await getDb().insert(sessions).values({ tokenHash: hashSessionToken(token), userId, expiresAt });
   return { token, expiresAt };
 }
 
 /** Resolves a session token to its user, or null if missing or expired. */
 export async function getUserBySessionToken(token: string): Promise<User | null> {
-  const { rows } = await getPool().query<UserRow>(
-    `UPDATE users u SET last_seen_at = now() FROM sessions s
-     WHERE s.token_hash = $1 AND s.expires_at > now() AND u.id = s.user_id
-     RETURNING ${USER_COLUMNS.replace(/(\w+)/g, "u.$1")}`,
-    [hashSessionToken(token)],
-  );
-  return rows[0] ? toUser(rows[0]) : null;
+  const [row] = await getDb()
+    .update(users)
+    .set({ lastSeenAt: sql`now()` })
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.tokenHash, hashSessionToken(token)),
+        gt(sessions.expiresAt, sql`now()`),
+        eq(users.id, sessions.userId),
+      ),
+    )
+    .returning(userColumns);
+  return row ? toUser(row) : null;
 }
 
 export async function deleteSession(token: string): Promise<void> {
-  await getPool().query("DELETE FROM sessions WHERE token_hash = $1", [hashSessionToken(token)]);
+  await getDb().delete(sessions).where(eq(sessions.tokenHash, hashSessionToken(token)));
 }
 
 /** OAuth providers linked to a user, in a stable order. */
 export async function getLinkedProviders(userId: string): Promise<OAuthProvider[]> {
-  const { rows } = await getPool().query<{ provider: OAuthProvider }>(
-    "SELECT provider FROM oauth_accounts WHERE user_id = $1 ORDER BY provider",
-    [userId],
-  );
+  const rows = await getDb()
+    .select({ provider: oauthAccounts.provider })
+    .from(oauthAccounts)
+    .where(eq(oauthAccounts.userId, userId))
+    .orderBy(asc(oauthAccounts.provider));
   return rows.map((row) => row.provider);
 }
 
 export async function setUserCharacter(userId: string, character: CharacterId): Promise<void> {
-  await getPool().query("UPDATE users SET character_id = $1, updated_at = now() WHERE id = $2", [character, userId]);
+  await getDb().update(users).set({ characterId: character, updatedAt: sql`now()` }).where(eq(users.id, userId));
 }
 
 /** Renames a registered user; usernames stay unique case-insensitively. */
 export async function renameUser(userId: string, username: string): Promise<{ ok: true } | { ok: false; error: "usernameTaken" }> {
   try {
-    await getPool().query("UPDATE users SET username = $1, updated_at = now() WHERE id = $2 AND kind = 'registered'", [username, userId]);
+    await getDb()
+      .update(users)
+      .set({ username, updatedAt: sql`now()` })
+      .where(and(eq(users.id, userId), eq(users.kind, "registered")));
     return { ok: true };
   } catch (error) {
     if (uniqueViolation(error) === null) throw error;
@@ -204,32 +189,24 @@ export async function renameUser(userId: string, username: string): Promise<{ ok
 
 /** Stores a validated profile picture and points the user's avatar to it. */
 export async function saveUserAvatar(userId: string, type: AvatarType, data: Uint8Array): Promise<void> {
-  const client: PoolClient = await getPool().connect();
-  try {
-    await client.query("BEGIN");
-    const { rows } = await client.query<{ updated_at: Date }>(
-      `INSERT INTO user_avatars (user_id, content_type, data) VALUES ($1, $2, $3)
-       ON CONFLICT (user_id) DO UPDATE SET content_type = $2, data = $3, updated_at = now()
-       RETURNING updated_at`,
-      [userId, type, Buffer.from(data)],
-    );
-    await client.query("UPDATE users SET avatar_url = $1, updated_at = now() WHERE id = $2", [
-      avatarPath(userId, rows[0].updated_at.getTime()),
-      userId,
-    ]);
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
+  const avatar = { contentType: type, data: Buffer.from(data) };
+  await getDb().transaction(async (tx) => {
+    const [saved] = await tx
+      .insert(userAvatars)
+      .values({ userId, ...avatar })
+      .onConflictDoUpdate({ target: userAvatars.userId, set: { ...avatar, updatedAt: sql`now()` } })
+      .returning({ updatedAt: userAvatars.updatedAt });
+    await tx
+      .update(users)
+      .set({ avatarUrl: avatarPath(userId, saved.updatedAt.getTime()), updatedAt: sql`now()` })
+      .where(eq(users.id, userId));
+  });
 }
 
 export async function getUserAvatar(userId: string): Promise<{ contentType: AvatarType; data: Buffer } | null> {
-  const { rows } = await getPool().query<{ content_type: AvatarType; data: Buffer }>(
-    "SELECT content_type, data FROM user_avatars WHERE user_id = $1",
-    [userId],
-  );
-  return rows[0] ? { contentType: rows[0].content_type, data: rows[0].data } : null;
+  const [row] = await getDb()
+    .select({ contentType: userAvatars.contentType, data: userAvatars.data })
+    .from(userAvatars)
+    .where(eq(userAvatars.userId, userId));
+  return row ?? null;
 }

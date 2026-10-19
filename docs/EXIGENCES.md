@@ -20,7 +20,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | TECH-01 | complet | `package.json`, `app/` | — | Next.js 16, App Router. |
 | TECH-02 | partiel | `tsconfig.json`, `eslint.config.mjs` | CI : `npm run typecheck`, `npm run lint` | `strict: true`, aucun `@ts-ignore`. Restent en JavaScript : `eslint.config.mjs`, `postcss.config.mjs`, `scripts/migrate.mjs`. La règle `@typescript-eslint/no-explicit-any` n'est pas déclarée explicitement en erreur. |
 | TECH-03 | complet | `app/globals.css` | — | Tailwind CSS 4. |
-| TECH-04 | partiel | `lib/db.ts`, `db/migrations/`, `scripts/migrate.mjs` | CI : `npm run db:migrate` | PostgreSQL avec `pg` et du SQL écrit à la main, sans ORM. Les migrations sont versionnées. Il n'y a pas encore de script de seed. |
+| TECH-04 | partiel | `lib/db.ts`, `lib/db-schema.ts`, `db/migrations/`, `scripts/migrate.mjs` | CI : `npm run db:migrate` | PostgreSQL avec l'ORM Drizzle : schéma typé dans `lib/db-schema.ts`, requêtes écrites avec le query builder. Les migrations sont versionnées en SQL. Il n'y a pas encore de script de seed. |
 | TECH-05 | partiel | `railway.json`, `render.yaml` | — | Déployé en HTTPS sur Railway, qui est une plateforme (PaaS) et non un VPS. À confirmer avec l'enseignant. |
 | TECH-06 | complet | `app/api/lobbies/[code]/events/`, `features/lobby/use-lobby-stream.ts` | `tests/e2e/multiplayer.spec.ts` | Server-Sent Events, voir l'ADR-001. |
 | TECH-07 | partiel | `lib/race-settings.ts`, `lib/chat.ts`, `lib/auth/forms.ts`, `lib/lobby-code.ts` | `race-settings.test.ts`, `auth-forms.test.ts` | Les entrées sont validées côté serveur, mais par du code écrit à la main plutôt que par des schémas (Zod ou équivalent). |
