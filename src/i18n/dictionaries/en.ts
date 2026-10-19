@@ -489,6 +489,7 @@ const en = {
     emptyFiltered: "No public lobby in this language right now.",
     filters: {
       language: "Text language",
+      complexity: "Complexity",
       languages: {
         all: "All",
         fr: "Français",

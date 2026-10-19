@@ -491,6 +491,7 @@ const fr: Dictionary = {
     emptyFiltered: "Aucun salon public dans cette langue pour l'instant.",
     filters: {
       language: "Langue du texte",
+      complexity: "Complexité",
       languages: {
         all: "Toutes",
         fr: "Français",
