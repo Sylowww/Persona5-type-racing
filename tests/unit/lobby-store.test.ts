@@ -307,3 +307,31 @@ describe("name change", () => {
     expect(() => store.setName("nobody", "ghost")).not.toThrow();
   });
 });
+
+describe("invite links and lobby control", () => {
+  it("makes 128-bit tokens, finds the lobby of a link and forgets links once the lobby closes", () => {
+    const code = store.create(ann, "en");
+    expect(store.createInvite(code, "ann")).toBeNull();
+    const token = store.view(code, "ann")?.invites?.[0].token ?? "";
+    expect(token).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    expect(store.inviteTarget(token)).toEqual({ code, hostName: "ann" });
+
+    expect(store.joinWithInvite(token, bob, "1.1.1.1")).toEqual({ code });
+    expect(store.lobbyOf("bob")).toBe(code);
+    expect(store.joinWithInvite(token, { id: "cid", name: "cid" }, "9.9.9.9")).toEqual({ error: "inviteUsed" });
+
+    expect(store.close(code, "bob")).toBe("notHost");
+    expect(store.close(code, "ann")).toBeNull();
+    expect(store.exists(code)).toBe(false);
+    expect(store.lobbyOf("bob")).toBeNull();
+    expect(store.inviteTarget(token)).toBeNull();
+    expect(store.joinWithInvite(token, bob, "1.1.1.1")).toEqual({ error: "invalidInvite" });
+  });
+
+  it("tells a kicked player their lobby is gone", () => {
+    const { code, bobStream } = readyLobby();
+    expect(store.kick(code, "ann", "bob")).toBeNull();
+    expect(bobStream.last()).toBeNull();
+    expect(store.join(code, bob)).toBe("kicked");
+  });
+});

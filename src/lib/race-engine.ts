@@ -112,6 +112,19 @@ export type Race = {
 
 export type ChatMessage = LobbyMessage & { sentAt: number };
 
+/**
+ * A single-use invite link (SALLE-04). The first person to use it binds it to their IP address; afterwards only that
+ * address may use it again (e.g. to come back after leaving).
+ */
+export type Invite = {
+  token: string;
+  usedBy: { userId: string; name: string; ip: string } | null;
+  revoked: boolean;
+};
+
+/** Invite links one lobby may hold. */
+export const MAX_INVITES = 60;
+
 type ResultDetails = Pick<RaceResult, "durationMs" | "keystrokes" | "mistakes" | "speedSamples" | "keyStats">;
 
 export type StoredResult = {
@@ -144,6 +157,8 @@ export type LobbyState = {
   messageCount: number;
   /** Players the host removed; they cannot come back to this lobby (SALLE-07). */
   kicked: string[];
+  /** Invite links, oldest first. They die with the lobby. */
+  invites: Invite[];
 };
 
 export type LobbyError =
@@ -157,7 +172,9 @@ export type LobbyError =
   | "invalidSettings"
   | "invalidMessage"
   | "tooFast"
-  | "kicked";
+  | "kicked"
+  | "invalidInvite"
+  | "inviteUsed";
 
 export type Outcome = { ok: true; state: LobbyState } | { ok: false; error: LobbyError };
 
@@ -199,6 +216,7 @@ export function createLobby(input: {
     messages: [],
     messageCount: 0,
     kicked: [],
+    invites: [],
   };
 }
 
@@ -444,7 +462,35 @@ export function kickMember(state: LobbyState, userId: string, targetId: string):
   if (state.hostId !== userId) return fail("notHost");
   const target = state.members.find((member) => member.id === targetId && member.presence !== "left");
   if (!target || target.bot !== null || target.id === userId) return fail("notMember");
-  return ok({ ...leaveLobby(state, targetId), kicked: [...state.kicked, targetId] });
+  return ok({
+    ...leaveLobby(state, targetId),
+    kicked: [...state.kicked, targetId],
+    // Their invite link stops working too.
+    invites: state.invites.map((invite) => (invite.usedBy?.userId === targetId ? { ...invite, revoked: true } : invite)),
+  });
+}
+
+/** The host of a custom lobby creates a new invite link. `token` must be random and unguessable (128 bits or more). */
+export function createInvite(state: LobbyState, userId: string, token: string): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  if (state.kind !== "custom") return fail("privateLobby");
+  if (state.invites.length >= MAX_INVITES) return fail("invalidSettings");
+  return ok({ ...state, invites: [...state.invites, { token, usedBy: null, revoked: false }] });
+}
+
+/**
+ * Joins with an invite link, whatever the lobby's visibility. An unused link is bound to the first person and their IP
+ * address; a used one only lets that address in again.
+ */
+export function joinWithInvite(state: LobbyState, player: Player, token: string, ip: string, now: number): Outcome {
+  const invite = state.invites.find((candidate) => candidate.token === token);
+  if (!invite || invite.revoked) return fail("invalidInvite");
+  if (invite.usedBy && invite.usedBy.ip !== ip) return fail("inviteUsed");
+  const admitted = admitPlayer(state, player, now);
+  if (!admitted.ok || invite.usedBy) return admitted;
+  const usedBy = { userId: player.id, name: player.name, ip };
+  return ok({ ...admitted.state, invites: admitted.state.invites.map((candidate) => (candidate === invite ? { ...candidate, usedBy } : candidate)) });
 }
 
 /** The host closes the lobby outside a race (COURSE-11): everyone is removed and the store deletes it. */
@@ -790,6 +836,11 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
     hasResult: state.result?.details[userId] !== undefined,
     settings: state.settings,
     messages: state.messages.map(({ id, authorId, author, text }) => ({ id, authorId, author, text })),
+    // Tokens are secrets: only the host sees them. Addresses are never shown.
+    invites:
+      state.kind === "custom" && state.hostId === userId
+        ? state.invites.map((invite) => ({ token: invite.token, usedBy: invite.usedBy?.name ?? null, isRevoked: invite.revoked }))
+        : null,
   };
 }
 

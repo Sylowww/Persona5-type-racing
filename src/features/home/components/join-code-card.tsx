@@ -11,12 +11,14 @@ import type { Locale } from "@/i18n/locales";
 type JoinCodeCardProps = {
   dictionary: Dictionary["home"]["joinCode"];
   locale: Locale;
-  /** Prefilled when opening an invite link. */
+  /** Prefilled when opening a lobby link. */
   defaultCode?: string;
+  /** Why that lobby cannot be joined, shown before any attempt (e.g. it is private). */
+  initialError?: JoinFormState["error"];
 };
 
-export function JoinCodeCard({ dictionary, locale, defaultCode = "" }: JoinCodeCardProps) {
-  const [state, action, pending] = useActionState<JoinFormState, FormData>(joinLobby, { error: null, code: defaultCode });
+export function JoinCodeCard({ dictionary, locale, defaultCode = "", initialError = null }: JoinCodeCardProps) {
+  const [state, action, pending] = useActionState<JoinFormState, FormData>(joinLobby, { error: initialError, code: defaultCode });
 
   return (
     <section className="relative">

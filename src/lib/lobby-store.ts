@@ -12,9 +12,11 @@ import {
   advance,
   applyInput,
   closeLobby,
+  createInvite,
   createLobby,
   isMember,
   joinLobby,
+  joinWithInvite,
   kickMember,
   leaveLobby,
   publicLobbyFor,
@@ -63,6 +65,8 @@ export type LobbyStoreOptions = {
   random?: () => number;
   /** How often timers run and typing progress is broadcast; null disables the timer (tests call `tick`). */
   tickMs?: number | null;
+  /** Makes invite link tokens; defaults to 128 random bits from Web Crypto. */
+  inviteToken?: () => string;
   /** Called once per finished race with each player's results (bots excluded), e.g. to save them. */
   onRaceFinished?: (code: string, results: RaceResult[]) => void;
 };
@@ -74,6 +78,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
   const randomInt = options.randomInt ?? ((max: number) => Math.floor(Math.random() * max));
   const random = options.random ?? Math.random;
   const tickMs = options.tickMs === undefined ? 100 : options.tickMs;
+  const inviteToken = options.inviteToken ?? randomToken;
 
   const lobbies = new Map<string, LobbyState>();
   const lobbyOfUser = new Map<string, string>();
@@ -209,6 +214,17 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     return { state: "matched", code, racers };
   }
 
+  /** The lobby an invite link opens, or null once the link is unknown, revoked or its lobby closed. */
+  function inviteTarget(token: string): { code: string; hostName: string } | null {
+    for (const state of lobbies.values()) {
+      const invite = state.invites.find((candidate) => candidate.token === token);
+      if (!invite || invite.revoked) continue;
+      const host = state.members.find((member) => member.id === state.hostId);
+      return { code: state.code, hostName: host?.name ?? "" };
+    }
+    return null;
+  }
+
   function startQuickMatch(userId: string, entries: readonly QueueEntry[], bot: BotDifficulty | null): QuickMatchStatus {
     for (const entry of entries) queue.delete(entry.player.id);
     const code = startPrivateRace("quick", entries.map((entry) => entry.player), entries[0].locale, bot);
@@ -281,8 +297,37 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       return updateOutcome(code, (current, time) => joinLobby(current, player, time));
     },
 
+    /** Why `player` could not join `code` with its code right now, or null if they could (nothing changes). */
+    joinError(code: string, player: Player): StoreError | null {
+      const state = lobbies.get(code);
+      if (!state) return "lobbyNotFound";
+      const check = joinLobby(state, player, now());
+      return check.ok ? null : check.error;
+    },
+
     leave(code: string, userId: string) {
       update(code, (state) => leaveLobby(state, userId));
+    },
+
+    /** The host creates an invite link; its token is in the host's next view. */
+    createInvite(code: string, userId: string): StoreError | null {
+      return updateOutcome(code, (state) => createInvite(state, userId, inviteToken()));
+    },
+
+    inviteTarget,
+
+    /** Joins the lobby of an invite link from `ip` (SALLE-04); returns its code, or why it failed. */
+    joinWithInvite(token: string, player: Player, ip: string): { code: string } | { error: StoreError } {
+      const target = inviteTarget(token);
+      if (!target) return { error: "invalidInvite" };
+      const state = lobbies.get(target.code);
+      if (state && !isMember(state, player.id)) {
+        const check = joinWithInvite(state, player, token, ip, now());
+        if (!check.ok) return { error: check.error };
+      }
+      leaveOtherLobby(player.id, target.code);
+      const error = updateOutcome(target.code, (current, time) => joinWithInvite(current, player, token, ip, time));
+      return error ? { error } : { code: target.code };
     },
 
     /** The host closes the lobby: every member receives a null view and the code stops working. */
@@ -424,6 +469,12 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       timer = null;
     },
   };
+}
+
+/** 128 random bits, URL-safe. */
+function randomToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 /** Engine steps that cannot fail for a freshly made private lobby. */
