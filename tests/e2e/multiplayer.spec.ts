@@ -231,7 +231,10 @@ test("the lagging racer casts a Persona spell, announced on the track", async ({
   await page.getByRole("switch", { name: "Powers" }).click();
   await expect(page.getByRole("switch", { name: "Powers" })).toHaveAttribute("aria-checked", "true");
   await page.keyboard.press("Escape");
+  // The host picks who the bot races as.
+  await page.getByLabel("Races as").selectOption("crow");
   await page.getByRole("button", { name: /Novice \/\/ Intern/ }).click();
+  await expect(page.locator('img[src*="crow"]').first()).toBeVisible();
   await page.getByRole("button", { name: "Ready up" }).click();
   await page.getByRole("button", { name: /Start the race/i }).click();
 
