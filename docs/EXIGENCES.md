@@ -1,6 +1,6 @@
 # Exigences — matrice de traçabilité
 
-Dernière mise à jour : 2026-10-06 (checkpoint 1).
+Dernière mise à jour : 2026-10-19.
 
 Statuts : **complet**, **partiel** ou **non fait**. Une exigence est « complète » seulement si elle respecte tout l'énoncé ; sinon, la colonne Notes explique ce qui manque. Les chemins sont relatifs à `src/` sauf indication contraire.
 
@@ -18,9 +18,9 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | TECH-01 | complet | `package.json`, `app/` | — | Next.js 16, App Router. |
-| TECH-02 | partiel | `tsconfig.json`, `eslint.config.mjs` | CI : `npm run typecheck`, `npm run lint` | `strict: true`, aucun `@ts-ignore`. Restent en JavaScript : `eslint.config.mjs`, `postcss.config.mjs`, `scripts/migrate.mjs`. La règle `@typescript-eslint/no-explicit-any` n'est pas déclarée explicitement en erreur. |
+| TECH-02 | complet | `tsconfig.json`, `eslint.config.ts` | CI : `npm run typecheck`, `npm run lint` | Aucun fichier `.js`/`.jsx`/`.mjs` : les configurations (`eslint.config.ts`, `postcss.config.ts`) et les scripts (`scripts/*.ts`, exécutés directement par Node 22.18+) sont en TypeScript. `strict: true`, aucun `@ts-ignore` ni `@ts-expect-error`. La règle `@typescript-eslint/no-explicit-any` est déclarée en erreur dans `eslint.config.ts`. |
 | TECH-03 | complet | `app/globals.css` | — | Tailwind CSS 4. |
-| TECH-04 | partiel | `lib/db.ts`, `db/migrations/`, `scripts/migrate.mjs` | CI : `npm run db:migrate` | PostgreSQL avec `pg` et du SQL écrit à la main, sans ORM. Les migrations sont versionnées. Il n'y a pas encore de script de seed. |
+| TECH-04 | complet | `lib/db.ts`, `lib/db-schema.ts`, `db/migrations/`, `scripts/migrate.ts`, `scripts/seed.ts` | CI : `npm run db:migrate`, `npm run db:seed` | PostgreSQL avec l'ORM Drizzle : schéma typé dans `lib/db-schema.ts`, requêtes écrites avec le query builder. Les migrations sont versionnées en SQL. `npm run db:seed` crée le corpus de textes (`race_texts`), le compte de démonstration du README, cinq rivaux et 15 courses d'historique chacun ; il peut être relancé sans doublons. |
 | TECH-05 | partiel | `railway.json`, `render.yaml` | — | Déployé en HTTPS sur Railway, qui est une plateforme (PaaS) et non un VPS. À confirmer avec l'enseignant. |
 | TECH-06 | complet | `app/api/lobbies/[code]/events/`, `features/lobby/use-lobby-stream.ts` | `tests/e2e/multiplayer.spec.ts` | Server-Sent Events, voir l'ADR-001. |
 | TECH-07 | partiel | `lib/race-settings.ts`, `lib/chat.ts`, `lib/auth/forms.ts`, `lib/lobby-code.ts` | `race-settings.test.ts`, `auth-forms.test.ts` | Les entrées sont validées côté serveur, mais par du code écrit à la main plutôt que par des schémas (Zod ou équivalent). |
@@ -79,7 +79,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | --- | --- | --- | --- | --- |
 | CONF-01 | partiel | `lib/race-settings.ts` | `race-settings.test.ts` | Aucune limite, ou 30 s, 1, 2 ou 3 min. Il faut aller jusqu'à 10 min. |
 | CONF-02 | complet | `lib/race-settings.ts`, `features/lobby/components/rules-dossier.tsx`, `lib/race-texts.ts` | `race-settings.test.ts`, `race-engine.test.ts`, `lobby-store.test.ts`, `tests/e2e/multiplayer.spec.ts` | L'hôte choisit le français ou l'anglais dans les réglages. Par défaut, c'est la langue de l'interface de l'hôte à la création de la salle. Le réglage est indépendant de la langue de l'interface de chaque joueur. |
-| CONF-03 | partiel | `lib/race-texts.ts` | — | Les textes cohérents viennent d'une petite liste dans le code, pas de la base de données. Le texte aléatoire n'est pas fait. |
+| CONF-03 | partiel | `lib/race-texts.ts`, `db/migrations/006_race_texts.sql` | — | Le corpus de textes cohérents est en base de données (table `race_texts`, remplie par le seed), mais les courses choisissent encore leur texte dans la liste du code. Le texte aléatoire n'est pas fait. |
 | CONF-04 | non fait | — | — | |
 | CONF-05 | non fait | — | — | |
 | CONF-06 | partiel | `lib/race-settings.ts` | `race-settings.test.ts` | Options présentes : nombres, majuscules (sensibilité à la casse). La ponctuation est toujours activée et les accents ne sont pas configurables. |

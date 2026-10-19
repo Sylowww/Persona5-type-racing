@@ -57,10 +57,11 @@ tests/
 
 ## Data
 
-- PostgreSQL via `pg`; `lib/db.ts` exposes a lazy `getPool()` (server-only, needs `DATABASE_URL`).
-- Schema changes are plain SQL files in `db/migrations/` (`NNN_name.sql`), applied in order by `npm run db:migrate` (`scripts/migrate.mjs`, tracked in `schema_migrations`). Never edit an applied migration; add a new one.
-- Local database: `docker compose up -d` (or any Postgres), copy `.env.example` to `.env`, then `npm run db:migrate`.
-- Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race), `user_avatars` (uploaded profile pictures).
+- PostgreSQL through the Drizzle ORM (`drizzle-orm` over the `pg` driver). `lib/db.ts` exposes a lazy `getDb()` (server-only, needs `DATABASE_URL`); queries use the Drizzle query builder, never raw SQL strings.
+- `lib/db-schema.ts` holds the typed table models. Schema changes are still plain SQL files in `db/migrations/` (`NNN_name.sql`), applied in order by `npm run db:migrate` (`scripts/migrate.mjs`, tracked in `schema_migrations`). A schema change is a new migration plus the matching edit in `lib/db-schema.ts`. Never edit an applied migration; add a new one.
+- Local database: `docker compose up -d` (or any Postgres), copy `.env.example` to `.env`, then `npm run db:migrate`. `npm run db:seed` (`scripts/seed.ts`) then adds demo data: the race text corpus, the demo account from the README, five rivals and 15 races each. It can be run again: texts are upserted and only the seed accounts (emails at `demo.typestrike.test`) are recreated.
+- `scripts/*.ts` run directly with Node's built-in TypeScript support (Node 22.18+), so they import app modules with a `.ts` extension and no `@/` alias.
+- Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race), `user_avatars` (uploaded profile pictures), `race_texts` (corpus of coherent texts per language, filled by the seed; races still pick from the built-in list in `lib/race-texts.ts` until CONF-03 is wired).
 - Leaderboard: `lib/leaderboard-db.ts` (server-only) ranks registered players with at least one saved race by record WPM, then average WPM, then name, and reads one page of 10 at a time (`LIMIT`/`OFFSET`, top 100 only). Page math and `?page=` parsing are pure, in `lib/leaderboard.ts`.
 - `lib/users.ts` is the server-only data access for accounts and sessions. Pure auth helpers (scrypt password hashing, session tokens, input validation) live in `lib/auth/` and are unit tested.
 - Profile edits (`features/profile/actions.ts`): `changeUsername` validates like sign-up and relies on the unique index for taken names (`renameUser`); the new name shows at once in the player's current lobby (`store.setName`). `uploadAvatar` checks the size, then the real type from the file's first bytes (`lib/avatar.ts`: JPEG, PNG or WebP, 2 MB max; the browser's type and file name are ignored), stores the bytes in `user_avatars` (the server disk is not persistent) and sets `users.avatar_url` to `/api/avatars/{userId}/{version}`. That route serves the bytes with `nosniff` and an immutable cache (the version changes on every upload). `PlayerAvatar` displays it with `next/image`, which resizes it. Server Action bodies are capped at 3 MB in `next.config.ts`.
@@ -161,6 +162,13 @@ erDiagram
     bytea data "2 MB max"
     timestamptz updated_at
   }
+  race_texts {
+    uuid id PK
+    text language "fr | en"
+    text body "unique"
+    boolean has_numbers
+    timestamptz created_at
+  }
   race_results {
     uuid id PK
     uuid user_id FK
@@ -200,6 +208,53 @@ stateDiagram-v2
 - Every transition is a pure function of `(state, event, now)`; time-based ones (`countdown → racing`, `racing → finished`, seat expiry) happen in `advance`, called by the store's 100 ms timer.
 - Joining is refused during `countdown` and `racing` (`raceInProgress`).
 - Settings, bots and visibility can only change in `waiting`.
+
+## Real-time message flow
+
+One race, seen from one player. Every other player has the same SSE stream; bots have no connection, the store's timer plays their keystrokes.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant B as Browser (lobby / race page)
+  participant A as Server Functions<br/>features/lobby/actions.ts
+  participant E as GET /api/lobbies/[code]/events (SSE)
+  participant I as POST /api/lobbies/[code]/input
+  participant S as Lobby store<br/>lib/lobby-store.ts + race-engine.ts
+  participant D as PostgreSQL
+
+  B->>A: createLobby / joinLobby (session cookie)
+  A->>S: join(code, user)
+  B->>E: EventSource opens
+  E->>S: subscribe(code, user), mark connected
+  S-->>E: snapshot (members, settings, phase, serverNow)
+  E-->>B: event: snapshot
+  B->>A: setLobbyReady, updateLobbySettings, addLobbyBot…
+  A->>S: validated action (the engine refuses host-only ones from others)
+  S-->>E: new snapshot, broadcast at once
+  E-->>B: event: snapshot
+  B->>A: startLobbyRace (host)
+  A->>S: start: pick text, startsAt = now + 3 s, plan bot runs
+  S-->>B: snapshot with text and startsAt (countdown synced with serverNow)
+  loop every 100 ms (store timer)
+    S->>S: advance: countdown → racing, bot keystrokes, time limit, expired seats
+  end
+  loop while racing
+    B->>I: batch {clientId, seq, events: char/delete}
+    I->>S: input: replay with lib/typing.ts on the server clock
+    I-->>B: 204 (or 400 / 403 / 404)
+    S-->>E: progress snapshot, at most every 100 ms per lobby
+    E-->>B: event: snapshot (positions, WPM, places)
+  end
+  S->>S: everyone done or time limit: finished, rankRacers
+  S-->>E: snapshot with results
+  E-->>B: event: snapshot → results page
+  S->>D: saveRaceResults (registered players only, once per race)
+```
+
+- The client never sends progress, WPM or places: only keystrokes. Batches are numbered, so a retried batch is ignored, and the server drops input outside the race or above 30 keys/s.
+- If the stream drops, `EventSource` reconnects and the next snapshot restores the race; the seat is kept for 30 s (see Reconnection).
+- The database is written once per race, at the end, never per keystroke (PERF-02).
 
 ## ADR-001: Real-time transport
 

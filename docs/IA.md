@@ -1,0 +1,57 @@
+# Utilisation de l'IA
+
+## Agents et outils utilisés
+
+- **Claude Code** (application de bureau, onglet Code) : agent principal pour implémenter les fonctionnalités, écrire les tests, corriger la CI et tenir la documentation à jour.
+- **Stitch** (Google) : génération des maquettes visuelles des écrans principaux, dans [`STITCHCODE/`](../STITCHCODE/) (voir la situation 1).
+- Le nom du site (TYPE//STRIKE) et le logo ont été faits sans IA (voir [DEMARCHE-CREATIVE.md](DEMARCHE-CREATIVE.md)).
+
+## Fichiers d'instructions d'agent
+
+Tous sont commités dans le dépôt :
+
+| Fichier | Rôle |
+| --- | --- |
+| [`AGENTS.md`](../AGENTS.md) | Règles du projet : pile technique, architecture (logique hors des composants, serveur autoritaire), i18n, sécurité, conventions Git (Conventional Commits, jamais sur `main`, pas de push sans demande), vérifications avant de terminer. |
+| [`CLAUDE.md`](../CLAUDE.md) | Importe `AGENTS.md` pour que Claude Code lise les mêmes règles. |
+| [`.agents/skills/`](../.agents/skills/) | Procédures réutilisables : `implement-issue`, `review-code`, `database`. |
+| [`.claude/launch.json`](../.claude/launch.json) | Commande du serveur de développement, pour que l'agent vérifie ses changements dans le navigateur. |
+| [`docs/`](README.md) | Documentation que l'agent doit lire avant de toucher une zone (architecture, design system, i18n, tests, statut). |
+
+## Trois situations où l'IA s'est trompée
+
+### 1. Une interface pas fidèle à Persona 5
+
+**Contexte.** Au début, j'ai demandé à Claude Code de construire les pages dans le style de Persona 5 à partir d'une simple description et de mon moodboard ([DEMARCHE-CREATIVE.md](DEMARCHE-CREATIVE.md)).
+
+**Problème.** Le code fonctionnait, mais le visuel restait générique : la direction artistique de Persona 5 (rouge et noir, formes inclinées, gros titres en italique, effet « collage ») est trop marquée pour qu'un agent de code la reproduise à partir d'une description. Ça ressemblait à un site fait par défaut, ce que DES-04 pénalise. Ces premiers essais n'ont pas été commités.
+
+**Détection.** En ouvrant les pages dans le navigateur et en les comparant au jeu et au moodboard : le style ne ressortait pas.
+
+**Correction.** J'ai utilisé Stitch (Google), un outil d'IA spécialisé en design, pour générer des maquettes HTML/Tailwind des quatre écrans principaux : accueil, lobby, course et résultats. Elles sont dans [`STITCHCODE/`](../STITCHCODE/) (polices Anton, Chivo et Space Grotesk), ajoutées au dépôt plus tard, au commit `8c5e588`. Claude Code a ensuite construit les vraies pages en composants React à partir de ces maquettes (accueil au commit `63fdfe7`, puis lobby, course et résultats), et j'ai ajusté chaque page en la testant. Leçon : utiliser chaque outil pour ce qu'il fait bien, un outil de design pour le visuel et l'agent de code pour l'implémentation.
+
+### 2. Une méthode Drizzle qui n'existe pas
+
+**Contexte.** Pour le classement (`src/lib/leaderboard-db.ts`), l'agent a typé l'agrégat `max(wpm)` avec `.$type<number>()`.
+
+**Problème.** Cette méthode existe sur les colonnes, mais pas sur les expressions SQL renvoyées par `max()`. Le code ne compilait pas.
+
+**Détection.** `npm run typecheck` (aussi exécuté par la CI) a échoué : `Property '$type' does not exist on type 'SQL<number | null>'`.
+
+**Correction.** Utilisation de `.mapWith(Number)`, déjà employé pour les moyennes dans le même fichier.
+
+### 3. Les tests unitaires passaient sans rien vérifier de la base
+
+**Contexte.** Après la migration vers Drizzle, typecheck, lint et les 220 tests unitaires passaient.
+
+**Problème.** Aucun test unitaire ne touche la base de données : un « tout est vert » ne prouvait rien sur les requêtes réécrites (contraintes d'unicité insensibles à la casse, upsert de l'avatar, `UPDATE … FROM sessions`, classement).
+
+**Détection.** En relisant ce que couvraient vraiment les tests avant de déclarer le travail terminé.
+
+**Correction.** Un test temporaire a exécuté chaque fonction contre un conteneur PostgreSQL 17 neuf (migrations appliquées), y compris les cas d'erreur (nom ou courriel déjà pris, session expirée, invités ignorés, course enregistrée deux fois). La leçon : demander à l'agent ce que ses tests prouvent, pas seulement s'ils passent.
+
+## Réflexion
+
+- Ce qui a bien fonctionné : des règles écrites une fois (`AGENTS.md`) plutôt que répétées à chaque demande ; des commits petits et fréquents ; la matrice d'exigences comme liste de travail. Travailler avec une IA sans ça, c'est beaucoup plus compliqué (merci Jord).
+- Ce qui demande de la vigilance : l'agent écrit du code plausible qui compile parfois mal, ou qui compile mais fait autre chose ; la CI (lint, types, tests) et la relecture du diff restent nécessaires. Si on ne teste pas manuellement les nouvelles fonctionnalités, comme en « QA », on ne peut jamais être sûr. C'est important de tester après chaque fonctionnalité implémentée pour être sûr que rien ne brise, malgré les tests automatisés.
+- Ma façon de travailler : Claude Code était le « junior » qui implémentait les fonctionnalités. Tout le côté créatif vient de moi. Comme dit plus haut, j'ai aussi beaucoup testé les nouvelles fonctionnalités moi-même.
