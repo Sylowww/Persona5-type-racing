@@ -1,19 +1,14 @@
 // Catch-up bonuses (BONUS-01 to BONUS-04): pure rules, applied by the race engine. Kept apart from the engine so
 // their exact behavior can change without touching the race model.
 
-import type { BonusKind } from "@/types/race";
-
-export const bonusKinds: readonly BonusKind[] = ["shortcut", "burden", "fog"];
-
 /** Leader progress at which bonuses are handed out. */
 export const BONUS_CHECKPOINTS: readonly number[] = [0.25, 0.5, 0.75];
 /** A racer this far behind the leader (in share of the text) is lagging, as is the last racer. */
 export const LAGGING_GAP = 0.25;
 export const MAX_BONUSES_PER_RACER = 3;
 export const BONUS_WORDS = 3;
-export const FOG_MS = 5_000;
-/** How long a bot leader hesitates under fog, since it cannot be blinded. */
-export const BOT_FOG_DELAY_MS = 1_500;
+/** How long a bot hesitates under a hex, since it cannot be blinded. */
+export const BOT_HEX_DELAY_MS = 1_500;
 
 /** Number of checkpoints passed by a leader at `leaderProgress`. */
 export function checkpointsReached(leaderProgress: number): number {
@@ -36,11 +31,6 @@ export function pickBonusReceivers(contenders: readonly Contender[]): { leaderId
     .filter((racer) => racer === last || leader.progress - racer.progress > LAGGING_GAP)
     .map((racer) => racer.id);
   return { leaderId: leader.id, receiverIds };
-}
-
-/** Bonus of one receiver at one checkpoint: rotates through the kinds so each lagging racer gets a mix. */
-export function bonusFor(checkpoint: number, receiverIndex: number): BonusKind {
-  return bonusKinds[(checkpoint + receiverIndex) % bonusKinds.length];
 }
 
 /** Word boundaries: start index of each word of `text`. */

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { appendWords, bonusFor, checkpointsReached, pickBonusReceivers, removeLastWords } from "../../src/lib/bonuses";
+import { appendWords, checkpointsReached, pickBonusReceivers, removeLastWords } from "../../src/lib/bonuses";
+import { characterSpells, isSelfSpell, spellFor } from "../../src/lib/spells";
 
 describe("catch-up bonuses", () => {
   it("counts the checkpoints passed by the leader", () => {
@@ -23,9 +24,16 @@ describe("catch-up bonuses", () => {
     expect(pickBonusReceivers([{ id: "solo", progress: 0.5, bonuses: 0 }])).toEqual({ leaderId: null, receiverIds: [] });
   });
 
-  it("rotates through the bonus kinds", () => {
-    expect([0, 1, 2].map((checkpoint) => bonusFor(checkpoint, 0))).toEqual(["shortcut", "burden", "fog"]);
-    expect(bonusFor(0, 1)).toBe("burden");
+  it("gives every character a spell true to their Persona, Joker drawing one with his Wild Card", () => {
+    expect(spellFor("panther", () => 0)).toEqual({ spell: characterSpells.panther, wildCard: false });
+    expect(characterSpells.panther).toMatchObject({ id: "agi", persona: "Carmen", element: "fire" });
+    expect(characterSpells.skull).toMatchObject({ id: "zio", element: "elec", effect: { type: "stun" } });
+    const wild = spellFor("joker", () => 0.99);
+    expect(wild.wildCard).toBe(true);
+    expect(Object.values(characterSpells)).toContain(wild.spell);
+    // At least one spell helps the caster and at least one slows the leader (BONUS-02).
+    expect(Object.values(characterSpells).some(isSelfSpell)).toBe(true);
+    expect(Object.values(characterSpells).some((spell) => !isSelfSpell(spell))).toBe(true);
   });
 
   it("removes words from the end without touching the word being typed", () => {

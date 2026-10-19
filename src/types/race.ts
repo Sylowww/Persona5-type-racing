@@ -37,20 +37,33 @@ export type RaceYou = {
   finishedAt: number | null;
   eliminatedAt: number | null;
   forfeitedAt: number | null;
-  /** The next words are blurred until then (fog bonus); null otherwise. */
-  fogUntil: number | null;
+  /** A hex blurring the next words (fire, psy, light, curse); null otherwise. */
+  hex: SpellMark | null;
+  /** A stun (shock or ice): keys do nothing until it ends; null otherwise. */
+  stun: SpellMark | null;
 };
 
-/** `shortcut`: -3 words for its receiver. `burden`: +3 words for the leader. `fog`: blurs the leader's next words. */
-export type BonusKind = "shortcut" | "burden" | "fog";
+/** Persona skills cast as catch-up bonuses (`lib/spells.ts`). Names come from Persona 5 and are not translated. */
+export type SpellId = "garu" | "zio" | "agi" | "bufu" | "frei" | "navi" | "psi" | "kouga" | "swordDance" | "eiga" | "mediarama";
 
-/** A catch-up bonus just handed out, announced on the track (BONUS-03). */
+/** Visual family of a spell: its color, icon and effect on the target. */
+export type SpellElement = "wind" | "elec" | "fire" | "ice" | "nuclear" | "support" | "psy" | "bless" | "phys" | "curse" | "heal";
+
+/** A spell effect still running on a racer, shown on their screen. */
+export type SpellMark = { element: SpellElement; until: number };
+
+/** A catch-up spell just cast, announced on the track and in a cut-in (BONUS-03). */
 export type RaceBonusEvent = {
   id: number;
-  kind: BonusKind;
+  spell: SpellId;
+  element: SpellElement;
+  /** The Persona that cast it (Arsène when Joker's Wild Card picked another character's spell). */
+  persona: string;
+  wildCard: boolean;
   receiverId: string;
   receiver: string;
-  /** The receiver for a shortcut, the leader otherwise. */
+  receiverCharacter: CharacterId;
+  /** The receiver for a support spell, the leader otherwise. */
   targetId: string;
   target: string;
 };
