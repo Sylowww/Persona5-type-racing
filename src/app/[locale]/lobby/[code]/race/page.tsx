@@ -31,7 +31,8 @@ export default async function RacePage({ params }: Params) {
     <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
       <div className="relative flex w-full flex-col">
         <HalftoneBackdrop />
-        <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 py-4 md:px-10">
+        {/* Bottom room: Mona's comms bubble is fixed at the bottom left, and the text must be able to scroll above it. */}
+        <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-4 pb-48 md:px-10">
           {/* Phones get a message instead of the race (DES-06): typing races need a physical keyboard. */}
           <section className="mx-auto flex max-w-md flex-col items-center gap-4 bg-surface-container p-6 text-center shadow-hard-xl md:hidden">
             <Icon name="keyboard" size={48} className="text-primary-container" />
