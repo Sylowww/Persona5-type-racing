@@ -4,6 +4,9 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { RaceBonusEvent } from "@/types/race";
 import { knownSpellEvents, spellStyle } from "../spell-style";
 
+/** Spells listed one by one; past that, the newest are shown and the rest summed up. */
+const MAX_LISTED = 4;
+
 type BonusFeedProps = {
   dictionary: Dictionary["race"]["spells"];
   events: readonly RaceBonusEvent[];
@@ -34,7 +37,7 @@ export function BonusFeed({ dictionary, events: received, youId }: BonusFeedProp
         );
       })}
       <ul className="flex flex-wrap gap-2">
-        {events.map((event) => {
+        {events.slice(-MAX_LISTED).map((event) => {
           const style = spellStyle[event.element];
           return (
             <li key={event.id} className="flex items-center gap-1.5 bg-surface-container-highest px-3 py-1 font-hud text-label-hud font-black uppercase text-secondary shadow-hard-xs">
@@ -48,6 +51,11 @@ export function BonusFeed({ dictionary, events: received, youId }: BonusFeedProp
             </li>
           );
         })}
+        {events.length > MAX_LISTED && (
+          <li className="flex items-center bg-surface-container-highest px-3 py-1 font-hud text-label-hud font-black uppercase text-on-surface-variant shadow-hard-xs">
+            {formatMessage(dictionary.more, { count: events.length - MAX_LISTED })}
+          </li>
+        )}
       </ul>
     </div>
   );

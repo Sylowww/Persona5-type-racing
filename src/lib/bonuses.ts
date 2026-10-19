@@ -6,6 +6,8 @@ export const BONUS_CHECKPOINTS: readonly number[] = [0.25, 0.5, 0.75];
 /** A racer this far behind the leader (in share of the text) is lagging, as is the last racer. */
 export const LAGGING_GAP = 0.25;
 export const MAX_BONUSES_PER_RACER = 3;
+/** Spells handed out at one checkpoint, to the racers furthest behind, so a full class does not bury the leader. */
+export const MAX_SPELLS_PER_CHECKPOINT = 3;
 export const BONUS_WORDS = 3;
 /** How long a bot hesitates under a hex, since it cannot be blinded. */
 export const BOT_HEX_DELAY_MS = 1_500;
@@ -19,8 +21,9 @@ type Contender = { id: string; progress: number; bonuses: number };
 
 /**
  * Who gets a bonus at a checkpoint, among racers still typing: the last one and anyone more than `LAGGING_GAP`
- * behind the leader, never the leader, and at most `MAX_BONUSES_PER_RACER` per race. Returns the leader too, the
- * target of the bonuses that slow down the front of the race. Ties go to the racer listed first.
+ * behind the leader, never the leader, and at most `MAX_BONUSES_PER_RACER` per race. Of those, only the
+ * `MAX_SPELLS_PER_CHECKPOINT` furthest behind get one. Returns the leader too, the target of the spells that slow down
+ * the front of the race. Ties go to the racer listed first.
  */
 export function pickBonusReceivers(contenders: readonly Contender[]): { leaderId: string | null; receiverIds: string[] } {
   if (contenders.length < 2) return { leaderId: null, receiverIds: [] };
@@ -29,6 +32,8 @@ export function pickBonusReceivers(contenders: readonly Contender[]): { leaderId
   const receiverIds = contenders
     .filter((racer) => racer !== leader && racer.bonuses < MAX_BONUSES_PER_RACER)
     .filter((racer) => racer === last || leader.progress - racer.progress > LAGGING_GAP)
+    .sort((a, b) => a.progress - b.progress)
+    .slice(0, MAX_SPELLS_PER_CHECKPOINT)
     .map((racer) => racer.id);
   return { leaderId: leader.id, receiverIds };
 }

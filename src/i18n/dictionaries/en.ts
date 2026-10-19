@@ -365,6 +365,7 @@ const en = {
         mediarama: "{name}! Healed: 2 words removed",
       },
       stunned: "Keys locked",
+      more: "+{count} more spells",
     },
     track: {
       label: "Race track",
