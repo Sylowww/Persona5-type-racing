@@ -26,6 +26,7 @@ import {
   setConnected,
   setName,
   setReady,
+  setRole,
   setVisibility,
   startRace,
   updateSettings,
@@ -308,6 +309,10 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     setVisibility(code: string, userId: string, visibility: unknown): StoreError | null {
       return updateOutcome(code, (state) => setVisibility(state, userId, visibility));
+    },
+
+    setRole(code: string, userId: string, role: unknown): StoreError | null {
+      return updateOutcome(code, (state) => setRole(state, userId, role));
     },
 
     setCapacity(code: string, userId: string, capacity: unknown): StoreError | null {

@@ -228,13 +228,6 @@ export function RulesDossier({
               <span className="text-[12px] text-outline">{spectators.join(", ")}</span>
             </div>
           </div>
-          {/* Spectator mode does not exist yet. */}
-          <button
-            type="button"
-            className="shrink-0 bg-surface-container px-2 py-1 font-hud text-[11px] font-black uppercase text-on-surface-variant hover:text-secondary"
-          >
-            {dictionary.inviteObserver}
-          </button>
         </div>
       </div>
     </section>

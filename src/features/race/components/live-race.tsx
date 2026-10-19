@@ -104,12 +104,16 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const lastKeyAt = useRef<number | null>(null);
 
+  // Spectators watch the track without a typing area (COURSE-05).
+  const isSpectator = !view.race?.you;
   // Follow the lobby: results once the server ends the race (after the final collapse), the lobby if the race is gone.
-  const resultsHref = view.phase === "finished" && view.hasResult ? `/${locale}/lobby/${view.code}/results` : null;
+  // Spectators have no results: they go back to the lobby after the collapse.
+  const resultsHref =
+    view.phase !== "finished" ? null : view.hasResult ? `/${locale}/lobby/${view.code}/results` : isSpectator ? `/${locale}/lobby/${view.code}` : null;
   useEffect(() => {
     if (status === "closed") router.replace(`/${locale}`);
     else if (resultsHref) return;
-    else if (view.phase === "waiting" || !view.race?.you) router.replace(`/${locale}/lobby/${view.code}`);
+    else if (view.phase === "waiting" || !view.race) router.replace(`/${locale}/lobby/${view.code}`);
   }, [status, view, locale, router, resultsHref]);
 
   useEffect(() => {
@@ -130,7 +134,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const isCountdown = now < startsAt;
   // Keys typed before hydration would be dropped when React takes over the input, so it opens only after.
   const hydrated = useHydrated();
-  const isOpen = hydrated && race !== null && !isCountdown && !finished && !eliminated && view.phase !== "finished";
+  const isOpen = hydrated && !isSpectator && race !== null && !isCountdown && !finished && !eliminated && view.phase !== "finished";
 
   // autoFocus can run before hydration, so place the caret here too.
   useEffect(() => {
@@ -210,7 +214,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
       <MonaComms
         dictionary={dictionary.comms}
         now={now}
-        active={race !== null && !isCountdown && !raceOver}
+        active={race !== null && !isCountdown && !raceOver && !isSpectator}
         place={place}
         streak={typing.streak}
         progress={progress(text, typing.typed)}
@@ -232,7 +236,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
             // The race clock keeps running after you finish: the race ends at the limit or once everyone is done.
             remainingMs={race?.isTimed ? Math.max(0, race.endsAt - Math.max(now, startsAt)) : null}
             wordCount={text.split(" ").length}
-            place={place}
+            place={isSpectator ? null : place}
             racerCount={racers.length}
           />
 
@@ -247,85 +251,89 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
             chaos={chaos && !raceOver}
           />
 
-          <section
-            aria-label={dictionary.arena.label}
-            className="relative flex cursor-text flex-col gap-4 bg-surface-container-lowest p-4 shadow-hard-xl shadow-primary-container md:p-7"
-            onClick={() => inputRef.current?.focus()}
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <h2 className="-skew-x-6 bg-primary-container px-2 py-0.5 font-hud text-[14px] font-black uppercase tracking-wider text-on-primary-container">
-                  {dictionary.arena.label}
-                </h2>
-                <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">
-                  {isFocused ? dictionary.arena.focused : dictionary.arena.hint}
-                </span>
-              </div>
-              <div className="flex items-center gap-4">
-                {isSuddenDeath && (
-                  <span className="font-hud text-label-hud font-black uppercase text-error">{dictionary.arena.suddenDeath}</span>
-                )}
-                <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">
-                  {formatMessage(dictionary.arena.mistakes, { count: typing.mistakes })}
-                </span>
-                <span role="status" className="flex items-center gap-1.5 font-hud text-label-hud font-black uppercase text-secondary-fixed">
-                  <span aria-hidden="true" className={`size-2 rounded-full bg-secondary-fixed ${isOpen ? "motion-safe:animate-ping" : ""}`} />
-                  {statusText}
-                </span>
-              </div>
-            </div>
-
-            <div
-              className={`relative min-h-[220px] bg-surface-container-low px-4 py-7 md:px-7 ${
-                isFocused ? "outline-2 outline-secondary-fixed" : ""
-              }`}
+          {!isSpectator && (
+            <section
+              aria-label={dictionary.arena.label}
+              className="relative flex cursor-text flex-col gap-4 bg-surface-container-lowest p-4 shadow-hard-xl shadow-primary-container md:p-7"
+              onClick={() => inputRef.current?.focus()}
             >
-              <TypingText text={text} typed={typing.typed} />
-              {isCountdown && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-container-lowest/85">
-                  <span className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">
-                    {dictionary.arena.countdown}
-                  </span>
-                  <span
-                    role="timer"
-                    aria-label={formatMessage(dictionary.arena.countdownValue, { seconds: secondsLeft })}
-                    className="-skew-x-6 bg-primary-container px-7 font-display text-[96px] leading-none text-secondary shadow-hard-xl"
-                  >
-                    {secondsLeft}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="-skew-x-6 bg-primary-container px-2 py-0.5 font-hud text-[14px] font-black uppercase tracking-wider text-on-primary-container">
+                    {dictionary.arena.label}
+                  </h2>
+                  <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">
+                    {isFocused ? dictionary.arena.focused : dictionary.arena.hint}
                   </span>
                 </div>
-              )}
-            </div>
+                <div className="flex items-center gap-4">
+                  {isSuddenDeath && (
+                    <span className="font-hud text-label-hud font-black uppercase text-error">{dictionary.arena.suddenDeath}</span>
+                  )}
+                  <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">
+                    {formatMessage(dictionary.arena.mistakes, { count: typing.mistakes })}
+                  </span>
+                  <span role="status" className="flex items-center gap-1.5 font-hud text-label-hud font-black uppercase text-secondary-fixed">
+                    <span aria-hidden="true" className={`size-2 rounded-full bg-secondary-fixed ${isOpen ? "motion-safe:animate-ping" : ""}`} />
+                    {statusText}
+                  </span>
+                </div>
+              </div>
 
-            <input
-              ref={inputRef}
-              aria-label={dictionary.arena.inputLabel}
-              className="sr-only"
-              value={typing.typed}
-              onChange={handleChange}
-              onFocus={(event) => {
-                setIsFocused(true);
-                keepCaretAtEnd(event.currentTarget);
-              }}
-              onSelect={(event) => keepCaretAtEnd(event.currentTarget)}
-              onBlur={() => setIsFocused(false)}
-              readOnly={!isOpen}
-              autoFocus
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
+              <div
+                className={`relative min-h-[220px] bg-surface-container-low px-4 py-7 md:px-7 ${
+                  isFocused ? "outline-2 outline-secondary-fixed" : ""
+                }`}
+              >
+                <TypingText text={text} typed={typing.typed} />
+                {isCountdown && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-container-lowest/85">
+                    <span className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">
+                      {dictionary.arena.countdown}
+                    </span>
+                    <span
+                      role="timer"
+                      aria-label={formatMessage(dictionary.arena.countdownValue, { seconds: secondsLeft })}
+                      className="-skew-x-6 bg-primary-container px-7 font-display text-[96px] leading-none text-secondary shadow-hard-xl"
+                    >
+                      {secondsLeft}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <input
+                ref={inputRef}
+                aria-label={dictionary.arena.inputLabel}
+                className="sr-only"
+                value={typing.typed}
+                onChange={handleChange}
+                onFocus={(event) => {
+                  setIsFocused(true);
+                  keepCaretAtEnd(event.currentTarget);
+                }}
+                onSelect={(event) => keepCaretAtEnd(event.currentTarget)}
+                onBlur={() => setIsFocused(false)}
+                readOnly={!isOpen}
+                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+              />
+            </section>
+          )}
+
+          {!isSpectator && (
+            <RaceStats
+              dictionary={dictionary.stats}
+              locale={locale}
+              wpm={wpm}
+              streak={typing.streak}
+              mistakes={typing.mistakes}
+              accuracy={accuracy(typing.keystrokes, typing.mistakes)}
             />
-          </section>
-
-          <RaceStats
-            dictionary={dictionary.stats}
-            locale={locale}
-            wpm={wpm}
-            streak={typing.streak}
-            mistakes={typing.mistakes}
-            accuracy={accuracy(typing.keystrokes, typing.mistakes)}
-          />
+          )}
         </div>
       </PalaceCollapse>
     </>

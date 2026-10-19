@@ -164,6 +164,8 @@ const en = {
       copyCode: "Click to copy lobby code",
       copied: "Code copied!",
       kick: "Remove {name} from the lobby",
+      spectators: "Spectators",
+      hostTag: "Host",
     },
     bots: {
       slot: "Bot // P{slot}",
@@ -243,7 +245,6 @@ const en = {
         silent: "Silent red",
       },
       spectators: "{count} spectators watching",
-      inviteObserver: "Invite observer",
     },
     chat: {
       title: "Taunt relay",
@@ -267,6 +268,8 @@ const en = {
       hostOnly: "The host starts the race",
       ready: "Ready up",
       unready: "Not ready",
+      spectate: "Spectate",
+      play: "Take a seat",
       close: "Close lobby",
       closeConfirm: "Close the lobby for everyone? Players are sent home and the code stops working.",
     },
@@ -280,6 +283,7 @@ const en = {
       target: "Target: {count} words",
       place: "Place {place}",
       placeOf: "Out of {total} racers",
+      spectating: "Spectating",
     },
     track: {
       label: "Race track",

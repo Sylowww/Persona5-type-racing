@@ -166,6 +166,8 @@ const fr: Dictionary = {
       copyCode: "Clique pour copier le code",
       copied: "Code copié!",
       kick: "Retirer {name} du salon",
+      spectators: "Spectateurs",
+      hostTag: "Hôte",
     },
     bots: {
       slot: "Bot // J{slot}",
@@ -245,7 +247,6 @@ const fr: Dictionary = {
         silent: "Rouge silencieux",
       },
       spectators: "{count} spectateurs regardent",
-      inviteObserver: "Inviter un observateur",
     },
     chat: {
       title: "Relais de provocations",
@@ -269,6 +270,8 @@ const fr: Dictionary = {
       hostOnly: "L'hôte lance la course",
       ready: "Verrouiller",
       unready: "Déverrouiller",
+      spectate: "Regarder",
+      play: "Prendre une place",
       close: "Fermer le salon",
       closeConfirm: "Fermer le salon pour tout le monde ? Les joueurs retournent à l'accueil et le code ne fonctionne plus.",
     },
@@ -282,6 +285,7 @@ const fr: Dictionary = {
       target: "Cible : {count} mots",
       place: "Position {place}",
       placeOf: "Sur {total} coureurs",
+      spectating: "Spectateur",
     },
     track: {
       label: "Piste de course",

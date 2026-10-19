@@ -14,6 +14,7 @@ import {
   sendLobbyMessage,
   setLobbyCapacity,
   setLobbyReady,
+  setLobbyRole,
   setLobbyVisibility,
   startLobbyRace,
   updateLobbySettings,
@@ -44,13 +45,17 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
   // Everyone moves to the race together when the host starts it.
   useEffect(() => {
     if (status === "closed") router.replace(`/${locale}`);
-    else if ((view.phase === "countdown" || view.phase === "racing") && view.race?.you) router.push(`/${locale}/lobby/${code}/race`);
+    // Spectators follow the race on the track too.
+    else if ((view.phase === "countdown" || view.phase === "racing") && view.race) router.push(`/${locale}/lobby/${code}/race`);
   }, [status, view, code, locale, router]);
 
   const you = view.players.find((player) => player.id === view.youId);
   const isHost = you?.isHost ?? false;
   const isReady = you?.isReady ?? false;
-  const { players } = view;
+  const isSpectator = you?.isSpectator ?? false;
+  // Spectators take no seat and do not race.
+  const players = view.players.filter((player) => !player.isSpectator);
+  const spectators = view.players.filter((player) => player.isSpectator);
   const isWaiting = view.phase === "waiting" || view.phase === "finished";
   // Training is solo: no bots, and the player starts without readying up.
   const isTraining = view.kind === "training";
@@ -74,6 +79,12 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
         canStart={isHost && isWaiting && (isTraining || canStartRace(players))}
         isHost={isHost}
         isReady={isReady}
+        isSpectator={isSpectator}
+        onToggleRole={
+          view.kind === "custom" && isWaiting
+            ? () => startTransition(async () => void (await setLobbyRole(code, isSpectator ? "player" : "spectator")))
+            : null
+        }
         isPending={isPending}
         onToggleReady={() => startTransition(async () => void (await setLobbyReady(code, !isReady)))}
         onStart={() => startTransition(async () => void (await startLobbyRace(code)))}
@@ -90,6 +101,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
             code={code}
             capacity={view.capacity}
             players={players}
+            spectators={spectators}
             youId={view.youId}
             canManageBots={isHost && !isTraining && view.phase !== "countdown" && view.phase !== "racing"}
             isPending={isPending}
@@ -121,7 +133,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
           onVisibilityChange={(visibility) => startTransition(async () => void (await setLobbyVisibility(code, visibility)))}
           seats={seats}
           onCapacityChange={(capacity) => startTransition(async () => void (await setLobbyCapacity(code, capacity)))}
-          spectators={[]}
+          spectators={spectators.map((spectator) => spectator.name)}
           onClose={() => setSettingsOpen(false)}
         />
       </SettingsPanel>

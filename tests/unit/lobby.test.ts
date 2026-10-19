@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { canStartRace, countReady, openSlotCount, readyMeter } from "../../src/lib/lobby";
 
 function player(id: string, isReady: boolean) {
-  return { id, isReady };
+  return { id, isReady, bot: null };
+}
+
+function bot(id: string) {
+  return { id, isReady: true, bot: "rookie" as const };
 }
 
 describe("lobby", () => {
@@ -19,6 +23,11 @@ describe("lobby", () => {
     expect(canStartRace([player("a", true)])).toBe(false);
     expect(canStartRace([player("a", true), player("b", false)])).toBe(false);
     expect(canStartRace([player("a", true), player("b", true)])).toBe(true);
+  });
+
+  it("counts bots as racers but needs one human (COURSE-02)", () => {
+    expect(canStartRace([player("a", true), bot("b")])).toBe(true);
+    expect(canStartRace([bot("a"), bot("b")])).toBe(false);
   });
 
   it("scales the ready meter down for large lobbies", () => {
