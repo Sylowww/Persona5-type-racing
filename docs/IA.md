@@ -3,6 +3,7 @@
 ## Agents et outils utilisés
 
 - **Claude Code** (application de bureau, onglet Code) : agent principal pour implémenter les fonctionnalités, écrire les tests, corriger la CI et tenir la documentation à jour.
+- **Stitch** (Google) : génération des maquettes visuelles des écrans principaux, dans [`STITCHCODE/`](../STITCHCODE/) (voir la situation 1).
 - Le nom du site (TYPE//STRIKE) et le logo ont été faits sans IA (voir [DEMARCHE-CREATIVE.md](DEMARCHE-CREATIVE.md)).
 
 ## Fichiers d'instructions d'agent
@@ -19,15 +20,15 @@ Tous sont commités dans le dépôt :
 
 ## Trois situations où l'IA s'est trompée
 
-### 1. En UI
+### 1. Une interface pas fidèle à Persona 5
 
-**Contexte.** Les AI ne brillent pas en UI généralement.
+**Contexte.** Au début, j'ai demandé à Claude Code de construire les pages dans le style de Persona 5 à partir d'une simple description et de mon moodboard ([DEMARCHE-CREATIVE.md](DEMARCHE-CREATIVE.md)).
 
-**Problème.** Le visuel de Persona 5 est trop fort, et j'ai eu de la misère à faire en sorte que le UI soit "fiable" à persona.
+**Problème.** Le code fonctionnait, mais le visuel restait générique : la direction artistique de Persona 5 (rouge et noir, formes inclinées, gros titres en italique, effet « collage ») est trop marquée pour qu'un agent de code la reproduise à partir d'une description. Ça ressemblait à un site fait par défaut, ce que DES-04 pénalise. Ces premiers essais n'ont pas été commités.
 
-**Détection.** En voyant le site je voyais des problèmes.
+**Détection.** En ouvrant les pages dans le navigateur et en les comparant au jeu et au moodboard : le style ne ressortait pas.
 
-**Correction.** Utilisation de StichAI. Sitch fait des visuels vraiment correct. Avec cette base, c'est beaucoup plus facile à modifié ensuite avec Claude Code.
+**Correction.** J'ai utilisé Stitch (Google), un outil d'IA spécialisé en design, pour générer des maquettes HTML/Tailwind des quatre écrans principaux : accueil, lobby, course et résultats. Elles sont dans [`STITCHCODE/`](../STITCHCODE/) (polices Anton, Chivo et Space Grotesk), ajoutées au dépôt plus tard, au commit `8c5e588`. Claude Code a ensuite construit les vraies pages en composants React à partir de ces maquettes (accueil au commit `63fdfe7`, puis lobby, course et résultats), et j'ai ajusté chaque page en la testant. Leçon : utiliser chaque outil pour ce qu'il fait bien, un outil de design pour le visuel et l'agent de code pour l'implémentation.
 
 ### 2. Une méthode Drizzle qui n'existe pas
 
