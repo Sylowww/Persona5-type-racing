@@ -1,7 +1,5 @@
 # Utilisation de l'IA
 
-> **Brouillon à réviser.** Les situations 2 et 3 sont réelles (passage à Drizzle, octobre 2026). La situation 1 et la réflexion sont à écrire toi-même.
-
 ## Agents et outils utilisés
 
 - **Claude Code** (application de bureau, onglet Code) : agent principal pour implémenter les fonctionnalités, écrire les tests, corriger la CI et tenir la documentation à jour.
@@ -21,15 +19,15 @@ Tous sont commités dans le dépôt :
 
 ## Trois situations où l'IA s'est trompée
 
-### 1. *À compléter avec une situation que tu as vécue*
+### 1. En UI
 
-Décris un cas réel de ton développement : contexte, problème, comment tu l'as détecté, comment tu l'as corrigé. Les commits `fix:` de l'historique peuvent t'aider à t'en rappeler (`git log --oneline --grep "^fix"`), par exemple :
+**Contexte.** Les AI ne brillent pas en UI généralement.
 
-- `3fe5cbe fix: open the race input only once the page is hydrated`
-- `615b033 fix: keep a quick match when the search page re-runs its effect`
-- `c2a197b fix: generate input client ids outside secure contexts`
+**Problème.** Le visuel de Persona 5 est trop fort, et j'ai eu de la misère à faire en sorte que le UI soit "fiable" à persona.
 
-Ne garde que ceux où c'est vraiment le code de l'agent qui était en cause.
+**Détection.** En voyant le site je voyais des problèmes.
+
+**Correction.** Utilisation de StichAI. Sitch fait des visuels vraiment correct. Avec cette base, c'est beaucoup plus facile à modifié ensuite avec Claude Code.
 
 ### 2. Une méthode Drizzle qui n'existe pas
 
@@ -52,9 +50,6 @@ Ne garde que ceux où c'est vraiment le code de l'agent qui était en cause.
 **Correction.** Un test temporaire a exécuté chaque fonction contre un conteneur PostgreSQL 17 neuf (migrations appliquées), y compris les cas d'erreur (nom ou courriel déjà pris, session expirée, invités ignorés, course enregistrée deux fois). La leçon : demander à l'agent ce que ses tests prouvent, pas seulement s'ils passent.
 
 ## Réflexion
-
-*À réécrire dans tes mots (quelques paragraphes).* Pistes :
-
-- Ce qui a bien fonctionné : des règles écrites une fois (`AGENTS.md`) plutôt que répétées à chaque demande ; des commits petits et fréquents ; la matrice d'exigences comme liste de travail.
-- Ce qui demande de la vigilance : l'agent écrit du code plausible qui compile parfois mal, ou qui compile mais fait autre chose ; la CI (lint, types, tests) et la relecture du diff restent nécessaires.
-- Ta façon de travailler : comment tu formules les demandes, quand tu relis, quand tu refuses une proposition.
+- Ce qui a bien fonctionné : des règles écrites une fois (`AGENTS.md`) plutôt que répétées à chaque demande ; des commits petits et fréquents ; la matrice d'exigences comme liste de travail. Travailler avec un AI sans ça c'est beaucoup plus de trouble (merci Jord).
+- Ce qui demande de la vigilance : l'agent écrit du code plausible qui compile parfois mal, ou qui compile mais fait autre chose ; la CI (lint, types, tests) et la relecture du diff restent nécessaires. Si on teste pas manually les nouvelles features en genre de "QA" on peut jamais être sur. C'est important de test entre chaque features implémentés pour être sur que rien pète malgrés les testes du code.
+- Ma façon de travailler : Claude code était le "Junior" qui implementait les features. Toute la côté créatifs vient de moi. J'ai aussi beaucoup, comme dit en haut tests les nouvelles features.
