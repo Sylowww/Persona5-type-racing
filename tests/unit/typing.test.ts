@@ -4,6 +4,7 @@ import {
   charStatus,
   deleteChar,
   initialTypingState,
+  netChars,
   placeOf,
   progress,
   splitWords,
@@ -15,6 +16,26 @@ import {
 function typeAll(text: string, input: string): TypingState {
   return [...input].reduce((state, char, index) => typeChar(state, text, char, index * 100), initialTypingState);
 }
+
+describe("error modes (CONF-08)", () => {
+  it("blocking: counts a wrong key but does not move until the right one", () => {
+    let state = typeChar(initialTypingState, "ab", "x", 0, "blocking");
+    expect(state).toMatchObject({ typed: "", keystrokes: 1, mistakes: 1, streak: 0 });
+    state = typeChar(state, "ab", "a", 100, "blocking");
+    state = typeChar(state, "ab", "b", 200, "blocking");
+    expect(state).toMatchObject({ typed: "ab", keystrokes: 3, mistakes: 1, finishedAt: 200 });
+  });
+
+  it("free: keeps the wrong character, moves on and finishes at the last character", () => {
+    const state = [..."axc"].reduce((current, char, index) => typeChar(current, "abc", char, index * 100, "free"), initialTypingState);
+    expect(state).toMatchObject({ typed: "axc", mistakes: 1, finishedAt: 200 });
+    expect(progress("abc", "ax", "free")).toBeCloseTo(2 / 3);
+    expect(netChars("abc", "axc", "free")).toBe(2);
+    // Other modes only count the error-free start.
+    expect(netChars("abc", "axc")).toBe(1);
+    expect(progress("abc", "ax")).toBeCloseTo(1 / 3);
+  });
+});
 
 describe("typing", () => {
   it("counts mistakes and resets the streak", () => {

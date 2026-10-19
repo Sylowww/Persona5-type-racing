@@ -3,7 +3,7 @@ import { isBotDifficulty, planBotRun, wrongKeyFor } from "../../src/lib/bots";
 import { botTargetWpm } from "../../src/lib/lobby";
 import { raceTexts } from "../../src/lib/race-texts";
 import { correctPrefixLength, deleteChar, initialTypingState, typeChar, wordsPerMinute } from "../../src/lib/typing";
-import type { BotDifficulty } from "../../src/types/lobby";
+import type { BotDifficulty, RaceMode } from "../../src/types/lobby";
 
 /** Small seeded generator so plans are reproducible. */
 function seeded(seed: number): () => number {
@@ -19,11 +19,11 @@ function seeded(seed: number): () => number {
 const TEXT = raceTexts.en[0];
 
 /** Replays a plan with the shared typing rules. */
-function replay(text: string, difficulty: BotDifficulty, seed: number) {
-  const steps = planBotRun(text, difficulty, seeded(seed));
+function replay(text: string, difficulty: BotDifficulty, seed: number, mode: RaceMode = "normal") {
+  const steps = planBotRun(text, difficulty, seeded(seed), mode);
   let typing = initialTypingState;
   for (const { atMs, event } of steps) {
-    typing = event.type === "delete" ? deleteChar(typing) : typeChar(typing, text, event.char, atMs);
+    typing = event.type === "delete" ? deleteChar(typing) : typeChar(typing, text, event.char, atMs, mode);
   }
   return { steps, typing };
 }
@@ -72,6 +72,25 @@ describe("planBotRun", () => {
   it("returns the same plan for the same random sequence", () => {
     expect(planBotRun(TEXT, "rookie", seeded(7))).toEqual(planBotRun(TEXT, "rookie", seeded(7)));
     expect(planBotRun("", "rookie", seeded(7))).toEqual([]);
+  });
+});
+
+describe("planBotRun with error modes (BOT-03)", () => {
+  it("fixes typos without deleting in blocking mode and finishes the exact text", () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const { steps, typing } = replay(TEXT, "novice", seed, "blocking");
+      expect(steps.some((step) => step.event.type === "delete")).toBe(false);
+      expect(typing.typed).toBe(TEXT);
+      expect(typing.mistakes).toBeGreaterThan(0);
+    }
+  });
+
+  it("leaves typos behind in free mode and still reaches the end", () => {
+    const { steps, typing } = replay(TEXT, "novice", 3, "free");
+    expect(steps.some((step) => step.event.type === "delete")).toBe(false);
+    expect(typing.typed).toHaveLength(TEXT.length);
+    expect(typing.typed).not.toBe(TEXT);
+    expect(typing.finishedAt).not.toBeNull();
   });
 });
 

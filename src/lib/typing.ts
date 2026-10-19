@@ -1,3 +1,5 @@
+import type { RaceMode } from "@/types/lobby";
+
 /** Local typing progress for one player. The server will re-validate everything competitive. */
 export type TypingState = {
   typed: string;
@@ -24,19 +26,24 @@ export function isFinished(state: TypingState): boolean {
   return state.finishedAt !== null;
 }
 
-/** Adds one typed character. The race ends once the whole text is typed without errors. */
-export function typeChar(state: TypingState, text: string, char: string, now: number): TypingState {
+/**
+ * Adds one typed character with the race's error mode (CONF-08). A wrong key always counts as a keystroke and a
+ * mistake; in `blocking` mode it is not added to the text. The race ends once the whole text is typed without errors,
+ * or, in `free` mode, once every character was typed.
+ */
+export function typeChar(state: TypingState, text: string, char: string, now: number, mode: RaceMode = "normal"): TypingState {
   if (isFinished(state) || state.typed.length >= text.length) return state;
 
   const isCorrect = text[state.typed.length] === char;
-  const typed = state.typed + char;
+  const typed = isCorrect || mode !== "blocking" ? state.typed + char : state.typed;
+  const isDone = mode === "free" ? typed.length === text.length : typed === text;
   return {
     typed,
     keystrokes: state.keystrokes + 1,
     mistakes: state.mistakes + (isCorrect ? 0 : 1),
     streak: isCorrect ? state.streak + 1 : 0,
     startedAt: state.startedAt ?? now,
-    finishedAt: typed === text ? now : null,
+    finishedAt: isDone ? now : null,
   };
 }
 
@@ -67,11 +74,28 @@ export function correctPrefixLength(text: string, typed: string): number {
   return index;
 }
 
-export function progress(text: string, typed: string): number {
-  return text.length === 0 ? 0 : correctPrefixLength(text, typed) / text.length;
+/** Characters at the right place anywhere in the typed text. */
+function matchingChars(text: string, typed: string): number {
+  let count = 0;
+  for (let index = 0; index < typed.length; index++) if (typed[index] === text[index]) count++;
+  return count;
 }
 
-/** Standard WPM: five characters per word, correct characters only. */
+/**
+ * Correctly typed characters for the net WPM (annex A). In `free` mode a racer moves past their mistakes, so every
+ * character at its right place counts; otherwise only the error-free start of the text does.
+ */
+export function netChars(text: string, typed: string, mode: RaceMode = "normal"): number {
+  return mode === "free" ? matchingChars(text, typed) : correctPrefixLength(text, typed);
+}
+
+/** Share of the text validated: typed characters in `free` mode (racers move past mistakes), else the error-free start. */
+export function progress(text: string, typed: string, mode: RaceMode = "normal"): number {
+  if (text.length === 0) return 0;
+  return (mode === "free" ? typed.length : correctPrefixLength(text, typed)) / text.length;
+}
+
+/** Standard WPM: five characters per word. Net WPM counts correct characters only; raw WPM counts every keystroke. */
 export function wordsPerMinute(correctChars: number, elapsedMs: number): number {
   if (elapsedMs <= 0) return 0;
   return correctChars / 5 / (elapsedMs / 60_000);

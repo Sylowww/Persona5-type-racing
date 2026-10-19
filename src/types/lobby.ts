@@ -76,8 +76,13 @@ export type LobbyView = {
   invites: readonly LobbyInvite[] | null;
 };
 
-/** `suddenDeath`: the first mistake eliminates the racer. */
-export type RaceMode = "normal" | "suddenDeath";
+/**
+ * How mistakes work (CONF-08). `normal`: a wrong character stays and must be erased before finishing. `blocking`
+ * (correction obligatoire): a wrong key is counted but the cursor does not move until the right one is typed.
+ * `free` (libre): a wrong character is counted and the racer just keeps going. `suddenDeath`: the first mistake
+ * eliminates the racer.
+ */
+export type RaceMode = "normal" | "blocking" | "free" | "suddenDeath";
 
 export type BotDifficulty = "novice" | "rookie" | "master" | "godspeed";
 
