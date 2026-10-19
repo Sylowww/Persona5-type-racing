@@ -22,7 +22,8 @@ export default async function RacePage({ params }: Params) {
 
   const [{ code, view }, { race: dictionary }] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
   if (view?.phase === "finished" && view.hasResult) redirect(`/${locale}/lobby/${code}/results`);
-  if (!view || view.phase === "waiting" || !view.race?.you) redirect(`/${locale}/lobby/${code}`);
+  // Racers and spectators (who have no `you`) both watch the race here.
+  if (!view || view.phase === "waiting" || !view.race) redirect(`/${locale}/lobby/${code}`);
 
   return (
     <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">

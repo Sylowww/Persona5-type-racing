@@ -22,6 +22,8 @@ import {
   startRace,
   updateSettings,
   viewFor,
+  MAX_SPECTATORS,
+  setRole,
   type LobbyState,
   type Outcome,
 } from "../../src/lib/race-engine";
@@ -79,7 +81,9 @@ describe("lobby membership", () => {
     let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: "p0", name: "p0" }, now: T0, config: { capacity: 30 } });
     for (let index = 1; index < 30; index++) state = unwrap(joinLobby(state, { id: `p${index}`, name: `p${index}` }, T0));
     expect(state.members).toHaveLength(30);
-    expect(joinLobby(state, { id: "late", name: "late" }, T0)).toEqual({ ok: false, error: "lobbyFull" });
+    // Once the seats are taken, newcomers watch as spectators.
+    const late = unwrap(joinLobby(state, { id: "late", name: "late" }, T0));
+    expect(viewFor(late, "late", T0)?.players.find((player) => player.id === "late")?.isSpectator).toBe(true);
 
     const huge = createLobby({ code: "P5-TEST", locale: "en", host: { id: "a", name: "a" }, now: T0, config: { capacity: 500 } });
     expect(huge.config.capacity).toBe(30);
@@ -475,6 +479,45 @@ describe("lobby chat", () => {
   });
 });
 
+describe("spectators", () => {
+  it("lets a member switch to spectating and back while a seat is free", () => {
+    let state = lobbyWith("ann", "bob");
+    state = unwrap(setReady(state, "bob", true));
+    state = unwrap(setRole(state, "bob", "spectator"));
+    const bob = viewFor(state, "ann", T0)?.players.find((player) => player.id === "bob");
+    expect(bob).toMatchObject({ isSpectator: true, isReady: false });
+    expect(setReady(state, "bob", true)).toEqual({ ok: false, error: "wrongPhase" });
+    expect(setRole(state, "bob", "referee")).toEqual({ ok: false, error: "invalidSettings" });
+
+    const full = unwrap(setCapacity(unwrap(joinLobby(state, { id: "cid", name: "cid" }, T0)), "ann", 2));
+    expect(setRole(full, "bob", "player")).toEqual({ ok: false, error: "lobbyFull" });
+    expect(unwrap(setRole(state, "bob", "player")).members.find((member) => member.id === "bob")?.role).toBe("player");
+  });
+
+  it("does not count spectators as racers, seats or starters", () => {
+    let state = lobbyWith("ann", "bob", "cid");
+    state = unwrap(setRole(state, "ann", "spectator"));
+    state = unwrap(setReady(unwrap(setReady(state, "bob", true)), "cid", true));
+    const started = unwrap(startRace(state, "ann", TEXT, T0));
+    expect(started.race?.racers.map((racer) => racer.id)).toEqual(["bob", "cid"]);
+    expect(viewFor(advance(started, START), "ann", START)?.race?.you).toBeNull();
+    expect(publicLobbyFor(unwrap(setVisibility(state, "ann", "public")))?.playerCount).toBe(2);
+  });
+
+  it("ends the race once no human racer is left, even with spectators watching", () => {
+    let state = lobbyWith("ann", "bob");
+    state = unwrap(setRole(state, "bob", "spectator"));
+    state = unwrap(addBot(unwrap(setReady(state, "ann", true)), "ann", "rookie"));
+    state = advance(unwrap(startRace(state, "ann", TEXT, T0)), START);
+    expect(isRaceOver(leaveLobby(state, "ann"), START)).toBe(true);
+  });
+
+  it("hands the host role to a spectator when the host leaves", () => {
+    const state = unwrap(setRole(lobbyWith("ann", "bob"), "bob", "spectator"));
+    expect(viewFor(leaveLobby(state, "ann"), "bob", T0)?.players.find((player) => player.id === "bob")?.isHost).toBe(true);
+  });
+});
+
 describe("closing a lobby", () => {
   it("lets only the host close it, outside a race", () => {
     const state = lobbyWith("ann", "bob");
@@ -516,9 +559,11 @@ describe("lobby capacity", () => {
     expect(setCapacity(state, "ann", "10")).toEqual({ ok: false, error: "invalidSettings" });
   });
 
-  it("refuses new players once the seats are taken", () => {
-    const state = unwrap(setCapacity(lobbyWith("ann", "bob"), "ann", 2));
-    expect(joinLobby(state, { id: "cid", name: "cid" }, T0)).toEqual({ ok: false, error: "lobbyFull" });
+  it("seats newcomers as spectators once the seats are taken, up to the spectator limit", () => {
+    let state = unwrap(setCapacity(lobbyWith("ann", "bob"), "ann", 2));
+    for (let index = 0; index < MAX_SPECTATORS; index++) state = unwrap(joinLobby(state, { id: `s${index}`, name: `s${index}` }, T0));
+    expect(state.members.filter((member) => member.role === "spectator")).toHaveLength(MAX_SPECTATORS);
+    expect(joinLobby(state, { id: "late", name: "late" }, T0)).toEqual({ ok: false, error: "lobbyFull" });
   });
 });
 

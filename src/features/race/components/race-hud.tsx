@@ -8,7 +8,8 @@ type RaceHudProps = {
   /** Shown as a countdown when set; otherwise the elapsed time is shown. */
   remainingMs: number | null;
   wordCount: number;
-  place: number;
+  /** Null for spectators: they see the racer count only. */
+  place: number | null;
   racerCount: number;
 };
 
@@ -56,7 +57,7 @@ export function RaceHud({ dictionary, elapsedMs, remainingMs, wordCount, place, 
           <Icon name="military_tech" size={32} filled />
           <div className="flex flex-col leading-none">
             <span className="font-display text-headline-md uppercase tracking-tighter">
-              {formatMessage(dictionary.place, { place })}
+              {place === null ? dictionary.spectating : formatMessage(dictionary.place, { place })}
             </span>
             <span className="font-hud text-[11px] font-black uppercase tracking-widest">
               {formatMessage(dictionary.placeOf, { total: racerCount })}

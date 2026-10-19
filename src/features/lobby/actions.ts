@@ -116,6 +116,11 @@ export async function setLobbyReady(code: string, isReady: boolean): Promise<Sto
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().setReady(lobby, userId, isReady === true));
 }
 
+/** Switches the viewer between racing and spectating (custom lobbies, while waiting). */
+export async function setLobbyRole(code: string, role: string): Promise<StoreError | null> {
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().setRole(lobby, userId, role));
+}
+
 export async function startLobbyRace(code: string): Promise<StoreError | null> {
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().start(lobby, userId));
 }

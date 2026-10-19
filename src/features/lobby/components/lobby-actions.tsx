@@ -10,6 +10,10 @@ type LobbyActionsProps = {
   canStart: boolean;
   isHost: boolean;
   isReady: boolean;
+  /** Spectators do not ready up; they may take a seat back. */
+  isSpectator: boolean;
+  /** Switches between racing and spectating; null when not allowed (quick and training lobbies, during a race). */
+  onToggleRole: (() => void) | null;
   isPending: boolean;
   onToggleReady: () => void;
   onStart: () => void;
@@ -25,6 +29,8 @@ export function LobbyActions({
   canStart,
   isHost,
   isReady,
+  isSpectator,
+  onToggleRole,
   isPending,
   onToggleReady,
   onStart,
@@ -36,18 +42,23 @@ export function LobbyActions({
   return (
     <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
       <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
-        <button
-          type="button"
-          aria-pressed={isReady}
-          onClick={onToggleReady}
-          disabled={isPending}
-          className={`flex -skew-x-6 items-center gap-2 px-4 py-2 font-hud text-headline-sm font-black uppercase italic shadow-hard-sm transition-transform hover:-translate-y-0.5 ${
-            isReady ? "bg-surface-container text-secondary hover:bg-surface-container-high" : "bg-secondary-fixed text-on-secondary-fixed"
-          }`}
-        >
-          <Icon name={isReady ? "close" : "check"} size={20} />
-          <span>{isReady ? dictionary.unready : dictionary.ready}</span>
-        </button>
+        {!isSpectator && (
+          <button
+            type="button"
+            aria-pressed={isReady}
+            onClick={onToggleReady}
+            disabled={isPending}
+            className={`flex -skew-x-6 items-center gap-2 px-4 py-2 font-hud text-headline-sm font-black uppercase italic shadow-hard-sm transition-transform hover:-translate-y-0.5 ${
+              isReady ? "bg-surface-container text-secondary hover:bg-surface-container-high" : "bg-secondary-fixed text-on-secondary-fixed"
+            }`}
+          >
+            <Icon name={isReady ? "close" : "check"} size={20} />
+            <span>{isReady ? dictionary.unready : dictionary.ready}</span>
+          </button>
+        )}
+        {onToggleRole && (
+          <DockButton icon={isSpectator ? "sports_martial_arts" : "visibility"} label={isSpectator ? dictionary.play : dictionary.spectate} onClick={onToggleRole} />
+        )}
         <DockButton icon="tune" label={dictionary.settings} onClick={onShowSettings} />
         <DockButton icon="chat" label={dictionary.chat} onClick={onShowChat} />
         <DockButton icon="close" label={dictionary.leave} danger onClick={onLeave} />

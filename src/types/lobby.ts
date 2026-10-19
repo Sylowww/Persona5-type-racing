@@ -41,6 +41,8 @@ export type LobbyMember = {
   isConnected: boolean;
   /** Difficulty of a bot; null for human players. */
   bot: BotDifficulty | null;
+  /** Follows the race without typing and takes no seat. */
+  isSpectator: boolean;
 };
 
 /** Snapshot of a lobby for one viewer, sent by the server on every change. */

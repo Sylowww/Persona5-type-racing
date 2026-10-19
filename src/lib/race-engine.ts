@@ -71,7 +71,14 @@ export type Member = {
   disconnectedAt: number | null;
   /** Difficulty of a bot; null for human players. Bots are always connected and ready. */
   bot: BotDifficulty | null;
+  /** Spectators follow the race without typing and do not take a seat (SALLE-01, SALLE-05). */
+  role: MemberRole;
 };
+
+export type MemberRole = "player" | "spectator";
+
+/** Spectators a custom lobby holds on top of its seats. */
+export const MAX_SPECTATORS = 30;
 
 type KeyTotals = { delayMs: number; timed: number; mistakes: number };
 
@@ -184,7 +191,7 @@ export function createLobby(input: {
     config,
     phase: "waiting",
     hostId: input.host.id,
-    members: [newMember(input.host, 0, input.now)],
+    members: [newMember(input.host, 0, input.now, "player")],
     joinCount: 1,
     race: null,
     result: null,
@@ -196,7 +203,7 @@ export function createLobby(input: {
 }
 
 // A new member counts as disconnected until their page connects, so an abandoned seat is freed after the grace period.
-function newMember(player: Player, joinIndex: number, now: number): Member {
+function newMember(player: Player, joinIndex: number, now: number, role: MemberRole): Member {
   return {
     id: player.id,
     name: player.name,
@@ -206,11 +213,17 @@ function newMember(player: Player, joinIndex: number, now: number): Member {
     presence: "disconnected",
     disconnectedAt: now,
     bot: null,
+    role,
   };
 }
 
 function activeMembers(state: LobbyState): Member[] {
   return state.members.filter((member) => member.presence !== "left");
+}
+
+/** Members who race (bots included): they take the seats. */
+function seatedMembers(state: LobbyState): Member[] {
+  return activeMembers(state).filter((member) => member.role === "player");
 }
 
 export function isMember(state: LobbyState, userId: string): boolean {
@@ -222,15 +235,17 @@ function isRaceRunning(state: LobbyState): boolean {
 }
 
 /**
- * The host stays while present; otherwise the longest-standing active player takes over. Bots never host,
- * and they are removed once no player is left (outside a race, which ends on its own).
+ * The host stays while present; otherwise the longest-standing connected person (player or spectator, SALLE-08)
+ * takes over. Bots never host, and they are removed once no person is left (outside a race, which ends on its own).
  */
 function withHost(state: LobbyState): LobbyState {
   const humans = activeMembers(state).filter((member) => member.bot === null);
   if (humans.length === 0) {
     return isRaceRunning(state) ? state : { ...state, members: state.members.filter((member) => member.bot === null) };
   }
-  return isMember(state, state.hostId) ? state : { ...state, hostId: humans[0].id };
+  if (isMember(state, state.hostId)) return state;
+  const next = humans.find((member) => member.presence === "connected") ?? humans[0];
+  return { ...state, hostId: next.id };
 }
 
 /** After a race, the first lobby action brings everyone back to the waiting room. Bots stay ready. */
@@ -254,18 +269,39 @@ export function joinLobby(state: LobbyState, player: Player, now: number): Outco
   return admitPlayer(state, player, now);
 }
 
-/** Adds a player to any kind of lobby, within its capacity. */
+/**
+ * Adds a player to any kind of lobby. They take a seat when one is free; once the seats of a custom lobby are taken,
+ * they come in as a spectator instead, up to `MAX_SPECTATORS`.
+ */
 export function admitPlayer(state: LobbyState, player: Player, now: number): Outcome {
   if (isMember(state, player.id)) return ok(state);
   if (state.kicked.includes(player.id)) return fail("kicked");
   if (state.phase === "countdown" || state.phase === "racing") return fail("raceInProgress");
   const open = reopen(state);
-  if (activeMembers(open).length >= open.config.capacity) return fail("lobbyFull");
+  const hasSeat = seatedMembers(open).length < open.config.capacity;
+  const spectators = activeMembers(open).length - seatedMembers(open).length;
+  if (!hasSeat && (open.kind !== "custom" || spectators >= MAX_SPECTATORS)) return fail("lobbyFull");
   return ok({
     ...open,
-    members: [...open.members, newMember(player, open.joinCount, now)],
+    members: [...open.members, newMember(player, open.joinCount, now, hasSeat ? "player" : "spectator")],
     joinCount: open.joinCount + 1,
   });
+}
+
+/**
+ * A member of a custom lobby switches between racing and spectating while it is waiting. Taking a seat needs a free
+ * one; a spectator is never ready.
+ */
+export function setRole(state: LobbyState, userId: string, role: unknown): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.kind !== "custom") return fail("privateLobby");
+  if (role !== "player" && role !== "spectator") return fail("invalidSettings");
+  const open = reopen(state);
+  if (open.phase !== "waiting") return fail("wrongPhase");
+  const member = open.members.find((candidate) => candidate.id === userId);
+  if (!member || member.role === role) return ok(open);
+  if (role === "player" && seatedMembers(open).length >= open.config.capacity) return fail("lobbyFull");
+  return ok({ ...open, members: open.members.map((candidate) => (candidate === member ? { ...candidate, role, isReady: false } : candidate)) });
 }
 
 /** The host adds a bot of the chosen difficulty while the lobby is waiting. `random` picks its character. */
@@ -275,7 +311,7 @@ export function addBot(state: LobbyState, userId: string, difficulty: BotDifficu
   const open = reopen(state);
   if (open.phase !== "waiting") return fail("wrongPhase");
   if (open.kind === "training") return fail("privateLobby");
-  if (activeMembers(open).length >= open.config.capacity) return fail("lobbyFull");
+  if (seatedMembers(open).length >= open.config.capacity) return fail("lobbyFull");
 
   const bot: Member = {
     id: `bot-${open.joinCount}`,
@@ -286,6 +322,7 @@ export function addBot(state: LobbyState, userId: string, difficulty: BotDifficu
     presence: "connected",
     disconnectedAt: null,
     bot: difficulty,
+    role: "player",
   };
   return ok({ ...open, members: [...open.members, bot], joinCount: open.joinCount + 1 });
 }
@@ -350,7 +387,7 @@ export function setCapacity(state: LobbyState, userId: string, capacity: unknown
   if (state.kind !== "custom") return fail("privateLobby");
   const open = reopen(state);
   if (open.phase !== "waiting") return fail("wrongPhase");
-  const min = Math.max(MIN_LOBBY_CAPACITY, activeMembers(open).length);
+  const min = Math.max(MIN_LOBBY_CAPACITY, seatedMembers(open).length);
   if (typeof capacity !== "number" || !Number.isInteger(capacity) || capacity < min || capacity > MAX_LOBBY_CAPACITY) {
     return fail("invalidSettings");
   }
@@ -364,7 +401,7 @@ export function publicLobbyFor(state: LobbyState): PublicLobby | null {
   return {
     code: state.code,
     hostName: host?.name ?? "",
-    playerCount: activeMembers(state).length,
+    playerCount: seatedMembers(state).length,
     capacity: state.config.capacity,
     phase: state.phase,
     settings: state.settings,
@@ -422,6 +459,7 @@ export function setReady(state: LobbyState, userId: string, isReady: boolean): O
   if (!isMember(state, userId)) return fail("notMember");
   const open = reopen(state);
   if (open.phase !== "waiting") return fail("wrongPhase");
+  if (isReady && open.members.some((member) => member.id === userId && member.role === "spectator")) return fail("wrongPhase");
   return ok({ ...open, members: open.members.map((member) => (member.id === userId ? { ...member, isReady } : member)) });
 }
 
@@ -432,7 +470,7 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
   // A finished race reopens the lobby first, like any other lobby action.
   const open = reopen(state);
   if (open.phase !== "waiting") return fail("wrongPhase");
-  const players = activeMembers(open);
+  const players = seatedMembers(open);
   // Training is solo: the player starts whenever they want.
   if (open.kind !== "training" && !canStartRace(players)) return fail("notReady");
 
@@ -596,16 +634,10 @@ export function isRaceOver(state: LobbyState, now: number): boolean {
   if (!race) return false;
   if (now >= race.endsAt) return true;
   const graceMs = state.config.reconnectGraceMs;
-  if (state.members.every((member) => member.bot !== null || isGone(member, now, graceMs))) return true;
-  return race.racers.every(
-    (racer) =>
-      isOut(racer) ||
-      isGone(
-        state.members.find((member) => member.id === racer.id),
-        now,
-        graceMs,
-      ),
-  );
+  const memberOf = (racerId: string) => state.members.find((member) => member.id === racerId);
+  // Spectators do not keep a race going: it stops once no human racer is left.
+  if (race.racers.every((racer) => racer.bot !== null || isGone(memberOf(racer.id), now, graceMs))) return true;
+  return race.racers.every((racer) => isOut(racer) || isGone(memberOf(racer.id), now, graceMs));
 }
 
 function finishRace(state: LobbyState, now: number): LobbyState {
@@ -752,6 +784,7 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
       isReady: member.isReady,
       isConnected: member.presence === "connected",
       bot: member.bot,
+      isSpectator: member.role === "spectator",
     })),
     race: state.race ? raceView(state, state.race, userId, now) : null,
     hasResult: state.result?.details[userId] !== undefined,
