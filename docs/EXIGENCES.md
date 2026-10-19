@@ -56,16 +56,16 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
-| SALLE-01 | partiel | `features/lobby/actions.ts`, `lib/lobby-store.ts` | `lobby-store.test.ts`, `tests/e2e/lobby.spec.ts` | Le créateur devient l'hôte, mais il ne peut pas encore choisir d'être seulement spectateur. |
+| SALLE-01 | complet | `features/lobby/actions.ts` (`createLobby`, `setLobbyRole`), `lib/race-engine.ts` (`setRole`) | `race-engine.test.ts`, `tests/e2e/lobby.spec.ts` | Un compte crée la salle et en devient l'hôte. Dans la salle, l'hôte (comme tout membre) passe de participant à spectateur avec « Regarder » / « Prendre une place » tant que la salle attend. |
 | SALLE-02 | complet | `lib/lobby-code.ts` | `lobby-code.test.ts`, `lobby-store.test.ts` | 6 caractères parmi 31 (sans 0, O, 1, I ni L), soit environ 887 millions de codes. Le code saisi accepte les minuscules, les espaces et un tiret. |
-| SALLE-03 | partiel | `lib/race-engine.ts` (`setVisibility`), `app/[locale]/lobbies/` | `race-engine.test.ts` | Publique : complet. « Privée » dans le code correspond à « sur code » dans l'énoncé. La vraie visibilité privée, accessible seulement par lien d'invitation, n'existe pas. |
-| SALLE-04 | non fait | — | — | |
-| SALLE-05 | partiel | `lib/lobby-server.ts` | — | La capacité est globale (`LOBBY_CAPACITY`, 30 par défaut, maximum 60). L'hôte ne peut pas la configurer. |
+| SALLE-03 | complet | `lib/race-engine.ts` (`setVisibility`, `joinLobby`), `features/lobby/components/rules-dossier.tsx`, `app/[locale]/lobbies/` | `race-engine.test.ts`, `tests/e2e/lobby.spec.ts`, `tests/e2e/multiplayer.spec.ts` | Publique (listée, rejointe directement ou avec le code), Sur code (non listée, code ou lien d'invitation, choix par défaut) et Privée (lien d'invitation seulement : le code est refusé). |
+| SALLE-04 | complet | `lib/race-engine.ts` (`createInvite`, `joinWithInvite`), `lib/lobby-store.ts`, `features/lobby/components/invite-panel.tsx`, `app/[locale]/invite/[token]/`, `lib/client-ip.ts` | `race-engine.test.ts`, `lobby-store.test.ts`, `client-ip.test.ts`, `tests/e2e/lobby.spec.ts` | L'hôte crée un lien par invité, le copie et voit son statut (pas encore utilisé, utilisé par qui, révoqué). Jeton aléatoire de 128 bits (Web Crypto). À la première utilisation, le lien est lié à l'adresse IP (première adresse de `X-Forwarded-For`, posée par le proxy de Railway) ; une autre adresse est refusée, la même peut revenir. Le lien d'un joueur expulsé est révoqué, et tous les liens disparaissent avec la salle. Les adresses restent en mémoire et ne sont jamais affichées. |
+| SALLE-05 | complet | `lib/race-engine.ts` (`setCapacity`, `admitPlayer`), `features/lobby/components/rules-dossier.tsx` | `race-engine.test.ts`, `tests/e2e/lobby.spec.ts` | L'hôte règle de 2 à 30 places (jamais moins que les joueurs déjà assis). Les spectateurs ne prennent pas de place : quand les places sont prises, les nouveaux arrivants entrent comme spectateurs (30 au maximum). |
 | SALLE-06 | partiel | `lib/lobby-store.ts` (`lobbyOfUser`) | `lobby-store.test.ts` | La règle est appliquée en mémoire sur le serveur, pas par une contrainte en base de données. |
-| SALLE-07 | non fait | — | — | |
-| SALLE-08 | partiel | `lib/race-engine.ts` | `race-engine.test.ts` | Le joueur présent depuis le plus longtemps devient l'hôte, et la salle ferme quand elle est vide. Les spectateurs n'existent pas encore. |
+| SALLE-07 | complet | `lib/race-engine.ts` (`kickMember`), `features/lobby/components/lobby-roster.tsx` | `race-engine.test.ts`, `lobby-store.test.ts`, `tests/e2e/lobby.spec.ts` | L'hôte retire un participant ou un spectateur (bouton sur sa carte). La personne retourne à l'accueil et ne peut plus revenir, ni par le code ni par son lien. |
+| SALLE-08 | complet | `lib/race-engine.ts` (`withHost`) | `race-engine.test.ts` | Le rôle passe à la personne humaine connectée (participant ou spectateur) présente depuis le plus longtemps, sinon à la plus ancienne. La salle ferme quand elle est vide. |
 | SALLE-09 | complet | `lib/race-engine.ts` | `race-engine.test.ts` | Les arrivées sont refusées pendant le décompte et la course (`raceInProgress`). |
-| SALLE-10 | non fait | — | — | |
+| SALLE-10 | complet | `lib/rate-limit.ts`, `lib/lobby-join-limit.ts`, `features/lobby/actions.ts`, `features/lobby/load-lobby.ts` | `rate-limit.test.ts` | 10 tentatives par minute et par adresse IP, que le code soit saisi dans le formulaire ou ouvert par lien par quelqu'un qui n'est pas membre. Au-delà, un message demande d'attendre. Les tests e2e relèvent la limite (`LOBBY_CODE_ATTEMPTS_PER_MINUTE`), car tous leurs navigateurs partagent une adresse. |
 
 ## Rejoindre une course
 
@@ -89,7 +89,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | CONF-08 | partiel | `lib/typing.ts`, `lib/race-settings.ts` | `typing.test.ts` | Mode normal : les erreurs restent dans le texte et doivent être effacées pour terminer. Il manque les deux modes de l'énoncé, « correction obligatoire » (blocage) et « libre ». |
 | CONF-09 | partiel | `lib/race-settings.ts` | — | Le réglage existe, mais il n'a encore aucun effet. |
 | CONF-10 | complet | `lib/race-engine.ts` (`addBot`, `removeBot`) | `race-engine.test.ts` | Chaque bot a son propre niveau. |
-| CONF-11 | partiel | — | — | Voir SALLE-03 et SALLE-05. |
+| CONF-11 | complet | `features/lobby/components/rules-dossier.tsx` | `tests/e2e/lobby.spec.ts` | Visibilité et nombre de places dans le panneau des réglages de l'hôte. Voir SALLE-03 et SALLE-05. |
 | CONF-12 | complet | `features/lobby/` | `tests/e2e/multiplayer.spec.ts` | Le résumé des règles se met à jour en direct pour tout le monde. |
 
 ## Déroulement d'une course
@@ -97,16 +97,16 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | COURSE-01 | complet | `lib/race-engine.ts`, [ARCHITECTURE.md](ARCHITECTURE.md#race-state-machine) | `race-engine.test.ts` | Correspondance des noms d'états documentée. |
-| COURSE-02 | complet | `lib/lobby.ts` (`canStartRace`) | `lobby.test.ts` | Les bots comptent dans le minimum de 2. Tous les humains doivent aussi être prêts. |
+| COURSE-02 | complet | `lib/lobby.ts` (`canStartRace`) | `lobby.test.ts`, `race-engine.test.ts` | Au moins 2 participants dont 1 humain ; les bots comptent dans le minimum, les spectateurs non. Tous les humains participants doivent aussi être prêts. |
 | COURSE-03 | complet | `lib/race-engine.ts` (`startRace`) | `race-engine.test.ts` | Décompte de 3 s synchronisé avec `serverNow`. Le texte est choisi au lancement. |
 | COURSE-04 | partiel | `features/race/` | `typing.test.ts` | Retour visuel immédiat, MPM et précision en direct. Le coller n'est pas bloqué explicitement. |
-| COURSE-05 | complet | `features/race/components/live-race.tsx` | `tests/e2e/multiplayer.spec.ts` | Environ 10 mises à jour par seconde ; le joueur local est mis en évidence. Les spectateurs ne sont pas faits (voir SALLE-01). |
+| COURSE-05 | complet | `features/race/components/live-race.tsx` | `tests/e2e/multiplayer.spec.ts` | Environ 10 mises à jour par seconde ; le joueur local est mis en évidence. Les spectateurs voient la piste sans zone de frappe. |
 | COURSE-06 | partiel | `lib/race-engine.ts`, `lib/typing.ts` | `race-engine.test.ts` | Le serveur calcule le temps, la progression et le classement, et refuse plus de 30 touches par seconde. Les bonus ne sont pas faits. |
 | COURSE-07 | non fait | — | — | |
 | COURSE-08 | complet | `lib/race-engine.ts` (`reconnectGraceMs`), `features/race/use-input-sender.ts` | `race-engine.test.ts`, `lobby-store.test.ts` | Délai de grâce de 30 s ; un rechargement restaure le texte tapé. |
 | COURSE-09 | complet | `lib/race-engine.ts` (`isRaceOver`) | `race-engine.test.ts` | |
 | COURSE-10 | partiel | `lib/race-engine.ts` (`rankRacers`) | `race-engine.test.ts` | Les arrivées sont classées par temps, puis le reste par progression. Le cas « abandon » dépend de COURSE-07. |
-| COURSE-11 | partiel | `features/results/components/results-actions.tsx` | — | La revanche est possible. L'hôte ne peut pas fermer la salle. |
+| COURSE-11 | complet | `features/results/components/results-actions.tsx`, `features/lobby/components/close-lobby-button.tsx`, `lib/race-engine.ts` (`closeLobby`) | `race-engine.test.ts`, `lobby-store.test.ts`, `tests/e2e/lobby.spec.ts` | La revanche est possible, et l'hôte peut fermer la salle (après confirmation) depuis les résultats ou la salle. Les autres restent sur leurs résultats ou quittent. |
 
 ## Bots
 
@@ -161,6 +161,6 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | A11Y-02 | partiel | `components/layout/` | — | `header`, `nav`, `main` et `footer` sont utilisés. L'audit complet reste à faire. |
 | A11Y-03 | partiel | — | — | Pas encore audité. |
 | A11Y-04 | partiel | — | — | Pas encore audité. |
-| SEC-01 | partiel | `lib/race-engine.ts` | `race-engine.test.ts` | Lancer la course, configurer et gérer les bots sont des actions vérifiées côté serveur. Les liens d'invitation, l'expulsion et la fermeture de la salle n'existent pas encore. |
+| SEC-01 | complet | `lib/race-engine.ts`, `features/lobby/actions.ts` | `race-engine.test.ts`, `lobby-store.test.ts` | Lancer, configurer (règles, visibilité, places), gérer les bots, créer des liens, expulser et fermer : chaque action vérifie côté serveur que l'auteur est l'hôte (`notHost` sinon). |
 | SEC-02 | complet | `lib/avatar.ts`, `features/profile/actions.ts` | `avatar.test.ts`, `tests/e2e/profile.spec.ts` | Le vrai type est lu dans les premiers octets du fichier ; le type envoyé par le navigateur et le nom du fichier sont ignorés. La taille est vérifiée avant la lecture. |
 | SEC-03 | complet | `lib/auth/` (scrypt) | `auth.test.ts` | |
