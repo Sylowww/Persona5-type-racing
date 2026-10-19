@@ -386,6 +386,28 @@ const fr: Dictionary = {
       wpm: "MPM",
       place: "Position",
     },
+    table: {
+      title: "Résultats complets",
+      racers: "{count} coureurs",
+      you: "Toi",
+      seconds: "{value} s",
+      columns: {
+        rank: "Rang",
+        racer: "Coureur",
+        wpm: "MPM",
+        rawWpm: "MPM brut",
+        accuracy: "Précision",
+        mistakes: "Erreurs",
+        time: "Temps",
+        status: "Statut",
+      },
+      statuses: {
+        finished: "Terminé",
+        timeout: "Temps écoulé",
+        eliminated: "Éliminé",
+        forfeited: "Abandon",
+      },
+    },
     podium: {
       title: "Podium des rivaux",
       racers: "{count} coureurs",
