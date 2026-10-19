@@ -12,7 +12,7 @@ School project (Cégep, 3rd year, web programming).
 | --- | --- |
 | `demo@demo.typestrike.test` | `typestrike-demo` |
 
-Created by `npm run db:seed` with 15 past races, alongside five rivals for the leaderboard. Sign in at `/fr/sign-in` or `/en/sign-in`.
+Created by `npm run db:seed`. It starts with no races: its stats, history and leaderboard spot appear once you play. Sign in at `/fr/sign-in` or `/en/sign-in`.
 
 ## Screenshots
 
@@ -52,7 +52,7 @@ Requirements: Node.js 22.18+ (scripts in `scripts/` run TypeScript directly) and
 2. Start a database: `docker compose up -d` (or use any local PostgreSQL).
 3. Copy `.env.example` to `.env` and set `DATABASE_URL` (the default matches `docker-compose.yml`). OAuth providers are optional: a sign-in button appears only when its client id and secret are set.
 4. Create the tables: `npm run db:migrate`
-5. Add demo data (texts, demo account, race history): `npm run db:seed`. Safe to run again.
+5. Add demo data (texts and the demo account): `npm run db:seed`. Safe to run again. Add `-- --rivals` for five extra accounts with a race history, so the local leaderboard and stats are not empty.
 6. Start the app: `npm run dev`, then open http://localhost:3000 (redirects to `/fr`; English is at `/en`).
 
 To play from other devices on the same network during development, see `ALLOWED_DEV_ORIGINS` in `.env.example`.
