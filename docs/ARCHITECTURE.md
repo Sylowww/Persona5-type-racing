@@ -70,10 +70,11 @@ tests/
 
 ## Authentication
 
-- `features/auth/actions.ts`: `signUp`, `signIn`, `signOut` Server Functions used by the forms (`useActionState`). They return error codes, translated by the UI from `auth.errors`.
+- `features/auth/actions.ts`: `signUp`, `signIn`, `continueAsGuest`, `signOut` Server Functions used by the forms (`useActionState`). They return error codes, translated by the UI from `auth.errors`.
 - `lib/auth/forms.ts`: pure parsing/validation of the submitted forms (unit tested).
 - `lib/auth/session.ts` (server-only): `getCurrentUser()` (cached per request), `startSession()`, `endSession()`. Cookie `session`: HttpOnly, `SameSite=Lax`, `Secure` in production, 30 days. Only the token hash is stored.
-- Signing up while holding a guest session upgrades that guest row, keeping its history.
+- Guests (AUTH-02/03): a visitor who opens a lobby, the lobby browser or quick play, or joins with a code, is sent to `/[locale]/guest?next=…` to pick a nickname (username rules, may repeat). `continueAsGuest` creates a `guest` user and the same session cookie, then returns to `next` (checked by `safeNextPath`: same-language app paths only) and joins the lobby when `next` is one. Guests can join but not open lobbies or the dojo (`requireHost` sends them to sign up), have no profile page or picture (the header shows an avatar generated from their name, `generatedAvatar` in `lib/avatar.ts`), and their races are not saved (`saveRaceResults` keeps registered players only).
+- Signing up while holding a guest session upgrades that guest row instead of creating a new one.
 - The locale layout reads the current user for the header, so every page renders dynamically. Pages without a session cookie never query the database.
 - OAuth (Google, GitHub, Discord): `app/api/auth/[provider]/route.ts` starts the flow (random `state` + PKCE verifier kept in a 10-minute HttpOnly `oauth` cookie) and `.../callback/route.ts` checks the state, exchanges the code, loads the profile and calls `findOrCreateOAuthUser`. Pure helpers (authorize URL, PKCE, profile parsing, username cleanup) are in `lib/auth/oauth.ts`; network calls in `lib/auth/oauth-client.ts`. A provider's button only shows when its `*_CLIENT_ID` and `*_CLIENT_SECRET` are set (see `.env.example`). Callback URL to register with each provider: `{APP_URL}/api/auth/{provider}/callback`.
 - To protect a page or action, call `getCurrentUser()` on the server and check `kind`. Never trust client-sent user ids.

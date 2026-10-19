@@ -11,6 +11,8 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 - **Noms des états (COURSE-01)** : le code utilise `waiting`, `countdown`, `racing`, `finished` ; `FERMÉE` correspond à la suppression de la salle. La correspondance est dans [ARCHITECTURE.md](ARCHITECTURE.md#race-state-machine).
 - **Prêt avant le départ** : en plus de COURSE-02, tous les participants humains doivent s'être déclarés prêts avant que l'hôte puisse lancer la course.
 - **Mode « mort subite »** : mode d'erreur supplémentaire (la première erreur élimine le joueur), en plus de ceux de CONF-08.
+- **Cookie de session des invités (AUTH-02)** : au lieu d'un cookie signé, la session (invité ou compte) est un jeton aléatoire de 256 bits dans un cookie HttpOnly ; seul son hachage SHA-256 est stocké. Il est aussi impossible à falsifier qu'un cookie signé, et la session peut en plus être révoquée côté serveur.
+- **Dojo et invités** : le dojo ouvre une salle (solo), donc il est réservé aux comptes, comme la création de salle (AUTH-03).
 - **Partie rapide 1v1 et dojo** : modes supplémentaires (salles `quick` et `training`), en plus des salles personnalisées.
 
 ## Contraintes techniques
@@ -44,8 +46,8 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | AUTH-01 | complet | `app/api/auth/[provider]/`, `lib/auth/`, `features/auth/actions.ts` | `oauth.test.ts`, `auth.test.ts`, `tests/e2e/auth.spec.ts` | Connexion avec Discord, GitHub ou Google, ou par nom d'utilisateur et mot de passe. |
-| AUTH-02 | non fait | `lib/users.ts` (`createGuest`) | — | Le schéma prévoit les invités, mais aucune page n'en crée encore. |
-| AUTH-03 | non fait | — | — | Dépend d'AUTH-02. |
+| AUTH-02 | complet | `app/[locale]/guest/`, `features/auth/actions.ts` (`continueAsGuest`), `lib/auth/forms.ts`, `lib/users.ts` (`createGuest`) | `auth-forms.test.ts`, `tests/e2e/lobby.spec.ts` | Un visiteur qui veut rejoindre une salle choisit d'abord un pseudo (3 à 20 caractères, mêmes règles que les noms d'utilisateur, doublons permis), puis rejoint la salle directement. Voir « Cookie de session des invités » plus haut. |
+| AUTH-03 | complet | `features/lobby/actions.ts` (`requireHost`), `lib/race-history-db.ts`, `lib/avatar.ts` (`generatedAvatar`), `components/ui/player-avatar.tsx` | `avatar.test.ts`, `tests/e2e/lobby.spec.ts` | Un invité qui tente de créer une salle (ou le dojo) est envoyé à la création de compte. Ses courses ne sont pas enregistrées en base, il n'a pas de page de profil ni de photo, et l'en-tête affiche un avatar généré à partir de son pseudo (initiales et couleur). |
 | AUTH-04 | complet | `features/profile/`, `lib/avatar.ts`, `app/api/avatars/`, `db/migrations/005_user_avatars.sql` | `avatar.test.ts`, `tests/e2e/profile.spec.ts` | JPEG, PNG ou WebP de 2 Mo maximum, vérifiés côté serveur. Les photos sont stockées en base de données et affichées avec `next/image`, qui les redimensionne. |
 | AUTH-05 | complet | `features/profile/actions.ts` (`changeUsername`), `lib/users.ts` (`renameUser`) | `lobby-store.test.ts`, `tests/e2e/profile.spec.ts` | Mêmes règles qu'à l'inscription (3 à 20 caractères, nom unique sans tenir compte de la casse). Le nouveau nom s'affiche aussitôt dans la salle actuelle du joueur. |
 | AUTH-06 | partiel | `app/[locale]/profile/`, `features/profile/`, `lib/race-history.ts` | `race-history.test.ts` | Affiche le meilleur MPM, le MPM moyen, la précision moyenne et le nombre de courses. Le nombre de victoires et le graphique de progression ne sont pas faits. |

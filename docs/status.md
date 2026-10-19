@@ -18,6 +18,7 @@ Last updated: 2026-10-05.
 
 - Home mode cards: "Quick play // 1v1" opens matchmaking (another player, or a bot after 15 s; 30 s race, saved like any race), then a full-screen versus splash (both characters, names, "VS") before the race and "Training dojo" starts a solo practice race at once (not saved). The red "Start a race" button still creates a custom lobby; the duplicate "Create heist lobby" card was removed.
 - Public and private lobbies: a custom lobby is private by default (code or link); its host can make it public from the settings panel. The "Find a lobby" home card opens `/lobbies`, which lists public lobbies (host, language, mode, time limit, players, status), refreshes every 5 s, filters by text language and joins one in a click.
+- Guests: visitors pick a nickname on `/guest` before joining a lobby (by code, link, browser or quick play); they cannot host or use the dojo, have no profile, and the header shows an avatar generated from their name.
 - Header nav: Home and Leaderboards only (races, training and lobbies start from the home page).
 - Language switcher (FR/EN) in the header: links to the same page in the other language and saves the choice in a `locale` cookie; `/` goes to the saved language, else the browser language, else French. On narrow screens only the other language shows.
 - Leaderboard (`/fr/leaderboard`, `/en/leaderboard`): top 100 registered players by record WPM, with average WPM, accuracy and race count; 10 per page with previous/next arrows, each page loaded from the server; the signed-in player's row is highlighted.
@@ -45,7 +46,7 @@ Last updated: 2026-10-05.
 
 ## Not started
 
-Guest sessions (no page creates a guest yet, so racing requires an account and the guest history above is not reachable yet), heatmap history, spectators, matchmaking for custom lobbies, powers (the setting exists but does nothing), multi-instance deployment (shared lobby state).
+Heatmap history, spectators, matchmaking for custom lobbies, powers (the setting exists but does nothing), multi-instance deployment (shared lobby state).
 
 ## Undecided
 
