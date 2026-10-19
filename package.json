@@ -2,6 +2,7 @@
   "name": "typing-race",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=22.18"
   },
@@ -13,7 +14,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "db:migrate": "node scripts/migrate.ts"
+    "db:migrate": "node scripts/migrate.ts",
+    "db:seed": "node scripts/seed.ts"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",

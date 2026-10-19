@@ -14,7 +14,8 @@ Before changing the database:
 When making changes:
 
 - Use PostgreSQL-compatible features.
-- Always create migrations for schema changes.
+- Always create migrations for schema changes, and update the matching Drizzle model in `src/lib/db-schema.ts`.
+- Write queries with the Drizzle query builder (`getDb()` from `src/lib/db.ts`), not raw SQL strings.
 - Use appropriate primary and foreign keys.
 - Add constraints when they protect data integrity.
 - Add indexes only when justified by access patterns.
