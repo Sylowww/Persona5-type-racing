@@ -123,6 +123,8 @@ export type Racer = {
   hex: SpellMark | null;
   /** A spell freezing the racer's keys; null otherwise. */
   stun: SpellMark | null;
+  /** The last malus this racer took, shown on their lane for everyone while it lasts; null otherwise. */
+  mark: SpellMark | null;
 };
 
 /** One catch-up spell cast at a checkpoint, announced on the track (BONUS-03). */
@@ -608,6 +610,7 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         bonuses: 0,
         hex: null,
         stun: null,
+        mark: null,
       })),
     },
   });
@@ -789,8 +792,20 @@ function delayBot(target: Racer, ms: number): Racer {
   return { ...target, bot: { ...bot, steps: bot.steps.map((step, index) => (index < bot.applied ? step : { ...step, atMs: step.atMs + ms })) } };
 }
 
-/** The effect of one spell on its target. A bot whose text changed plans the rest of its race again. */
+/** How long a lane shows a malus without a duration of its own (extra words). */
+const LANE_MARK_MS = 2_500;
+
+/**
+ * The effect of one spell on its target. A malus also marks the target's lane, for everyone, for as long as it lasts.
+ * A bot whose text changed plans the rest of its race again.
+ */
 function applySpell(target: Racer, spell: Spell, race: Race, eventId: number, now: number): Racer {
+  if (isSelfSpell(spell)) return castSpell(target, spell, race, eventId, now);
+  const ms = spell.effect.type === "stun" || spell.effect.type === "hex" ? spell.effect.ms : LANE_MARK_MS;
+  return { ...castSpell(target, spell, race, eventId, now), mark: { element: spell.element, until: now + ms } };
+}
+
+function castSpell(target: Racer, spell: Spell, race: Race, eventId: number, now: number): Racer {
   const { effect, element } = spell;
   if (effect.type === "stun") return target.bot ? delayBot(target, effect.ms) : { ...target, stun: { element, until: now + effect.ms } };
   if (effect.type === "hex") return target.bot ? delayBot(target, BOT_HEX_DELAY_MS) : { ...target, hex: { element, until: now + effect.ms } };
@@ -942,6 +957,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       isEliminated: racer.eliminatedAt !== null,
       isForfeited: racer.forfeitedAt !== null,
       place: order.indexOf(racer.id) + 1,
+      mark: racer.mark && racer.mark.until > now ? racer.mark : null,
       isBot: racer.bot !== null,
       isConnected: state.members.some((member) => member.id === racer.id && member.presence === "connected"),
     }),

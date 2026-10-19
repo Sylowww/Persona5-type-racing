@@ -20,6 +20,8 @@ export type RaceRacer = {
   bonuses: number;
   /** 1-based live place, as the server ranks it. */
   place: number;
+  /** A malus this racer is under, shown on their lane (ice, fire, shock...); null otherwise. */
+  mark: SpellMark | null;
   isBot: boolean;
   isConnected: boolean;
 };
