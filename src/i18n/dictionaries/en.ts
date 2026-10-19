@@ -199,6 +199,13 @@ const en = {
         public: "Public",
         publicHint: "Listed in the lobby browser: anyone can join.",
       },
+      seats: {
+        title: "Seats",
+        value: "{count} players",
+        decrease: "Remove a seat",
+        increase: "Add a seat",
+        hint: "From {min} to {max} players. Spectators do not take a seat.",
+      },
       mode: {
         title: "Directive 01 // Race mode",
         normal: "Normal",

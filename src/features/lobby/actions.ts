@@ -123,6 +123,11 @@ export async function setLobbyVisibility(code: string, visibility: string): Prom
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().setVisibility(lobby, userId, visibility));
 }
 
+/** Only the host changes the number of seats (2 to 30); the server validates the value. */
+export async function setLobbyCapacity(code: string, capacity: number): Promise<StoreError | null> {
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().setCapacity(lobby, userId, capacity));
+}
+
 /** Joins a lobby picked in the lobby browser; returns why it failed, or redirects into it. */
 export async function joinListedLobby(codeValue: string, localeValue: string): Promise<JoinErrorCode> {
   const locale = toLocale(localeValue);

@@ -14,6 +14,7 @@ import {
   sendMessage,
   publicLobbyFor,
   setConnected,
+  setCapacity,
   setVisibility,
   setReady,
   startRace,
@@ -79,7 +80,7 @@ describe("lobby membership", () => {
     expect(joinLobby(state, { id: "late", name: "late" }, T0)).toEqual({ ok: false, error: "lobbyFull" });
 
     const huge = createLobby({ code: "P5-TEST", locale: "en", host: { id: "a", name: "a" }, now: T0, config: { capacity: 500 } });
-    expect(huge.config.capacity).toBe(60);
+    expect(huge.config.capacity).toBe(30);
   });
 
   it("refuses to join a race in progress", () => {
@@ -469,6 +470,24 @@ describe("lobby chat", () => {
     const messages = viewFor(state, "ann", T0)?.messages ?? [];
     expect(messages).toHaveLength(50);
     expect(messages.at(-1)).toMatchObject({ id: "60", text: "m59" });
+  });
+});
+
+describe("lobby capacity", () => {
+  it("lets only the host set 2 to 30 seats, never below the players already in", () => {
+    const state = lobbyWith("ann", "bob", "cid");
+    expect(unwrap(setCapacity(state, "ann", 12)).config.capacity).toBe(12);
+    expect(viewFor(unwrap(setCapacity(state, "ann", 3)), "bob", T0)?.capacity).toBe(3);
+    expect(setCapacity(state, "bob", 12)).toEqual({ ok: false, error: "notHost" });
+    expect(setCapacity(state, "ann", 2)).toEqual({ ok: false, error: "invalidSettings" });
+    expect(setCapacity(state, "ann", 31)).toEqual({ ok: false, error: "invalidSettings" });
+    expect(setCapacity(state, "ann", 4.5)).toEqual({ ok: false, error: "invalidSettings" });
+    expect(setCapacity(state, "ann", "10")).toEqual({ ok: false, error: "invalidSettings" });
+  });
+
+  it("refuses new players once the seats are taken", () => {
+    const state = unwrap(setCapacity(lobbyWith("ann", "bob"), "ann", 2));
+    expect(joinLobby(state, { id: "cid", name: "cid" }, T0)).toEqual({ ok: false, error: "lobbyFull" });
   });
 });
 

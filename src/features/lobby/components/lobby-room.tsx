@@ -4,13 +4,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import { canStartRace, countReady } from "@/lib/lobby";
+import { canStartRace, countReady, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "@/lib/lobby";
 import type { LobbyView } from "@/types/lobby";
 import {
   addLobbyBot,
   leaveLobby,
   removeLobbyBot,
   sendLobbyMessage,
+  setLobbyCapacity,
   setLobbyReady,
   setLobbyVisibility,
   startLobbyRace,
@@ -54,6 +55,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
   const isTraining = view.kind === "training";
   const canEditRules = isHost && isWaiting;
   const visibility = view.kind === "custom" ? view.visibility : null;
+  const seats = view.kind === "custom" ? { capacity: view.capacity, min: Math.max(MIN_LOBBY_CAPACITY, players.length), max: MAX_LOBBY_CAPACITY } : null;
 
   return (
     <>
@@ -114,6 +116,8 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
           onChange={(change) => startTransition(async () => void (await updateLobbySettings(code, change)))}
           visibility={visibility}
           onVisibilityChange={(visibility) => startTransition(async () => void (await setLobbyVisibility(code, visibility)))}
+          seats={seats}
+          onCapacityChange={(capacity) => startTransition(async () => void (await setLobbyCapacity(code, capacity)))}
           spectators={[]}
           onClose={() => setSettingsOpen(false)}
         />

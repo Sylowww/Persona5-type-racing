@@ -19,6 +19,7 @@ import {
   removeBot,
   resultFor,
   sendMessage,
+  setCapacity,
   setCharacter,
   setConnected,
   setName,
@@ -295,6 +296,10 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     setVisibility(code: string, userId: string, visibility: unknown): StoreError | null {
       return updateOutcome(code, (state) => setVisibility(state, userId, visibility));
+    },
+
+    setCapacity(code: string, userId: string, capacity: unknown): StoreError | null {
+      return updateOutcome(code, (state) => setCapacity(state, userId, capacity));
     },
 
     /** Public lobbies for the lobby browser: open ones first, then the most players. */

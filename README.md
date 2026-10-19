@@ -68,7 +68,7 @@ All are documented in [`.env.example`](.env.example). Never commit `.env`.
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | no | Google sign-in (button hidden when unset) |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | no | GitHub sign-in |
 | `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | no | Discord sign-in |
-| `LOBBY_CAPACITY` | no | Maximum players per lobby (default 30, capped at 60) |
+| `LOBBY_CAPACITY` | no | Seats of a new lobby (default and maximum 30; the host can change it from 2 to 30) |
 | `ALLOWED_DEV_ORIGINS` | no | Extra hosts allowed to reach the dev server (LAN play) |
 
 ## Checks
