@@ -4,6 +4,7 @@ import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import { characterSprite } from "@/lib/characters";
+import { laneOrder } from "@/lib/race-lanes";
 import { RUNNER_OBSTACLES } from "@/lib/race-runner";
 import type { RaceRacer } from "@/types/race";
 import { RaceRunner, RUNNER_SIZE } from "./race-runner";
@@ -39,6 +40,11 @@ function laneStones(lane: number) {
 
 const quarterMarks = [0, 0.25, 0.5, 0.75] as const;
 
+/** Lanes shown without scrolling: the player's own, then the three best of the others. */
+const VISIBLE_LANES = 4;
+const LANE_HEIGHT_PX = 76;
+const LANE_GAP_PX = 6;
+
 
 export function RaceTrack({
   dictionary,
@@ -71,8 +77,12 @@ export function RaceTrack({
         </div>
       </div>
 
-      <ol className="flex flex-col gap-1.5">
-        {racers.map((racer, index) => {
+      {/* Past four lanes the track scrolls, so the typing area stays in view however big the class is. */}
+      <ol
+        className="flex flex-col gap-1.5 overflow-y-auto overscroll-contain"
+        style={{ maxHeight: VISIBLE_LANES * LANE_HEIGHT_PX + (VISIBLE_LANES - 1) * LANE_GAP_PX }}
+      >
+        {laneOrder(racers, youId).map((racer, index) => {
           const isYou = racer.id === youId;
           const character = characterSprite(racer.character);
           const anchor = (character.anchorX / character.frameSize) * RUNNER_SIZE;
@@ -87,7 +97,7 @@ export function RaceTrack({
             <li
               key={racer.id}
               aria-label={label}
-              className={`flex h-[76px] items-stretch bg-surface-container-highest ${racer.isConnected && !racer.isEliminated && !racer.isForfeited ? "" : "opacity-50"} ${
+              className={`flex h-[76px] shrink-0 items-stretch bg-surface-container-highest ${racer.isConnected && !racer.isEliminated && !racer.isForfeited ? "" : "opacity-50"} ${
                 overtakerIds?.has(racer.id) ? "lane-overtake" : ""
               }`}
             >
@@ -179,7 +189,7 @@ export function RaceTrack({
                   {percent.format(racer.progress)}
                 </span>
                 <span className="font-display text-[14px] tracking-wider text-secondary-fixed">
-                  {String(index + 1).padStart(2, "0")}
+                  {String(racer.place).padStart(2, "0")}
                 </span>
               </div>
             </li>
