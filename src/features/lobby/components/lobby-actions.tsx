@@ -2,6 +2,8 @@
 
 import { Icon, type IconName } from "@/components/ui/icon";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import type { Locale } from "@/i18n/locales";
+import { CloseLobbyButton } from "./close-lobby-button";
 
 type LobbyActionsProps = {
   dictionary: Dictionary["lobby"]["actions"];
@@ -14,6 +16,8 @@ type LobbyActionsProps = {
   onLeave: () => void;
   onShowSettings: () => void;
   onShowChat: () => void;
+  /** Set for the host of a custom lobby outside a race. */
+  close: { code: string; locale: Locale } | null;
 };
 
 export function LobbyActions({
@@ -27,6 +31,7 @@ export function LobbyActions({
   onLeave,
   onShowSettings,
   onShowChat,
+  close,
 }: LobbyActionsProps) {
   return (
     <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
@@ -46,6 +51,7 @@ export function LobbyActions({
         <DockButton icon="tune" label={dictionary.settings} onClick={onShowSettings} />
         <DockButton icon="chat" label={dictionary.chat} onClick={onShowChat} />
         <DockButton icon="close" label={dictionary.leave} danger onClick={onLeave} />
+        {close && <CloseLobbyButton code={close.code} locale={close.locale} label={dictionary.close} confirmMessage={dictionary.closeConfirm} />}
       </div>
 
       <div className="relative flex w-full justify-end lg:w-auto">

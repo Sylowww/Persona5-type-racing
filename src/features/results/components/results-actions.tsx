@@ -1,23 +1,30 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
+import { CloseLobbyButton } from "@/features/lobby/components/close-lobby-button";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import type { Locale } from "@/i18n/locales";
 
 type ResultsActionsProps = {
   dictionary: Dictionary["results"]["actions"];
   lobbyHref: string;
+  /** Set for the host of a custom lobby (COURSE-11): they may also close it. */
+  close: { code: string; locale: Locale; label: string; confirmMessage: string } | null;
 };
 
-/** Both lead back to the lobby: a rematch starts once everyone is ready again. */
-export function ResultsActions({ dictionary, lobbyHref }: ResultsActionsProps) {
+/** Both links lead back to the lobby: a rematch starts once everyone is ready again. The host may close it instead. */
+export function ResultsActions({ dictionary, lobbyHref, close }: ResultsActionsProps) {
   return (
     <div className="flex flex-col items-stretch justify-between gap-6 bg-surface-container-low p-4 shadow-hard-xl md:flex-row md:items-center">
-      <Link
-        href={lobbyHref}
-        className="flex -skew-x-6 items-center justify-center gap-2 bg-surface-container px-4 py-2 font-hud text-headline-sm font-black uppercase italic text-secondary shadow-hard-sm transition-transform hover:-translate-y-0.5 hover:bg-surface-container-high"
-      >
-        <Icon name="home" size={20} />
-        {dictionary.lobby}
-      </Link>
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href={lobbyHref}
+          className="flex -skew-x-6 items-center justify-center gap-2 bg-surface-container px-4 py-2 font-hud text-headline-sm font-black uppercase italic text-secondary shadow-hard-sm transition-transform hover:-translate-y-0.5 hover:bg-surface-container-high"
+        >
+          <Icon name="home" size={20} />
+          {dictionary.lobby}
+        </Link>
+        {close && <CloseLobbyButton {...close} />}
+      </div>
 
       <Link
         href={lobbyHref}

@@ -269,6 +269,8 @@ const fr: Dictionary = {
       hostOnly: "L'hôte lance la course",
       ready: "Verrouiller",
       unready: "Déverrouiller",
+      close: "Fermer le salon",
+      closeConfirm: "Fermer le salon pour tout le monde ? Les joueurs retournent à l'accueil et le code ne fonctionne plus.",
     },
   },
   race: {

@@ -98,6 +98,14 @@ async function lobbyCommand(codeValue: unknown, run: (code: string, userId: stri
   return run(code, user.id);
 }
 
+/** Host only, outside a race: closes the lobby for everyone, then goes home. */
+export async function closeLobbyForAll(codeValue: string, localeValue: string): Promise<StoreError | null> {
+  const locale = toLocale(localeValue);
+  const error = await lobbyCommand(codeValue, (lobby, userId) => getLobbyStore().close(lobby, userId));
+  if (error) return error;
+  redirect(`/${locale}`);
+}
+
 /** Host only: removes a player from the lobby for good. */
 export async function kickLobbyMember(code: string, targetId: string): Promise<StoreError | null> {
   if (typeof targetId !== "string") return "notMember";

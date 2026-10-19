@@ -267,6 +267,8 @@ const en = {
       hostOnly: "The host starts the race",
       ready: "Ready up",
       unready: "Not ready",
+      close: "Close lobby",
+      closeConfirm: "Close the lobby for everyone? Players are sent home and the code stops working.",
     },
   },
   race: {

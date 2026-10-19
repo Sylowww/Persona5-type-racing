@@ -410,6 +410,14 @@ export function kickMember(state: LobbyState, userId: string, targetId: string):
   return ok({ ...leaveLobby(state, targetId), kicked: [...state.kicked, targetId] });
 }
 
+/** The host closes the lobby outside a race (COURSE-11): everyone is removed and the store deletes it. */
+export function closeLobby(state: LobbyState, userId: string): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  if (isRaceRunning(state)) return fail("wrongPhase");
+  return ok({ ...state, members: [] });
+}
+
 export function setReady(state: LobbyState, userId: string, isReady: boolean): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
   const open = reopen(state);

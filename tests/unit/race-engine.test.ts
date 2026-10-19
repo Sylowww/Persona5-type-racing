@@ -3,6 +3,7 @@ import {
   addBot,
   advance,
   applyInput,
+  closeLobby,
   createLobby,
   isRaceOver,
   joinLobby,
@@ -471,6 +472,15 @@ describe("lobby chat", () => {
     const messages = viewFor(state, "ann", T0)?.messages ?? [];
     expect(messages).toHaveLength(50);
     expect(messages.at(-1)).toMatchObject({ id: "60", text: "m59" });
+  });
+});
+
+describe("closing a lobby", () => {
+  it("lets only the host close it, outside a race", () => {
+    const state = lobbyWith("ann", "bob");
+    expect(closeLobby(state, "bob")).toEqual({ ok: false, error: "notHost" });
+    expect(unwrap(closeLobby(state, "ann")).members).toEqual([]);
+    expect(closeLobby(racing("ann", "bob"), "ann")).toEqual({ ok: false, error: "wrongPhase" });
   });
 });
 

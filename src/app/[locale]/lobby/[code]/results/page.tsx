@@ -31,7 +31,10 @@ export default async function RaceResultsPage({ params }: Params) {
   const { locale, code: rawCode } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [{ user, code, store, view }, { results: dictionary }] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
+  const [{ user, code, store, view }, { results: dictionary, lobby: lobbyDictionary }] = await Promise.all([
+    loadLobby(locale, rawCode),
+    getDictionary(locale),
+  ]);
   const lobbyHref = `/${locale}/lobby/${code}`;
   const result = store.result(code, user.id);
   if (!result) redirect(lobbyHref);
@@ -56,7 +59,15 @@ export default async function RaceResultsPage({ params }: Params) {
             <CombatDossier dictionary={dictionary.dossier} locale={locale} result={result} wpm={you.wpm} />
             <KeyboardHeatmap dictionary={dictionary.heatmap} keyStats={result.keyStats} />
           </div>
-          <ResultsActions dictionary={dictionary.actions} lobbyHref={lobbyHref} />
+          <ResultsActions
+            dictionary={dictionary.actions}
+            lobbyHref={lobbyHref}
+            close={
+              view?.kind === "custom" && view.players.some((player) => player.id === user.id && player.isHost)
+                ? { code, locale, label: lobbyDictionary.actions.close, confirmMessage: lobbyDictionary.actions.closeConfirm }
+                : null
+            }
+          />
           {view && <LobbyPresence locale={locale} initialView={view} />}
           {guestRecord && <SaveGuestRace record={guestRecord} />}
         </div>
