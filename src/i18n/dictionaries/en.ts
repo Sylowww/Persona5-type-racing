@@ -188,6 +188,7 @@ const en = {
       title: "+ Add phantom bot",
       subtitle: "Select synthetic difficulty",
       difficulties: {
+        noob: "Noob // Tourist",
         novice: "Novice // Intern",
         rookie: "Rookie // Agent",
         master: "Master // Shadow",

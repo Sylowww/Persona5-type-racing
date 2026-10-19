@@ -8,11 +8,15 @@ export const MAX_LOBBY_CAPACITY = 30;
 
 type Readiness = { isReady: boolean };
 
-/** Target speed of each bot level; bots will vary around it once they exist. */
+/**
+ * Target speed of each bot level (BOT-01), inside the assignment's ranges: Noob 10-20, Beginner 20-35, Intermediate
+ * 35-60, Expert 70-100 and Impossible 140+ WPM. A bot varies by up to 8% around it from race to race.
+ */
 export const botTargetWpm: Record<BotDifficulty, number> = {
-  novice: 30,
-  rookie: 60,
-  master: 120,
+  noob: 15,
+  novice: 28,
+  rookie: 48,
+  master: 85,
   godspeed: 150,
 };
 

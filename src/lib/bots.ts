@@ -22,13 +22,15 @@ type BotProfile = {
   reactionMs: readonly [number, number];
 };
 
-export const botDifficulties: readonly BotDifficulty[] = ["novice", "rookie", "master", "godspeed"];
+export const botDifficulties: readonly BotDifficulty[] = ["noob", "novice", "rookie", "master", "godspeed"];
 
+// Typo rates follow the assignment's table (about 12%, 8%, 5%, 2% and 0.5%).
 const botProfiles: Record<BotDifficulty, BotProfile> = {
+  noob: { mistakeRate: 0.12, lateNoticeRate: 0.6, rhythmSpread: 0.7, hesitationRate: 0.2, reactionMs: [500, 1100] },
   novice: { mistakeRate: 0.08, lateNoticeRate: 0.55, rhythmSpread: 0.6, hesitationRate: 0.15, reactionMs: [400, 900] },
   rookie: { mistakeRate: 0.05, lateNoticeRate: 0.45, rhythmSpread: 0.5, hesitationRate: 0.08, reactionMs: [300, 700] },
-  master: { mistakeRate: 0.025, lateNoticeRate: 0.3, rhythmSpread: 0.35, hesitationRate: 0.04, reactionMs: [200, 450] },
-  godspeed: { mistakeRate: 0.012, lateNoticeRate: 0.2, rhythmSpread: 0.25, hesitationRate: 0.02, reactionMs: [150, 350] },
+  master: { mistakeRate: 0.02, lateNoticeRate: 0.3, rhythmSpread: 0.35, hesitationRate: 0.04, reactionMs: [200, 450] },
+  godspeed: { mistakeRate: 0.005, lateNoticeRate: 0.2, rhythmSpread: 0.25, hesitationRate: 0.02, reactionMs: [150, 350] },
 };
 
 /** A bot's speed varies from race to race by up to this share of its target. */
