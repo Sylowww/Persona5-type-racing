@@ -15,7 +15,6 @@ import type {
   RaceSettings,
 } from "@/types/lobby";
 import type {
-  BonusKind,
   InputBatch,
   InputEvent,
   KeyStat,
@@ -25,22 +24,17 @@ import type {
   RaceView,
   ResultRacer,
   SpeedSample,
+  SpellId,
+  SpellMark,
 } from "@/types/race";
-import {
-  appendWords,
-  BOT_FOG_DELAY_MS,
-  bonusFor,
-  checkpointsReached,
-  FOG_MS,
-  pickBonusReceivers,
-  removeLastWords,
-} from "./bonuses";
+import { appendWords, BOT_HEX_DELAY_MS, checkpointsReached, pickBonusReceivers, removeLastWords } from "./bonuses";
 import { planBotRun, replanBotRun, seededRandom, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
 import { canStartRace, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-settings";
 import { rankRacers } from "./results";
+import { characterSpells, isSelfSpell, spellFor, WILD_CARD_PERSONA, type Spell } from "./spells";
 import { inputBatchSchema, memberRoleSchema, visibilitySchema } from "./schemas";
 import {
   accuracy,
@@ -123,19 +117,22 @@ export type Racer = {
   eliminatedAt: number | null;
   /** When the racer gave up (COURSE-07); null otherwise. */
   forfeitedAt: number | null;
-  /** Catch-up bonuses received this race (at most 3). */
+  /** Catch-up spells cast this race (at most 3). */
   bonuses: number;
-  /** The racer's next words are blurred until then (fog bonus); null otherwise. */
-  fogUntil: number | null;
+  /** A spell blurring the racer's next words; null otherwise. */
+  hex: SpellMark | null;
+  /** A spell freezing the racer's keys; null otherwise. */
+  stun: SpellMark | null;
 };
 
-/** One catch-up bonus handed out at a checkpoint, announced on the track (BONUS-03). */
+/** One catch-up spell cast at a checkpoint, announced on the track (BONUS-03). */
 export type BonusEvent = {
   id: number;
-  kind: BonusKind;
-  /** The lagging racer who got the bonus. */
+  spell: SpellId;
+  wildCard: boolean;
+  /** The lagging racer who cast it. */
   receiverId: string;
-  /** Who it acts on: the receiver for a shortcut, the leader otherwise. */
+  /** Who it acts on: the caster for a support spell, the leader otherwise. */
   targetId: string;
   at: number;
 };
@@ -604,7 +601,8 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         eliminatedAt: null,
         forfeitedAt: null,
         bonuses: 0,
-        fogUntil: null,
+        hex: null,
+        stun: null,
       })),
     },
   });
@@ -642,6 +640,11 @@ export function applyInput(state: LobbyState, userId: string, batch: InputBatch,
   if (!racer || isOut(racer)) return state;
   const isNext = batch.clientId === racer.inputClient ? batch.seq > racer.inputSeq : batch.seq === 1;
   if (!isNext) return state;
+  // Stunned by a spell: the batch is used up but its keys do nothing (the page then takes the server's copy back).
+  if (racer.stun && now < racer.stun.until) {
+    const stunned = { ...racer, inputClient: batch.clientId, inputSeq: batch.seq };
+    return { ...state, race: { ...race, racers: race.racers.map((candidate) => (candidate.id === userId ? stunned : candidate)) } };
+  }
 
   const keyBudget = Math.floor(((now - race.startsAt) / 1000 + 1) * state.config.maxKeysPerSecond);
   let typed = racer;
@@ -735,8 +738,9 @@ function withSample(racer: Racer, race: Race, typing: TypingState, now: number, 
 export const BONUS_ANNOUNCE_MS = 4_000;
 
 /**
- * Hands out catch-up bonuses when the leader passes a checkpoint (BONUS-01): each lagging racer gets one, which either
- * shortens their own text or slows the leader down. Bots get and suffer bonuses like players (BOT-04).
+ * Hands out catch-up spells when the leader passes a checkpoint (BONUS-01): each lagging racer casts their character's
+ * Persona skill (`lib/spells.ts`), which either helps them or slows the leader. Bots cast and suffer spells like
+ * players (BOT-04).
  */
 function applyCatchUp(state: LobbyState, now: number): LobbyState {
   const race = state.race;
@@ -753,35 +757,40 @@ function applyCatchUp(state: LobbyState, now: number): LobbyState {
   for (let checkpoint = race.checkpoints; checkpoint < reached; checkpoint++) {
     const contenders = racers.filter((racer) => !isOut(racer)).map((racer) => ({ id: racer.id, progress: progressOf(racer), bonuses: racer.bonuses }));
     const { leaderId, receiverIds } = pickBonusReceivers(contenders);
-    receiverIds.forEach((receiverId, index) => {
-      if (!leaderId) return;
-      const kind = bonusFor(checkpoint, index);
-      const targetId = kind === "shortcut" ? receiverId : leaderId;
+    for (const receiverId of receiverIds) {
+      const receiver = racers.find((racer) => racer.id === receiverId);
+      if (!leaderId || !receiver) continue;
       const id = events.length + 1;
+      const { spell, wildCard } = spellFor(receiver.character, seededRandom(race.seed + id));
+      const targetId = isSelfSpell(spell) ? receiverId : leaderId;
       update(receiverId, (racer) => ({ ...racer, bonuses: racer.bonuses + 1 }));
-      update(targetId, (target) => applyBonus(target, kind, race, id, now));
-      events.push({ id, kind, receiverId, targetId, at: now });
-    });
+      update(targetId, (target) => applySpell(target, spell, race, id, now));
+      events.push({ id, spell: spell.id, wildCard, receiverId, targetId, at: now });
+    }
   }
   return { ...state, race: { ...race, racers, checkpoints: reached, bonusEvents: events } };
 }
 
-/** The effect of one bonus on its target. A bot whose text changed plans the rest of its race again. */
-function applyBonus(target: Racer, kind: BonusKind, race: Race, eventId: number, now: number): Racer {
-  const elapsedMs = now - race.startsAt;
-  if (kind === "fog") {
-    const { bot } = target;
-    if (!bot) return { ...target, fogUntil: now + FOG_MS };
-    // A bot cannot be blinded: it hesitates instead.
-    const steps = bot.steps.map((step, index) => (index < bot.applied ? step : { ...step, atMs: step.atMs + BOT_FOG_DELAY_MS }));
-    return { ...target, bot: { ...bot, steps } };
-  }
+/** Pushes a bot's next keys back by `ms` (a bot cannot be blinded or frozen: it loses time instead). */
+function delayBot(target: Racer, ms: number): Racer {
+  const { bot } = target;
+  if (!bot) return target;
+  return { ...target, bot: { ...bot, steps: bot.steps.map((step, index) => (index < bot.applied ? step : { ...step, atMs: step.atMs + ms })) } };
+}
+
+/** The effect of one spell on its target. A bot whose text changed plans the rest of its race again. */
+function applySpell(target: Racer, spell: Spell, race: Race, eventId: number, now: number): Racer {
+  const { effect, element } = spell;
+  if (effect.type === "stun") return target.bot ? delayBot(target, effect.ms) : { ...target, stun: { element, until: now + effect.ms } };
+  if (effect.type === "hex") return target.bot ? delayBot(target, BOT_HEX_DELAY_MS) : { ...target, hex: { element, until: now + effect.ms } };
   const text =
-    kind === "shortcut" ? removeLastWords(target.text, target.typing.typed.length) : appendWords(target.text, race.text, race.seed + eventId);
+    effect.type === "shorten"
+      ? removeLastWords(target.text, target.typing.typed.length, effect.words)
+      : appendWords(target.text, race.text, race.seed + eventId, effect.words);
   if (text === target.text) return target;
   if (!target.bot) return { ...target, text };
   const difficulty = target.bot.difficulty;
-  const steps = replanBotRun(text, target.typing.typed, difficulty, seededRandom(race.seed + eventId), race.settings.mode, elapsedMs);
+  const steps = replanBotRun(text, target.typing.typed, difficulty, seededRandom(race.seed + eventId), race.settings.mode, now - race.startsAt);
   return { ...target, text, bot: { difficulty, steps, applied: 0 } };
 }
 
@@ -938,14 +947,22 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
     // Recent bonuses only: the track announces them for a few seconds.
     bonusEvents: race.bonusEvents
       .filter((event) => now - event.at < BONUS_ANNOUNCE_MS)
-      .map((event) => ({
-        id: event.id,
-        kind: event.kind,
-        receiverId: event.receiverId,
-        receiver: nameOf(event.receiverId),
-        targetId: event.targetId,
-        target: nameOf(event.targetId),
-      })),
+      .map((event) => {
+        const caster = race.racers.find((racer) => racer.id === event.receiverId);
+        const spell = Object.values(characterSpells).find((candidate) => candidate.id === event.spell);
+        return {
+          id: event.id,
+          spell: event.spell,
+          element: spell?.element ?? "support",
+          persona: event.wildCard ? WILD_CARD_PERSONA : (spell?.persona ?? ""),
+          wildCard: event.wildCard,
+          receiverId: event.receiverId,
+          receiver: nameOf(event.receiverId),
+          receiverCharacter: caster?.character ?? DEFAULT_CHARACTER,
+          targetId: event.targetId,
+          target: nameOf(event.targetId),
+        };
+      }),
     racers,
     you: own
       ? {
@@ -959,7 +976,8 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
           finishedAt: own.typing.finishedAt,
           eliminatedAt: own.eliminatedAt,
           forfeitedAt: own.forfeitedAt,
-          fogUntil: own.fogUntil,
+          hex: own.hex,
+          stun: own.stun,
         }
       : null,
   };
