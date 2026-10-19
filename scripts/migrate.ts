@@ -28,7 +28,7 @@ try {
     applied_at timestamptz NOT NULL DEFAULT now()
   )`);
   const { rows } = await client.query("SELECT name FROM schema_migrations");
-  const applied = new Set(rows.map((row) => row.name));
+  const applied = new Set(rows.map((row: { name: string }) => row.name));
 
   for (const file of files) {
     if (applied.has(file)) continue;
@@ -41,7 +41,7 @@ try {
       console.log(`applied ${file}`);
     } catch (error) {
       await client.query("ROLLBACK");
-      throw new Error(`migration ${file} failed: ${error.message}`);
+      throw new Error(`migration ${file} failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
   console.log("database is up to date");

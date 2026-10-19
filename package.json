@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18"
   },
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.ts"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",
@@ -34,6 +34,7 @@
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.5",
+    "jiti": "^2.7.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.1"
   }
