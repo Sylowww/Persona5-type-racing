@@ -31,7 +31,7 @@ Created by `npm run db:seed`. It starts with no races: its stats, history and le
 - **Lobbies**: public (listed in the lobby browser), code-only or private (invite links only); host-set seats (2 to 30), spectators, kicking, closing, single-use invite links, one lobby per person, ready-up, chat and quick taunts.
 - **Guests**: play without an account after picking a nickname; only accounts can host.
 - **Race settings** (host only): error mode (normal, forced fix, free, sudden death), catch-up bonuses, time limit (30 s to 10 min, or none), real passages or random words, length, complexity, punctuation, capitals, accents, numbers, letters to include or leave out.
-- **Catch-up bonuses**: at 25, 50 and 75% of the leader's progress, lagging racers get a shortcut or slow the leader with extra words or fog.
+- **Persona spells (catch-up bonuses)**: at 25, 50 and 75% of the leader's progress, each lagging racer casts their character's Persona skill (Mona's Garu, Skull's Zio, Panther's Agi, Fox's Bufu, Joker's Wild Card…) to catch up or slow the leader, with a battle-style cut-in and elemental effects (fire, ice, shock, psy, light, curse).
 - **Game modes**: quick race into the fullest public lobby, quick 1v1 matchmaking (a bot steps in after 15 s), solo training dojo (not saved).
 - **Bots** with five levels (15 to 150 WPM), human-like rhythm and typos, following the error mode and the bonuses.
 - **Accounts**: email/password, plus Google, GitHub and Discord sign-in; 12 playable characters.
@@ -121,6 +121,6 @@ Detailed docs are in [`docs/`](docs/README.md): architecture and multiplayer des
 
 This is a non-commercial school project made for a class at Cégep. It is not affiliated with, endorsed by or sponsored by ATLUS or SEGA.
 
-Persona and Persona 5, their characters, artwork, music, sound effects and voice clips are trademarks and copyrighted works of ATLUS / SEGA. The character portraits (`public/portraits/`), sprite sheets (`public/sprites/`, fan art based on those characters), music (`public/music/`), sound effects (`public/sfx/`) and voice clips (`public/voices/`) are used for educational purposes only and remain the property of their respective owners. They must be replaced with original or licensed assets before any commercial or public release of the game.
+Persona and Persona 5, their characters, Persona and skill names (Agi, Zio, Bufu…), artwork, music, sound effects and voice clips are trademarks and copyrighted works of ATLUS / SEGA. The character portraits (`public/portraits/`), sprite sheets (`public/sprites/`, fan art based on those characters), music (`public/music/`), sound effects (`public/sfx/`) and voice clips (`public/voices/`) are used for educational purposes only and remain the property of their respective owners. They must be replaced with original or licensed assets before any commercial or public release of the game.
 
 All other code in this repository was written for this project.

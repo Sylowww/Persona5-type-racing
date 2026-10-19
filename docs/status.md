@@ -54,7 +54,7 @@ Heatmap history, matchmaking for custom lobbies (JOIN-03), the database constrai
 - Auth extras: password reset, email verification, rate limiting of sign-in attempts, redirect back to the previous page after sign-in, linking an OAuth identity to an existing email/password account, showing OAuth avatars.
 
 - Light mode design.
-- Bonus tuning: checkpoints, the 25-point gap, the three bonus kinds and their sizes (3 words, 5 s of fog) are first guesses.
+- Spell tuning: checkpoints, the 25-point gap and each spell's size (2 or 3 words, 1 to 1.5 s stuns, 4 to 5 s hexes) are first guesses.
 - Bonus/overtake effects from the race mockup (showtime burst, overtake cut-in) are not built.
 - Results-page extras from the mockup not built: rank grade (S), EXP points, rating/promotion card, personal best, latency, save/export buttons.
 - What a race should do with players who join after it started (currently refused until it ends) and whether leaving mid-race should count as a loss.
