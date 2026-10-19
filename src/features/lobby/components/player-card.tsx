@@ -12,7 +12,7 @@ type PlayerCardProps = {
   player: LobbyMember;
   slot: number;
   isYou: boolean;
-  /** Set for bots the viewer (host) may remove. */
+  /** Set when the viewer (host) may remove this bot or kick this player. */
   onRemove: (() => void) | null;
   isPending: boolean;
 };
@@ -94,8 +94,8 @@ export function PlayerCard({ dictionary, botDictionary, player, slot, isYou, onR
               type="button"
               onClick={onRemove}
               disabled={isPending}
-              aria-label={formatMessage(botDictionary.remove, { name: player.name })}
-              title={formatMessage(botDictionary.remove, { name: player.name })}
+              aria-label={formatMessage(player.bot ? botDictionary.remove : dictionary.kick, { name: player.name })}
+              title={formatMessage(player.bot ? botDictionary.remove : dictionary.kick, { name: player.name })}
               className="flex size-9 shrink-0 items-center justify-center bg-surface-container-highest text-on-surface transition-colors hover:bg-error-container hover:text-on-error-container disabled:opacity-60"
             >
               <Icon name="close" size={20} />

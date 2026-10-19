@@ -135,6 +135,8 @@ export type LobbyState = {
   messages: ChatMessage[];
   /** Number of messages ever sent; gives each message its id. */
   messageCount: number;
+  /** Players the host removed; they cannot come back to this lobby (SALLE-07). */
+  kicked: string[];
 };
 
 export type LobbyError =
@@ -147,7 +149,8 @@ export type LobbyError =
   | "wrongPhase"
   | "invalidSettings"
   | "invalidMessage"
-  | "tooFast";
+  | "tooFast"
+  | "kicked";
 
 export type Outcome = { ok: true; state: LobbyState } | { ok: false; error: LobbyError };
 
@@ -188,6 +191,7 @@ export function createLobby(input: {
     settings: { ...(input.settings ?? defaultRaceSettings), language: input.locale },
     messages: [],
     messageCount: 0,
+    kicked: [],
   };
 }
 
@@ -253,6 +257,7 @@ export function joinLobby(state: LobbyState, player: Player, now: number): Outco
 /** Adds a player to any kind of lobby, within its capacity. */
 export function admitPlayer(state: LobbyState, player: Player, now: number): Outcome {
   if (isMember(state, player.id)) return ok(state);
+  if (state.kicked.includes(player.id)) return fail("kicked");
   if (state.phase === "countdown" || state.phase === "racing") return fail("raceInProgress");
   const open = reopen(state);
   if (activeMembers(open).length >= open.config.capacity) return fail("lobbyFull");
@@ -391,6 +396,18 @@ export function leaveLobby(state: LobbyState, userId: string): LobbyState {
     ? state.members.map((member) => (member.id === userId ? { ...member, presence: "left" as const, isReady: false } : member))
     : state.members.filter((member) => member.id !== userId);
   return withHost({ ...state, members });
+}
+
+/**
+ * The host removes another player for good: they leave like with `leaveLobby` (kept as not finished during a race)
+ * and can never join this lobby again. Bots are removed with `removeBot`.
+ */
+export function kickMember(state: LobbyState, userId: string, targetId: string): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  if (state.hostId !== userId) return fail("notHost");
+  const target = state.members.find((member) => member.id === targetId && member.presence !== "left");
+  if (!target || target.bot !== null || target.id === userId) return fail("notMember");
+  return ok({ ...leaveLobby(state, targetId), kicked: [...state.kicked, targetId] });
 }
 
 export function setReady(state: LobbyState, userId: string, isReady: boolean): Outcome {

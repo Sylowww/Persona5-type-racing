@@ -6,6 +6,7 @@ import {
   createLobby,
   isRaceOver,
   joinLobby,
+  kickMember,
   leaveLobby,
   liveOrder,
   parseInputBatch,
@@ -470,6 +471,26 @@ describe("lobby chat", () => {
     const messages = viewFor(state, "ann", T0)?.messages ?? [];
     expect(messages).toHaveLength(50);
     expect(messages.at(-1)).toMatchObject({ id: "60", text: "m59" });
+  });
+});
+
+describe("kicking players", () => {
+  it("lets only the host remove another player, who cannot come back", () => {
+    const state = lobbyWith("ann", "bob", "cid");
+    expect(kickMember(state, "bob", "cid")).toEqual({ ok: false, error: "notHost" });
+    expect(kickMember(state, "ann", "ann")).toEqual({ ok: false, error: "notMember" });
+    expect(kickMember(state, "ann", "zed")).toEqual({ ok: false, error: "notMember" });
+
+    const kicked = unwrap(kickMember(state, "ann", "bob"));
+    expect(viewFor(kicked, "bob", T0)).toBeNull();
+    expect(viewFor(kicked, "ann", T0)?.players.map((player) => player.id)).toEqual(["ann", "cid"]);
+    expect(joinLobby(kicked, { id: "bob", name: "bob" }, T0)).toEqual({ ok: false, error: "kicked" });
+  });
+
+  it("keeps a kicked racer in the race results as not finished", () => {
+    const state = unwrap(kickMember(racing("ann", "bob", "cid"), "ann", "bob"));
+    expect(state.race?.racers.map((racer) => racer.id)).toContain("bob");
+    expect(isRaceOver(state, START)).toBe(false);
   });
 });
 
