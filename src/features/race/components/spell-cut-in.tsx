@@ -9,7 +9,7 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 import { characterAllOutPortrait } from "@/lib/characters";
 import { revealedLength, SPELL_CUT_IN_TIMELINE } from "@/lib/cut-in";
 import type { RaceBonusEvent } from "@/types/race";
-import { spellStyle } from "../spell-style";
+import { knownSpellEvents, spellStyle } from "../spell-style";
 
 type SpellCutInProps = {
   dictionary: Dictionary["race"]["spells"];
@@ -23,7 +23,7 @@ type SpellCutInProps = {
  */
 export function SpellCutIn({ dictionary, events, youId }: SpellCutInProps) {
   const [seen, setSeen] = useState<ReadonlySet<number>>(new Set());
-  const next = events.find((event) => (event.receiverId === youId || event.targetId === youId) && !seen.has(event.id));
+  const next = knownSpellEvents(events, dictionary.names).find((event) => (event.receiverId === youId || event.targetId === youId) && !seen.has(event.id));
   if (!next) return null;
   return <SpellBand key={next.id} dictionary={dictionary} event={next} onDone={() => setSeen((current) => new Set(current).add(next.id))} />;
 }

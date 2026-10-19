@@ -2,7 +2,7 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { RaceBonusEvent } from "@/types/race";
-import { spellStyle } from "../spell-style";
+import { knownSpellEvents, spellStyle } from "../spell-style";
 
 type BonusFeedProps = {
   dictionary: Dictionary["race"]["spells"];
@@ -14,7 +14,8 @@ type BonusFeedProps = {
  * Announces catch-up spells on the track (BONUS-03): one line per spell for everyone, in its element's color, and a
  * louder line for the player it acts on.
  */
-export function BonusFeed({ dictionary, events, youId }: BonusFeedProps) {
+export function BonusFeed({ dictionary, events: received, youId }: BonusFeedProps) {
+  const events = knownSpellEvents(received, dictionary.names);
   if (events.length === 0) return null;
   const forYou = events.filter((event) => event.targetId === youId);
 
