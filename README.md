@@ -4,6 +4,27 @@ A competitive, real-time typing race for students, inspired by Monkeytype and Ka
 
 School project (Cégep, 3rd year, web programming).
 
+**Production:** _add the public HTTPS URL here_
+
+### Demo account
+
+| Email | Password |
+| --- | --- |
+| `demo@demo.typestrike.test` | `typestrike-demo` |
+
+Created by `npm run db:seed` with 15 past races, alongside five rivals for the leaderboard. Sign in at `/fr/sign-in` or `/en/sign-in`.
+
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Home page, signed in](docs/images/screenshots/home.png) | ![Lobby with three bots](docs/images/screenshots/lobby.png) |
+| Home: start a race, quick 1v1, dojo, join by code, player dossier and skill radar | Lobby: host, bots of different levels, ready-up, race rules and chat |
+| ![Race in progress](docs/images/screenshots/race.png) | ![Results page](docs/images/screenshots/results.png) |
+| Race: live track with every racer's position and WPM, typing terminal | Results: podium, speed over time, accuracy, keyboard heatmap |
+| ![Profile and race history](docs/images/screenshots/profile.png) | ![Leaderboard](docs/images/screenshots/leaderboard.png) |
+| Profile: personal stats and race history | Leaderboard: top registered players |
+
 ## Features
 
 - **Real-time multiplayer races**: lobbies with a 3 s synchronized countdown, live track with animated runners, live places, results page (podium, speed chart, accuracy, keyboard heatmap).
@@ -25,15 +46,30 @@ Real-time updates use Server-Sent Events from Next.js route handlers (no separat
 
 ## Getting started
 
-Requirements: Node.js 22+ and PostgreSQL (17 is used in CI).
+Requirements: Node.js 22.18+ (scripts in `scripts/` run TypeScript directly) and PostgreSQL (17 is used in CI).
 
 1. Install dependencies: `npm ci`
 2. Start a database: `docker compose up -d` (or use any local PostgreSQL).
 3. Copy `.env.example` to `.env` and set `DATABASE_URL` (the default matches `docker-compose.yml`). OAuth providers are optional: a sign-in button appears only when its client id and secret are set.
 4. Create the tables: `npm run db:migrate`
-5. Start the app: `npm run dev`, then open http://localhost:3000 (redirects to `/fr`; English is at `/en`).
+5. Add demo data (texts, demo account, race history): `npm run db:seed`. Safe to run again.
+6. Start the app: `npm run dev`, then open http://localhost:3000 (redirects to `/fr`; English is at `/en`).
 
 To play from other devices on the same network during development, see `ALLOWED_DEV_ORIGINS` in `.env.example`.
+
+### Environment variables
+
+All are documented in [`.env.example`](.env.example). Never commit `.env`.
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `APP_URL` | in production | Public base URL, used to build OAuth callback URLs |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | no | Google sign-in (button hidden when unset) |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | no | GitHub sign-in |
+| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | no | Discord sign-in |
+| `LOBBY_CAPACITY` | no | Maximum players per lobby (default 30, capped at 60) |
+| `ALLOWED_DEV_ORIGINS` | no | Extra hosts allowed to reach the dev server (LAN play) |
 
 ## Checks
 
@@ -59,6 +95,7 @@ The app needs a long-running Node server (one instance) and PostgreSQL. Both con
 4. Generate a public domain (Settings → Networking). Keep **one replica**.
 
 Migrations run when the app starts (the start command is `npm run db:migrate && npm run start`).
+To create the demo account in production, run `npm run db:seed` once with the production `DATABASE_URL` (for example `railway run npm run db:seed`). It only adds the race texts and the seed accounts.
 
 ### Render (`render.yaml`)
 
