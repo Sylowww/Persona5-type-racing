@@ -431,7 +431,7 @@ const fr: Dictionary = {
     metaTitle: "Salons",
     tape: "Salons publics",
     title: "Chercher un salon",
-    subtitle: "Les salons ouverts à tous. Les salons privés se rejoignent seulement avec leur code ou leur lien.",
+    subtitle: "Les salons ouverts à tous. Les autres se rejoignent avec leur code ou un lien d'invitation.",
     empty: "Aucun salon public pour l'instant. Crées-en un et rends-le public dans ses règles.",
     emptyFiltered: "Aucun salon public dans cette langue pour l'instant.",
     filters: {

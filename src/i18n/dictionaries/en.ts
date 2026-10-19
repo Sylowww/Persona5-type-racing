@@ -429,7 +429,7 @@ const en = {
     metaTitle: "Lobbies",
     tape: "Public lobbies",
     title: "Find a lobby",
-    subtitle: "Lobbies opened to everyone. Private lobbies are only joined with their code or link.",
+    subtitle: "Lobbies opened to everyone. Other lobbies are joined with their code or an invite link.",
     empty: "No public lobby right now. Start one and make it public from its rules.",
     emptyFiltered: "No public lobby in this language right now.",
     filters: {
