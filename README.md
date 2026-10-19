@@ -4,7 +4,7 @@ A competitive, real-time typing race for students, inspired by Monkeytype and Ka
 
 School project (Cégep, 3rd year, web programming).
 
-**Production:** _add the public HTTPS URL here_
+**Production:** https://typestrike.up.railway.app/fr
 
 ### Demo account
 
