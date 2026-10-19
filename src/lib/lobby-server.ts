@@ -1,5 +1,7 @@
 import "server-only";
 import { randomInt } from "node:crypto";
+import { statSync } from "node:fs";
+import path from "node:path";
 import { clearLobbySeats, recordLobbySeat, releaseLobbySeat } from "./lobby-members-db";
 import { createLobbyStore, type LobbyStore } from "./lobby-store";
 import { saveRaceResults } from "./race-history-db";
@@ -9,7 +11,31 @@ import { builtInCorpus } from "./race-texts";
 import type { CorpusText } from "./text-builder";
 
 // One store per Node process. Kept on globalThis so dev hot reloads and separate route bundles share it.
-const globalForLobbies = globalThis as typeof globalThis & { lobbyStore?: LobbyStore; raceCorpus?: readonly CorpusText[] };
+const globalForLobbies = globalThis as typeof globalThis & {
+  lobbyStore?: LobbyStore;
+  lobbyCode?: string;
+  raceCorpus?: readonly CorpusText[];
+  corpusTimer?: ReturnType<typeof setInterval>;
+};
+
+/** Files holding the race rules the store runs. */
+const RULE_FILES = ["lobby-store", "race-engine", "bonuses", "bots", "spells", "typing", "text-builder", "race-settings", "lobby"];
+
+/**
+ * Development only: when the race rules were last edited. A hot reload replaces their modules but not the store kept
+ * on globalThis, which would keep running the old rules; when a rule file changes, the store is made again (lobbies in
+ * progress are dropped). File times rather than module identity, because separate route bundles each load their own
+ * copy of the same modules.
+ */
+function rulesVersion(): string {
+  return RULE_FILES.map((file) => {
+    try {
+      return statSync(path.join(process.cwd(), "src", "lib", `${file}.ts`)).mtimeMs;
+    } catch {
+      return 0;
+    }
+  }).join(":");
+}
 
 /** How often the passages are read again from the database, so new ones show up without a restart. */
 const CORPUS_REFRESH_MS = 10 * 60_000;
@@ -31,11 +57,19 @@ function configFromEnv(): Partial<EngineConfig> {
 }
 
 export function getLobbyStore(): LobbyStore {
+  const code = process.env.NODE_ENV === "production" ? null : rulesVersion();
+  if (code !== null && globalForLobbies.lobbyStore && globalForLobbies.lobbyCode !== code) {
+    console.info("Race rules changed: starting a fresh lobby store.");
+    globalForLobbies.lobbyStore.dispose();
+    globalForLobbies.lobbyStore = undefined;
+  }
   if (!globalForLobbies.lobbyStore) {
-    // Seats recorded by a previous process belong to lobbies that no longer exist.
+    if (code !== null) globalForLobbies.lobbyCode = code;
+    // Seats recorded by a previous process (or store) belong to lobbies that no longer exist.
     clearLobbySeats().catch((error: unknown) => console.error("Could not clear lobby seats", error));
     refreshCorpus();
-    setInterval(refreshCorpus, CORPUS_REFRESH_MS).unref();
+    globalForLobbies.corpusTimer ??= setInterval(refreshCorpus, CORPUS_REFRESH_MS);
+    globalForLobbies.corpusTimer.unref?.();
   }
   globalForLobbies.lobbyStore ??= createLobbyStore({
     config: configFromEnv(),

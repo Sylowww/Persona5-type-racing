@@ -139,7 +139,7 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 
 **Playing on the local network (dev):** add your LAN IP to `ALLOWED_DEV_ORIGINS` in `.env` (e.g. `ALLOWED_DEV_ORIGINS=10.3.3.55`), restart `next dev`, and share the `Network:` URL. Other devices must be on the same network. Use email/password accounts: OAuth callbacks point to `APP_URL`. `next start` over plain HTTP on an IP does not work for sign-in, because the production session cookie is `Secure`.
 
-In development, editing `race-engine.ts` or `lobby-store.ts` does not update the store already created on `globalThis`: restart `next dev` after such changes.
+In development, the store kept on `globalThis` would keep running old rules after a hot reload. `getLobbyStore` checks the modification times of the rule files (`lobby-store`, `race-engine`, `bonuses`, `bots`, `spells`, `typing`, `text-builder`, `race-settings`, `lobby`) and builds a fresh store when one changed; lobbies in progress are dropped. File times, not module identity, because each route bundle loads its own copy of the modules.
 
 ## Data model
 
