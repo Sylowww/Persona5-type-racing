@@ -61,12 +61,16 @@ tests/
 - `lib/db-schema.ts` holds the typed table models. Schema changes are still plain SQL files in `db/migrations/` (`NNN_name.sql`), applied in order by `npm run db:migrate` (`scripts/migrate.mjs`, tracked in `schema_migrations`). A schema change is a new migration plus the matching edit in `lib/db-schema.ts`. Never edit an applied migration; add a new one.
 - Local database: `docker compose up -d` (or any Postgres), copy `.env.example` to `.env`, then `npm run db:migrate`. `npm run db:seed` (`scripts/seed.ts`) then adds demo data: the race text corpus and the demo account from the README, with no races so its stats stay empty until someone plays; `npm run db:seed -- --rivals` also creates five rival accounts with 15 past races each (local use: production has real players). It can be run again: texts are upserted and only the seed accounts (emails at `demo.typestrike.test`) are recreated, so running it again also resets the demo account's races, and running it without `--rivals` removes earlier rivals.
 - `scripts/*.ts` run directly with Node's built-in TypeScript support (Node 22.18+), so they import app modules with a `.ts` extension and no `@/` alias.
-- Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race), `user_avatars` (uploaded profile pictures), `race_texts` (corpus of coherent texts per language, filled by the seed; races still pick from the built-in list in `lib/race-texts.ts` until CONF-03 is wired).
+- Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race), `user_avatars` (uploaded profile pictures), `race_texts` (corpus of coherent passages per language, filled by the seed and read by the lobby server), `lobby_members` (who is in which lobby right now: its primary key keeps a person in one lobby, SALLE-06).
 - Leaderboard: `lib/leaderboard-db.ts` (server-only) ranks registered players with at least one saved race by record WPM, then average WPM, then name, and reads one page of 10 at a time (`LIMIT`/`OFFSET`, top 100 only). Page math and `?page=` parsing are pure, in `lib/leaderboard.ts`.
 - `lib/users.ts` is the server-only data access for accounts and sessions. Pure auth helpers (scrypt password hashing, session tokens, input validation) live in `lib/auth/` and are unit tested.
 - Profile edits (`features/profile/actions.ts`): `changeUsername` validates like sign-up and relies on the unique index for taken names (`renameUser`); the new name shows at once in the player's current lobby (`store.setName`). `uploadAvatar` checks the size, then the real type from the file's first bytes (`lib/avatar.ts`: JPEG, PNG or WebP, 2 MB max; the browser's type and file name are ignored), stores the bytes in `user_avatars` (the server disk is not persistent) and sets `users.avatar_url` to `/api/avatars/{userId}/{version}`. That route serves the bytes with `nosniff` and an immutable cache (the version changes on every upload). `PlayerAvatar` displays it with `next/image`, which resizes it. Server Action bodies are capped at 3 MB in `next.config.ts`.
 - Lobbies and races are in memory only (see Multiplayer). When a race ends, the store calls `onRaceFinished` and `lib/race-history-db.ts` saves one `race_results` row per registered player (in the background; a database error is only logged). Pure helpers (`recordFromResult`, `summarizeRaces`, guest list parsing) are in `lib/race-history.ts`.
 - Guests' races are not stored on the server: the results page saves them in `sessionStorage` (`lib/guest-races.ts`, key `guest-races`, last 50 races), read on the home page with `features/home/use-guest-races.ts`. They are lost when the tab is closed.
+
+## Input validation
+
+Every input from a client is checked on the server with a Zod schema (`lib/schemas.ts`, TECH-07): forms (`lib/auth/forms.ts`), Server Function arguments (`features/*/actions.ts`), route handler parameters and bodies (`app/api/`, including the OAuth flow cookie), race settings changes (`parseRaceSettings`, which also refuses unknown fields) and the keystroke batches of the real-time channel (`parseInputBatch`). Schemas carry the error codes the UI translates, so the parsers keep returning codes rather than exceptions.
 
 ## Authentication
 
@@ -102,6 +106,10 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 **Spectators** (SALLE-01, SALLE-05): members have a `role`. `player` members (bots included) take the seats and race; `spectator` members take no seat, never ready up, and watch the track without the typing area on the race page (no `race.you`). Any member of a custom lobby switches with `setRole` while it waits (taking a seat needs a free one). Once the seats are taken, newcomers join as spectators, up to `MAX_SPECTATORS` (30). A race needs two racers with at least one human (`canStartRace`) and stops once no human racer is left, even with spectators watching.
 
 **Host controls**: kick (`kickMember`: the player leaves, joins `kicked` so the code and their link refuse them, SALLE-07), close (`closeLobby`, outside a race: everyone gets a null view and the lobby is deleted, COURSE-11), seats (`setCapacity`, 2 to 30) and the rules. Every one checks `hostId` on the server (SEC-01).
+
+**One lobby per person** (SALLE-06): every way into a lobby (code, browser, invite link, quick race) first takes the person's seat in `lobby_members` (`takeSeat` / `claimLobbySeat`: an insert that the primary key refuses when they already sit elsewhere). Then the player is asked to leave their current lobby (a "leave it and join" button or a confirmation), and only joins once they agree. The store reports every move (`onMembership`), so kicks, closes and expired seats free the row too; the table is cleared when the server starts, since lobbies live in memory.
+
+**Quick race** (JOIN-03): « Faire une course » on `/lobbies` joins the public, open, not full lobby with the fewest free seats, the oldest on a tie (`quickRaceLobby`). With none open, a registered player may open a public lobby with the default settings (`createPublicLobby`); a guest only sees that none is open.
 
 **Code guessing** (SALLE-10): `lobbyCodeLimiter()` allows 10 code attempts per minute per address, counted on the join form and when a non-member opens a lobby URL (whether the lobby exists or not). `LOBBY_CODE_ATTEMPTS_PER_MINUTE` raises it for the E2E server.
 
@@ -143,6 +151,7 @@ erDiagram
   users ||--o{ sessions : "holds"
   users ||--o{ race_results : "finished"
   users ||--o| user_avatars : "uploaded"
+  users ||--o| lobby_members : "is in"
 
   users {
     uuid id PK
@@ -174,6 +183,11 @@ erDiagram
     text content_type "image/jpeg | image/png | image/webp"
     bytea data "2 MB max"
     timestamptz updated_at
+  }
+  lobby_members {
+    uuid user_id PK, FK "one lobby per person"
+    text lobby_code
+    timestamptz joined_at
   }
   race_texts {
     uuid id PK
