@@ -264,7 +264,12 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
             racerCount={racers.length}
           />
 
-          {race && <BonusFeed dictionary={dictionary.spells} events={race.bonusEvents} youId={view.youId} />}
+          {/* A fixed-height slot, so announcements never push the track and the typing area around. */}
+          {race?.bonusesOn && (
+            <div className="relative h-[92px] overflow-hidden">
+              <BonusFeed dictionary={dictionary.spells} events={race.bonusEvents} youId={view.youId} />
+            </div>
+          )}
 
           <RaceTrack
             dictionary={dictionary.track}
@@ -323,7 +328,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
               <div
                 className={`relative min-h-[220px] bg-surface-container-low px-4 py-7 md:px-7 ${
                   isFocused ? "outline-2 outline-secondary-fixed" : ""
-                } ${stun === "elec" ? "spell-shake" : ""}`}
+                }`}
               >
                 {/* In blocking mode a wrong key is not typed: the character to fix is marked instead. */}
                 <TypingText
