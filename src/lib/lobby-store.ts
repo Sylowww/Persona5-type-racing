@@ -14,6 +14,7 @@ import {
   createLobby,
   isMember,
   joinLobby,
+  kickMember,
   leaveLobby,
   publicLobbyFor,
   removeBot,
@@ -280,6 +281,11 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     leave(code: string, userId: string) {
       update(code, (state) => leaveLobby(state, userId));
+    },
+
+    /** The host removes a player, who then receives a null view and cannot join again. */
+    kick(code: string, userId: string, targetId: string): StoreError | null {
+      return updateOutcome(code, (state) => kickMember(state, userId, targetId));
     },
 
     setReady(code: string, userId: string, isReady: boolean): StoreError | null {

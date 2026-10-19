@@ -17,6 +17,8 @@ type LobbyRosterProps = {
   isPending: boolean;
   onAddBot: (difficulty: BotDifficulty) => void;
   onRemoveBot: (botId: string) => void;
+  /** Set when the viewer is host: removes another player for good. */
+  onKick: ((playerId: string) => void) | null;
 };
 
 export function LobbyRoster({
@@ -29,6 +31,7 @@ export function LobbyRoster({
   isPending,
   onAddBot,
   onRemoveBot,
+  onKick,
 }: LobbyRosterProps) {
   const { roster } = dictionary;
   const openSlots = openSlotCount(players.length, capacity);
@@ -51,7 +54,15 @@ export function LobbyRoster({
             player={player}
             slot={index + 1}
             isYou={player.id === youId}
-            onRemove={canManageBots && player.bot !== null ? () => onRemoveBot(player.id) : null}
+            onRemove={
+              player.bot !== null
+                ? canManageBots
+                  ? () => onRemoveBot(player.id)
+                  : null
+                : onKick && player.id !== youId
+                  ? () => onKick(player.id)
+                  : null
+            }
             isPending={isPending}
           />
         ))}

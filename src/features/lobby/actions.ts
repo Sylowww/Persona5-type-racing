@@ -10,7 +10,7 @@ import type { QuickMatchStatus, StoreError } from "@/lib/lobby-store";
 import { botForSpeed } from "@/lib/matchmaking";
 import { getPlayerStats } from "@/lib/race-history-db";
 
-export type JoinErrorCode = "invalidCode" | "lobbyNotFound" | "lobbyFull" | "privateLobby" | "raceInProgress";
+export type JoinErrorCode = "invalidCode" | "lobbyNotFound" | "lobbyFull" | "privateLobby" | "raceInProgress" | "kicked";
 
 export type JoinFormState = { error: JoinErrorCode | null; code: string };
 
@@ -48,7 +48,9 @@ export async function joinLobby(_previous: JoinFormState, form: FormData): Promi
 
   const player = await requirePlayer(locale, `/${locale}/lobby/${code}`);
   const error = getLobbyStore().join(code, player);
-  if (error === "lobbyNotFound" || error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress") return { error, code: typed };
+  if (error === "lobbyNotFound" || error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress" || error === "kicked") {
+    return { error, code: typed };
+  }
   if (error) return { error: "lobbyNotFound", code: typed };
   redirect(`/${locale}/lobby/${code}`);
 }
@@ -96,6 +98,12 @@ async function lobbyCommand(codeValue: unknown, run: (code: string, userId: stri
   return run(code, user.id);
 }
 
+/** Host only: removes a player from the lobby for good. */
+export async function kickLobbyMember(code: string, targetId: string): Promise<StoreError | null> {
+  if (typeof targetId !== "string") return "notMember";
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().kick(lobby, userId, targetId));
+}
+
 export async function setLobbyReady(code: string, isReady: boolean): Promise<StoreError | null> {
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().setReady(lobby, userId, isReady === true));
 }
@@ -135,7 +143,7 @@ export async function joinListedLobby(codeValue: string, localeValue: string): P
   if (!code) return "lobbyNotFound";
   const player = await requirePlayer(locale, `/${locale}/lobby/${code}`);
   const error = getLobbyStore().join(code, player);
-  if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress") return error;
+  if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress" || error === "kicked") return error;
   if (error) return "lobbyNotFound";
   redirect(`/${locale}/lobby/${code}`);
 }

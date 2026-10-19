@@ -90,6 +90,7 @@ const fr: Dictionary = {
         lobbyFull: "Ce salon est plein.",
         raceInProgress: "Une course est en cours. Réessaie quand elle sera terminée.",
         privateLobby: "Cette course est privée et ne peut pas être rejointe avec son code.",
+        kicked: "L'hôte t'a retiré de ce salon.",
       },
     },
     typingPreview: {
@@ -164,6 +165,7 @@ const fr: Dictionary = {
       invite: "Invite un voleur fantôme",
       copyCode: "Clique pour copier le code",
       copied: "Code copié!",
+      kick: "Retirer {name} du salon",
     },
     bots: {
       slot: "Bot // J{slot}",
@@ -437,6 +439,7 @@ const fr: Dictionary = {
       lobbyFull: "Ce salon est complet.",
       privateLobby: "Ce salon n'est plus public.",
       raceInProgress: "Une course est en cours. Réessaie quand elle sera terminée.",
+      kicked: "L'hôte t'a retiré de ce salon.",
     },
   },
   quick: {

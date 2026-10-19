@@ -88,6 +88,7 @@ const en = {
         lobbyFull: "This lobby is full.",
         raceInProgress: "A race is in progress. Try again when it ends.",
         privateLobby: "This race is private and cannot be joined with its code.",
+        kicked: "The host removed you from this lobby.",
       },
     },
     typingPreview: {
@@ -162,6 +163,7 @@ const en = {
       invite: "Invite a phantom operative",
       copyCode: "Click to copy lobby code",
       copied: "Code copied!",
+      kick: "Remove {name} from the lobby",
     },
     bots: {
       slot: "Bot // P{slot}",
@@ -435,6 +437,7 @@ const en = {
       lobbyFull: "This lobby is full.",
       privateLobby: "This lobby is no longer public.",
       raceInProgress: "A race is in progress. Try again when it ends.",
+      kicked: "The host removed you from this lobby.",
     },
   },
   quick: {

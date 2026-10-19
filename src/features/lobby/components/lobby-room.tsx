@@ -8,6 +8,7 @@ import { canStartRace, countReady, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from
 import type { LobbyView } from "@/types/lobby";
 import {
   addLobbyBot,
+  kickLobbyMember,
   leaveLobby,
   removeLobbyBot,
   sendLobbyMessage,
@@ -93,6 +94,7 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
             isPending={isPending}
             onAddBot={(difficulty) => startTransition(async () => void (await addLobbyBot(code, difficulty)))}
             onRemoveBot={(botId) => startTransition(async () => void (await removeLobbyBot(code, botId)))}
+            onKick={isHost && view.kind === "custom" ? (playerId) => startTransition(async () => void (await kickLobbyMember(code, playerId))) : null}
           />
         </div>
         <div className="flex flex-col gap-4 xl:col-span-4">
