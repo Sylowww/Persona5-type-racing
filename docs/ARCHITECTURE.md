@@ -57,8 +57,8 @@ tests/
 
 ## Data
 
-- PostgreSQL via `pg`; `lib/db.ts` exposes a lazy `getPool()` (server-only, needs `DATABASE_URL`).
-- Schema changes are plain SQL files in `db/migrations/` (`NNN_name.sql`), applied in order by `npm run db:migrate` (`scripts/migrate.mjs`, tracked in `schema_migrations`). Never edit an applied migration; add a new one.
+- PostgreSQL through the Drizzle ORM (`drizzle-orm` over the `pg` driver). `lib/db.ts` exposes a lazy `getDb()` (server-only, needs `DATABASE_URL`); queries use the Drizzle query builder, never raw SQL strings.
+- `lib/db-schema.ts` holds the typed table models. Schema changes are still plain SQL files in `db/migrations/` (`NNN_name.sql`), applied in order by `npm run db:migrate` (`scripts/migrate.mjs`, tracked in `schema_migrations`). A schema change is a new migration plus the matching edit in `lib/db-schema.ts`. Never edit an applied migration; add a new one.
 - Local database: `docker compose up -d` (or any Postgres), copy `.env.example` to `.env`, then `npm run db:migrate`.
 - Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race), `user_avatars` (uploaded profile pictures).
 - Leaderboard: `lib/leaderboard-db.ts` (server-only) ranks registered players with at least one saved race by record WPM, then average WPM, then name, and reads one page of 10 at a time (`LIMIT`/`OFFSET`, top 100 only). Page math and `?page=` parsing are pure, in `lib/leaderboard.ts`.
