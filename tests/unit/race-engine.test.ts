@@ -31,7 +31,9 @@ import {
   type Outcome,
 } from "../../src/lib/race-engine";
 import type { CharacterId } from "../../src/types/character";
-import type { InputEvent } from "../../src/types/race";
+import type { InputEvent, SpellId } from "../../src/types/race";
+import { seededRandom } from "../../src/lib/bots";
+import { drawSpell } from "../../src/lib/spells";
 
 const TEXT = "go now";
 const T0 = 1_000_000;
@@ -296,14 +298,25 @@ describe("forfeits and statuses (COURSE-07, COURSE-10, RES-02)", () => {
 
 describe("catch-up spells (BONUS-01 to BONUS-04)", () => {
   const LONG = "one two three four five six seven eight nine ten eleven twelve";
+  const FIRST_CHECKPOINT = LONG.slice(0, 16);
 
-  /** Ann leads; bob races as `character` and casts its spell when ann passes a checkpoint. */
-  function spellRace(character: CharacterId): LobbyState {
+  /** A race random whose seed makes bob draw `spell` at the first checkpoint (16 characters behind ann). */
+  function randomFor(spell: SpellId): () => number {
+    const gap = 16 / LONG.length;
+    for (let step = 0; step < 5_000; step++) {
+      const value = step / 5_000;
+      if (drawSpell(gap, seededRandom(Math.floor(value * 2 ** 31) + 1)).id === spell) return () => value;
+    }
+    throw new Error(`no seed draws ${spell}`);
+  }
+
+  /** Ann leads; bob lags and draws `spell` when ann passes the first checkpoint. */
+  function spellRace(spell: SpellId, character: CharacterId = "panther"): LobbyState {
     let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: "ann", name: "ann" }, now: T0 });
     state = unwrap(joinLobby(state, { id: "bob", name: "bob", character }, T0));
     state = unwrap(updateSettings(state, "ann", { powers: true }));
     for (const id of ["ann", "bob"]) state = setConnected(state, id, true, T0);
-    state = unwrap(startRace(readyAll(state), "ann", LONG, T0));
+    state = unwrap(startRace(readyAll(state), "ann", LONG, T0, randomFor(spell)));
     return advance(state, START);
   }
 
@@ -317,49 +330,44 @@ describe("catch-up spells (BONUS-01 to BONUS-04)", () => {
     expect(state.race?.bonusEvents).toEqual([]);
   });
 
-  it("Mona's Garu blows words off the lagging racer's own text, at most three spells per race", () => {
-    let state = spellRace("mona");
-    state = type(state, "ann", LONG.slice(0, 16), 1, START + 3_000);
+  it("Garu blows words off the lagging racer's own text, cast by their character's Persona", () => {
+    const state = type(spellRace("garu", "panther"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
     expect(racerOf(state, "bob")?.text).toBe("one two three four five six seven eight nine");
     expect(viewFor(state, "bob", START + 3_000)?.race?.text).toBe(racerOf(state, "bob")?.text);
     expect(viewFor(state, "ann", START + 3_000)?.race?.bonusEvents).toMatchObject([
-      { spell: "garu", element: "wind", persona: "Zorro", receiver: "bob", target: "bob", receiverCharacter: "mona" },
+      { spell: "garu", element: "wind", persona: "Carmen", receiver: "bob", target: "bob", receiverCharacter: "panther" },
     ]);
+  });
+
+  it("gives at most three spells per race", () => {
+    let state = type(spellRace("garu"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
     state = type(state, "ann", LONG.slice(16, 50), 2, START + 8_000);
     expect(racerOf(state, "bob")?.bonuses).toBe(3);
     expect(state.race?.checkpoints).toBe(3);
   });
 
-  it("Skull's Zio stuns the leader: their keys do nothing for a second", () => {
-    let state = spellRace("skull");
-    state = type(state, "ann", LONG.slice(0, 16), 1, START + 3_000);
-    expect(racerOf(state, "ann")?.stun).toEqual({ element: "elec", until: START + 4_000 });
+  it("Zio stuns the leader: their keys do nothing for a moment", () => {
+    const state = type(spellRace("zio"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
+    expect(racerOf(state, "ann")?.stun).toEqual({ element: "elec", until: START + 4_500 });
     const stunned = type(state, "ann", "x", 2, START + 3_500);
-    expect(racerOf(stunned, "ann")).toMatchObject({ inputSeq: 2, typing: { typed: LONG.slice(0, 16) } });
-    expect(racerOf(type(state, "ann", LONG[16], 2, START + 4_100), "ann")?.typing.typed).toBe(LONG.slice(0, 17));
+    expect(racerOf(stunned, "ann")).toMatchObject({ inputSeq: 2, typing: { typed: FIRST_CHECKPOINT } });
+    expect(racerOf(type(state, "ann", LONG[16], 2, START + 4_600), "ann")?.typing.typed).toBe(LONG.slice(0, 17));
   });
 
-  it("Queen's Frei adds words to the leader's text, and progress follows it (BONUS-04)", () => {
-    let state = spellRace("queen");
-    state = type(state, "ann", LONG.slice(0, 16), 1, START + 3_000);
+  it("Frei adds words to the leader's text, and progress follows it (BONUS-04)", () => {
+    const state = type(spellRace("frei"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
     const ann = racerOf(state, "ann");
     expect(ann?.text.startsWith(LONG)).toBe(true);
     expect(ann?.text.split(" ")).toHaveLength(15);
     expect(viewFor(state, "bob", START + 3_000)?.race?.racers.find((racer) => racer.id === "ann")?.progress).toBeCloseTo(16 / (ann?.text.length ?? 1));
   });
 
-  it("Panther's Agi sets the leader's next words on fire for a few seconds", () => {
-    const state = type(spellRace("panther"), "ann", LONG.slice(0, 16), 1, START + 3_000);
+  it("Agi hides the leader's next words for a few seconds", () => {
+    const state = type(spellRace("agi"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
     expect(viewFor(state, "ann", START + 3_000)?.race?.you?.hex).toEqual({ element: "fire", until: START + 7_000 });
   });
 
-  it("Joker's Wild Card casts another character's spell", () => {
-    const state = type(spellRace("joker"), "ann", LONG.slice(0, 16), 1, START + 3_000);
-    const [event] = viewFor(state, "ann", START + 3_000)?.race?.bonusEvents ?? [];
-    expect(event).toMatchObject({ wildCard: true, persona: "Arsène", receiver: "bob" });
-  });
-
-  it("lets a bot cast a spell and still finish its race", () => {
+  it("lets a bot draw a spell and still finish its race", () => {
     let state = unwrap(updateSettings(lobbyWith("ann"), "ann", { powers: true }));
     state = unwrap(addBot(unwrap(setReady(state, "ann", true)), "ann", "novice"));
     state = advance(unwrap(startRace(state, "ann", LONG, T0, () => 0.5)), START);

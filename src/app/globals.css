@@ -480,7 +480,7 @@
 
 .spell-hex-psy {
   color: var(--color-spell-psy);
-  filter: blur(3px);
+  filter: blur(5px);
 }
 
 /* Kouga: a blinding flash over the whole typing area (an overlay, not a hex on the words). */
@@ -490,7 +490,7 @@
 
 .spell-hex-curse {
   color: var(--color-spell-curse);
-  filter: blur(3px) brightness(0.6);
+  filter: blur(4px) brightness(0.35);
 }
 
 .spell-stun-elec {

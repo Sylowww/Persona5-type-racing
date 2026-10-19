@@ -1,11 +1,12 @@
-// Persona spells: the catch-up bonus a lagging racer casts is their character's signature skill (BONUS-02).
-// Each spell is one of a few effects, so the race engine only knows "shorten", "lengthen", "stun" and "hex".
+// Persona spells: the catch-up bonuses (BONUS-02), drawn Mario Kart style. Every racer draws from the same pool, so no
+// character is stronger than another; the further behind the racer is, the better their odds of a big spell. The
+// racer's character only decides which Persona casts it on screen.
 import type { CharacterId } from "@/types/character";
 import type { SpellElement, SpellId } from "@/types/race";
 
 /**
  * `shorten`: removes words from the end of the caster's own text (helps them). `lengthen`: adds words to the leader's
- * text. `stun`: the leader's keys do nothing for a moment. `hex`: the leader's next words are hard to read for a while.
+ * text. `stun`: the leader's keys do nothing for a moment. `hex`: the leader's next words are hidden or hard to read.
  */
 export type SpellEffect =
   | { type: "shorten"; words: number }
@@ -13,43 +14,65 @@ export type SpellEffect =
   | { type: "stun"; ms: number }
   | { type: "hex"; ms: number };
 
-export type Spell = { id: SpellId; persona: string; element: SpellElement; effect: SpellEffect };
+/** `small` spells cost or save about 1.5 to 2 s, `big` ones about 3 s (for a racer near 50 WPM). */
+export type SpellTier = "small" | "big";
 
-const spell = (id: SpellId, persona: string, element: SpellElement, effect: SpellEffect): Spell => ({ id, persona, element, effect });
+export type Spell = { id: SpellId; element: SpellElement; tier: SpellTier; effect: SpellEffect };
 
-/**
- * Each character's spell, true to their Persona's specialty: Mona's wind (Zorro), Skull's lightning (Captain Kidd),
- * Panther's fire (Carmen), Fox's ice (Goemon), Queen's nuclear blasts (Johanna), Oracle's navigation (Necronomicon),
- * Noir's psychokinesis (Milady), Crow's blessing light (Robin Hood), Violet's sword dance (Cendrillon), Black Mask's
- * curse (Loki) and Sophia's healing (Pandora). Joker has no spell of his own: his Wild Card casts one of theirs.
- */
-export const characterSpells: Record<Exclude<CharacterId, "joker">, Spell> = {
-  mona: spell("garu", "Zorro", "wind", { type: "shorten", words: 3 }),
-  skull: spell("zio", "Captain Kidd", "elec", { type: "stun", ms: 1_000 }),
-  panther: spell("agi", "Carmen", "fire", { type: "hex", ms: 4_000 }),
-  fox: spell("bufu", "Goemon", "ice", { type: "stun", ms: 1_500 }),
-  queen: spell("frei", "Johanna", "nuclear", { type: "lengthen", words: 3 }),
-  oracle: spell("navi", "Necronomicon", "support", { type: "shorten", words: 2 }),
-  noir: spell("psi", "Milady", "psy", { type: "hex", ms: 5_000 }),
+const spell = (id: SpellId, element: SpellElement, tier: SpellTier, effect: SpellEffect): Spell => ({ id, element, tier, effect });
+
+/** The pool every racer draws from. Skill names come from Persona 5 (Royal and Strikers). */
+export const spellPool: readonly Spell[] = [
+  spell("zio", "elec", "small", { type: "stun", ms: 1_500 }),
+  spell("psi", "psy", "small", { type: "hex", ms: 4_000 }),
+  spell("eiga", "curse", "small", { type: "hex", ms: 4_000 }),
+  spell("swordDance", "phys", "small", { type: "lengthen", words: 2 }),
+  spell("navi", "support", "small", { type: "shorten", words: 2 }),
+  spell("mediarama", "heal", "small", { type: "shorten", words: 2 }),
+  spell("bufu", "ice", "big", { type: "stun", ms: 2_500 }),
+  spell("agi", "fire", "big", { type: "hex", ms: 4_000 }),
   // A full blinding flash: shorter than the other hexes, since it hides even the word being typed.
-  crow: spell("kouga", "Robin Hood", "bless", { type: "hex", ms: 2_500 }),
-  violet: spell("swordDance", "Cendrillon", "phys", { type: "lengthen", words: 2 }),
-  blackMask: spell("eiga", "Loki", "curse", { type: "hex", ms: 4_000 }),
-  sophia: spell("mediarama", "Pandora", "heal", { type: "shorten", words: 2 }),
+  spell("kouga", "bless", "big", { type: "hex", ms: 2_500 }),
+  spell("frei", "nuclear", "big", { type: "lengthen", words: 3 }),
+  spell("garu", "wind", "big", { type: "shorten", words: 3 }),
+];
+
+/** Each character's Persona, shown when they cast a spell. */
+export const characterPersonas: Record<CharacterId, string> = {
+  joker: "Arsène",
+  mona: "Zorro",
+  skull: "Captain Kidd",
+  panther: "Carmen",
+  fox: "Goemon",
+  queen: "Johanna",
+  oracle: "Necronomicon",
+  noir: "Milady",
+  crow: "Robin Hood",
+  violet: "Cendrillon",
+  blackMask: "Loki",
+  sophia: "Pandora",
 };
 
-const castable = Object.values(characterSpells);
+/** Chance of a big spell: 20% right behind the leader, rising with the gap up to 85% half a text behind or more. */
+export function bigSpellChance(gap: number): number {
+  return Math.min(0.85, Math.max(0.2, 0.2 + (gap / 0.5) * 0.65));
+}
 
-/** Joker's Persona, shown when his Wild Card picks another character's spell. */
-export const WILD_CARD_PERSONA = "Arsène";
-
-/** The spell `character` casts, and whether it came from Joker's Wild Card (then picked by `random`). */
-export function spellFor(character: CharacterId, random: () => number): { spell: Spell; wildCard: boolean } {
-  if (character !== "joker") return { spell: characterSpells[character], wildCard: false };
-  return { spell: castable[Math.floor(random() * castable.length)], wildCard: true };
+/**
+ * Draws a spell for a racer `gap` behind the leader (in share of the text, 0 to 1): first the tier, from the gap,
+ * then one spell of that tier at random.
+ */
+export function drawSpell(gap: number, random: () => number): Spell {
+  const tier: SpellTier = random() < bigSpellChance(gap) ? "big" : "small";
+  const choices = spellPool.filter((candidate) => candidate.tier === tier);
+  return choices[Math.floor(random() * choices.length)];
 }
 
 /** Whether a spell acts on the caster (support) rather than on the leader. */
 export function isSelfSpell(cast: Spell): boolean {
   return cast.effect.type === "shorten";
+}
+
+export function spellById(id: SpellId): Spell | undefined {
+  return spellPool.find((candidate) => candidate.id === id);
 }

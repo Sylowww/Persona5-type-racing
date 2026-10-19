@@ -96,7 +96,7 @@ During the 3 s countdown, Mona slides in on a tilted black band (`features/race/
 
 Catch-up spells (`lib/spells.ts`) show three ways, all in the spell's element color (`--color-spell-*` tokens in `globals.css`, icon and classes in `features/race/spell-style.ts`):
 
-- **Cut-in** (`features/race/components/spell-cut-in.tsx`): for the caster and the target only, about 1.3 s on the shared cut-in band (`SPELL_CUT_IN_TIMELINE`): the caster's all-out portrait framed in the element color with its icon, the tag `Name // Persona` and the skill shouted in the bubble (« AGI! », or « WILD CARD: AGI! » for Joker). One at a time, each once.
+- **Cut-in** (`features/race/components/spell-cut-in.tsx`): for the caster and the target only, about 1.3 s on the shared cut-in band (`SPELL_CUT_IN_TIMELINE`): the caster's all-out portrait framed in the element color with its icon, the tag `Name // Persona` (their character's Persona casts whatever spell they drew) and the skill shouted in the bubble (« AGI! »). One at a time, each once.
 - **Track feed** (`bonus-feed.tsx`): a chip per spell for everyone for 4 s, and a louder banner for the player it acts on.
 - **Effects on the target**: hexes restyle the words after the cursor (`.spell-hex-fire` hides them behind flickering flames, `-psy` blurs and wobbles, `-curse` darkens), and Kouga's `.spell-flash-bless` whites out the whole typing area; stuns cover the typing area (`.spell-stun-elec` zaps and shakes it, `.spell-stun-ice` frosts it) with « Keys locked ». Reduced motion: colors and blur only, no flicker, wobble or shake.
 

@@ -34,7 +34,7 @@ import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
 import { canStartRace, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-settings";
 import { rankRacers } from "./results";
-import { characterSpells, isSelfSpell, spellFor, WILD_CARD_PERSONA, type Spell } from "./spells";
+import { characterPersonas, drawSpell, isSelfSpell, spellById, type Spell } from "./spells";
 import { inputBatchSchema, memberRoleSchema, visibilitySchema } from "./schemas";
 import {
   accuracy,
@@ -129,7 +129,6 @@ export type Racer = {
 export type BonusEvent = {
   id: number;
   spell: SpellId;
-  wildCard: boolean;
   /** The lagging racer who cast it. */
   receiverId: string;
   /** Who it acts on: the caster for a support spell, the leader otherwise. */
@@ -744,9 +743,9 @@ function withSample(racer: Racer, race: Race, typing: TypingState, now: number, 
 export const BONUS_ANNOUNCE_MS = 4_000;
 
 /**
- * Hands out catch-up spells when the leader passes a checkpoint (BONUS-01): each lagging racer casts their character's
- * Persona skill (`lib/spells.ts`), which either helps them or slows the leader. Bots cast and suffer spells like
- * players (BOT-04).
+ * Hands out catch-up spells when the leader passes a checkpoint (BONUS-01): each lagging racer draws one from the shared
+ * pool, with better odds of a big spell the further behind they are (`drawSpell`), which either helps them or slows the
+ * leader. Bots draw and suffer spells like players (BOT-04).
  */
 function applyCatchUp(state: LobbyState, now: number): LobbyState {
   const race = state.race;
@@ -763,15 +762,16 @@ function applyCatchUp(state: LobbyState, now: number): LobbyState {
   for (let checkpoint = race.checkpoints; checkpoint < reached; checkpoint++) {
     const contenders = racers.filter((racer) => !isOut(racer)).map((racer) => ({ id: racer.id, progress: progressOf(racer), bonuses: racer.bonuses }));
     const { leaderId, receiverIds } = pickBonusReceivers(contenders);
+    const progressById = new Map(contenders.map((contender) => [contender.id, contender.progress]));
     for (const receiverId of receiverIds) {
-      const receiver = racers.find((racer) => racer.id === receiverId);
-      if (!leaderId || !receiver) continue;
+      if (!leaderId) continue;
       const id = events.length + 1;
-      const { spell, wildCard } = spellFor(receiver.character, seededRandom(race.seed + id));
+      const gap = (progressById.get(leaderId) ?? 0) - (progressById.get(receiverId) ?? 0);
+      const spell = drawSpell(gap, seededRandom(race.seed + id));
       const targetId = isSelfSpell(spell) ? receiverId : leaderId;
       update(receiverId, (racer) => ({ ...racer, bonuses: racer.bonuses + 1 }));
       update(targetId, (target) => applySpell(target, spell, race, id, now));
-      events.push({ id, spell: spell.id, wildCard, receiverId, targetId, at: now });
+      events.push({ id, spell: spell.id, receiverId, targetId, at: now });
     }
   }
   return { ...state, race: { ...race, racers, checkpoints: reached, bonusEvents: events } };
@@ -955,16 +955,16 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
       .filter((event) => now - event.at < BONUS_ANNOUNCE_MS)
       .map((event) => {
         const caster = race.racers.find((racer) => racer.id === event.receiverId);
-        const spell = Object.values(characterSpells).find((candidate) => candidate.id === event.spell);
+        const character = caster?.character ?? DEFAULT_CHARACTER;
         return {
           id: event.id,
           spell: event.spell,
-          element: spell?.element ?? "support",
-          persona: event.wildCard ? WILD_CARD_PERSONA : (spell?.persona ?? ""),
-          wildCard: event.wildCard,
+          element: spellById(event.spell)?.element ?? "support",
+          // The caster's own Persona casts whatever spell they drew.
+          persona: characterPersonas[character],
           receiverId: event.receiverId,
           receiver: nameOf(event.receiverId),
-          receiverCharacter: caster?.character ?? DEFAULT_CHARACTER,
+          receiverCharacter: character,
           targetId: event.targetId,
           target: nameOf(event.targetId),
         };

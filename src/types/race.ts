@@ -43,7 +43,7 @@ export type RaceYou = {
   stun: SpellMark | null;
 };
 
-/** Persona skills cast as catch-up bonuses (`lib/spells.ts`). Names come from Persona 5 and are not translated. */
+/** Persona skills drawn as catch-up bonuses (`lib/spells.ts`). Names come from Persona 5 and are not translated. */
 export type SpellId = "garu" | "zio" | "agi" | "bufu" | "frei" | "navi" | "psi" | "kouga" | "swordDance" | "eiga" | "mediarama";
 
 /** Visual family of a spell: its color, icon and effect on the target. */
@@ -57,9 +57,8 @@ export type RaceBonusEvent = {
   id: number;
   spell: SpellId;
   element: SpellElement;
-  /** The Persona that cast it (Arsène when Joker's Wild Card picked another character's spell). */
+  /** The caster's Persona, which casts the spell on screen. */
   persona: string;
-  wildCard: boolean;
   receiverId: string;
   receiver: string;
   receiverCharacter: CharacterId;
