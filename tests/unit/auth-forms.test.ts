@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSignInForm, parseSignUpForm } from "../../src/lib/auth/forms";
+import { parseGuestForm, parseSignInForm, parseSignUpForm, safeNextPath } from "../../src/lib/auth/forms";
 import { sessionCookieOptions } from "../../src/lib/auth/session-token";
 
 function form(values: Record<string, string>) {
@@ -75,5 +75,35 @@ describe("sessionCookieOptions", () => {
 
   it("is Secure in production", () => {
     expect(sessionCookieOptions(expires, true).secure).toBe(true);
+  });
+});
+
+describe("parseGuestForm", () => {
+  it("accepts a nickname with the username rules", () => {
+    expect(parseGuestForm(form({ username: "  Kitty_99 " }))).toEqual({ ok: true, values: { username: "Kitty_99" } });
+  });
+
+  it("rejects a missing, too short, too long or invalid nickname", () => {
+    expect(parseGuestForm(form({}))).toEqual({ ok: false, errors: { username: "required" } });
+    expect(parseGuestForm(form({ username: "ab" }))).toEqual({ ok: false, errors: { username: "usernameLength" } });
+    expect(parseGuestForm(form({ username: "a".repeat(21) }))).toEqual({ ok: false, errors: { username: "usernameLength" } });
+    expect(parseGuestForm(form({ username: "no spaces" }))).toEqual({ ok: false, errors: { username: "usernameChars" } });
+  });
+});
+
+describe("safeNextPath", () => {
+  it("keeps paths inside the app in the same language", () => {
+    expect(safeNextPath("fr", "/fr/lobby/ABC234")).toBe("/fr/lobby/ABC234");
+    expect(safeNextPath("en", "/en")).toBe("/en");
+  });
+
+  it("falls back to the home page for anything else", () => {
+    expect(safeNextPath("fr", undefined)).toBe("/fr");
+    expect(safeNextPath("fr", "https://evil.example")).toBe("/fr");
+    expect(safeNextPath("fr", "//evil.example/fr")).toBe("/fr");
+    expect(safeNextPath("fr", "/fr//evil.example")).toBe("/fr");
+    expect(safeNextPath("fr", "/en/lobbies")).toBe("/fr");
+    expect(safeNextPath("fr", "/french")).toBe("/fr");
+    expect(safeNextPath("fr", "/fr/lobby?x=1")).toBe("/fr");
   });
 });

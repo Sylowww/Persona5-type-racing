@@ -1,5 +1,6 @@
 // Parses and validates the sign-up / sign-in forms on the server.
 // Error codes are translated by the UI (dictionary `auth.errors`).
+import type { Locale } from "@/i18n/locales";
 import {
   PASSWORD_MAX,
   validateEmail,
@@ -18,6 +19,7 @@ export type AuthErrorCode =
 
 export type SignUpField = "username" | "email" | "password";
 export type SignInField = "email" | "password";
+export type GuestField = "username";
 
 type FormValues = { get(name: string): FormDataEntryValue | null };
 
@@ -60,4 +62,23 @@ export function parseSignInForm(form: FormValues): ParseResult<SignInField, { em
   // Never hash oversized input; it can only be a wrong password anyway.
   if (password.length > PASSWORD_MAX) return { ok: false, errors: { password: "invalidCredentials" } };
   return { ok: true, values: { email, password } };
+}
+
+/** A guest only picks a nickname (same rules as usernames, but guest names may repeat). */
+export function parseGuestForm(form: FormValues): ParseResult<GuestField, { username: string }> {
+  const username = text(form, "username").trim();
+  const error = username ? validateUsername(username) : "required";
+  return error ? { ok: false, errors: { username: error } } : { ok: true, values: { username } };
+}
+
+const LOCAL_PATH = /^\/[A-Za-z0-9/_-]*$/;
+
+/**
+ * Where to go after a sign-in step: only a path inside the app in the same language (no other site, no
+ * protocol-relative `//`), otherwise the home page.
+ */
+export function safeNextPath(locale: Locale, next: unknown): string {
+  const home = `/${locale}`;
+  if (typeof next !== "string" || next.length > 200 || !LOCAL_PATH.test(next) || next.includes("//")) return home;
+  return next === home || next.startsWith(`${home}/`) ? next : home;
 }

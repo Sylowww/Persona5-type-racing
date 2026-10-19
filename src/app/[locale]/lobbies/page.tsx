@@ -21,7 +21,7 @@ export default async function LobbiesPage({ params }: { params: Promise<{ locale
 
   // Joining needs an account until guest sessions exist (same as creating a lobby).
   const user = await getCurrentUser();
-  if (!user) redirect(`/${locale}/sign-in`);
+  if (!user) redirect(`/${locale}/guest?next=${encodeURIComponent(`/${locale}/lobbies`)}`);
   const { lobbies, lobby } = await getDictionary(locale);
 
   return (

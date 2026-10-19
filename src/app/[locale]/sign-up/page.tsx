@@ -22,9 +22,9 @@ export default async function SignUpPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reason?: string }>;
 }) {
-  const [{ locale }, { error }] = await Promise.all([params, searchParams]);
+  const [{ locale }, { error, reason }] = await Promise.all([params, searchParams]);
   if (!isLocale(locale)) notFound();
 
   const user = await getCurrentUser();
@@ -37,7 +37,7 @@ export default async function SignUpPage({
       tape={auth.signUp.tape}
       title={auth.signUp.title}
       subtitle={auth.signUp.subtitle}
-      note={user?.kind === "guest" ? auth.signUp.guestNote : undefined}
+      note={reason === "host" ? auth.signUp.hostNote : user?.kind === "guest" ? auth.signUp.guestNote : undefined}
       switchPrompt={auth.signUp.switchPrompt}
       switchLabel={auth.signUp.switchLink}
       switchHref={`/${locale}/sign-in`}
