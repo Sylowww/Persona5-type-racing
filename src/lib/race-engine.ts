@@ -203,6 +203,8 @@ export type LobbyState = {
   kicked: string[];
   /** Invite links, oldest first. They die with the lobby. */
   invites: Invite[];
+  /** When the lobby was opened; breaks ties when picking a lobby for a quick race (JOIN-03). */
+  createdAt: number;
 };
 
 export type LobbyError =
@@ -261,6 +263,7 @@ export function createLobby(input: {
     messageCount: 0,
     kicked: [],
     invites: [],
+    createdAt: input.now,
   };
 }
 
@@ -454,6 +457,13 @@ export function setCapacity(state: LobbyState, userId: string, capacity: unknown
     return fail("invalidSettings");
   }
   return ok({ ...open, config: { ...open.config, capacity } });
+}
+
+/** Free seats of a public lobby that can be joined now (JOIN-03); null when it cannot. */
+export function quickRaceSeats(state: LobbyState): number | null {
+  if (state.kind !== "custom" || state.visibility !== "public" || isRaceRunning(state)) return null;
+  const free = state.config.capacity - seatedMembers(state).length;
+  return free > 0 ? free : null;
 }
 
 /** How the lobby browser shows a public lobby; null for lobbies it does not list. */

@@ -183,6 +183,33 @@ export async function setLobbyCapacity(code: string, capacity: number): Promise<
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().setCapacity(lobby, userId, capacity));
 }
 
+export type QuickRaceResult = { state: "none"; canCreate: boolean } | { state: "error"; error: JoinErrorCode };
+
+/**
+ * « Faire une course » (JOIN-03): joins the public lobby closest to full, or reports that none is available. Registered
+ * players are then offered to open one; guests only see that nothing is open.
+ */
+export async function quickRace(localeValue: string): Promise<QuickRaceResult> {
+  const locale = toLocale(localeValue);
+  const player = await requirePlayer(locale, `/${locale}/lobbies`);
+  const code = getLobbyStore().quickRaceLobby();
+  if (!code) return { state: "none", canCreate: (await getCurrentUser())?.kind === "registered" };
+  const error = getLobbyStore().join(code, player);
+  if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress" || error === "kicked") return { state: "error", error };
+  if (error) return { state: "error", error: "lobbyNotFound" };
+  redirect(`/${locale}/lobby/${code}`);
+}
+
+/** Opens a public lobby with the default settings for a registered player (offered when no quick race is open). */
+export async function createPublicLobby(localeValue: string): Promise<void> {
+  const locale = toLocale(localeValue);
+  const player = await requireHost(locale);
+  const store = getLobbyStore();
+  const code = store.create(player, locale);
+  store.setVisibility(code, player.id, "public");
+  redirect(`/${locale}/lobby/${code}`);
+}
+
 /** Joins a lobby picked in the lobby browser; returns why it failed, or redirects into it. */
 export async function joinListedLobby(codeValue: string, localeValue: string): Promise<JoinErrorCode> {
   const locale = toLocale(localeValue);

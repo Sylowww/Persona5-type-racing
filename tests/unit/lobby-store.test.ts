@@ -336,3 +336,23 @@ describe("invite links and lobby control", () => {
     expect(store.join(code, bob)).toBe("kicked");
   });
 });
+
+describe("quick race (JOIN-03)", () => {
+  it("picks the public lobby closest to full, the oldest on a tie, and skips full or private ones", () => {
+    expect(store.quickRaceLobby()).toBeNull();
+    const roomy = store.create(ann, "en");
+    store.setVisibility(roomy, "ann", "public");
+    clock += 1_000;
+    const nearlyFull = store.create(bob, "en");
+    store.setVisibility(nearlyFull, "bob", "public");
+    store.setCapacity(nearlyFull, "bob", 2);
+    clock += 1_000;
+    const hidden = store.create({ id: "cid", name: "cid" }, "en");
+    store.setCapacity(hidden, "cid", 2);
+    expect(store.quickRaceLobby()).toBe(nearlyFull);
+
+    // Full: the next best, the oldest of equals.
+    store.join(nearlyFull, { id: "dan", name: "dan" });
+    expect(store.quickRaceLobby()).toBe(roomy);
+  });
+});

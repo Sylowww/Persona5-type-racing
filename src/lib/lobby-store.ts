@@ -21,6 +21,7 @@ import {
   kickMember,
   leaveLobby,
   publicLobbyFor,
+  quickRaceSeats,
   removeBot,
   resultFor,
   sendMessage,
@@ -368,6 +369,21 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     setCapacity(code: string, userId: string, capacity: unknown): StoreError | null {
       return updateOutcome(code, (state) => setCapacity(state, userId, capacity));
+    },
+
+    /**
+     * The lobby a quick race joins (JOIN-03): among public lobbies that can be joined and are not full, the one closest
+     * to its capacity (fewest free seats); on a tie, the oldest. Null when none is available.
+     */
+    quickRaceLobby(): string | null {
+      const time = now();
+      const candidates = [...lobbies.values()].flatMap((state) => {
+        const current = advance(state, time);
+        const free = quickRaceSeats(current);
+        return free === null ? [] : [{ code: current.code, free, createdAt: current.createdAt }];
+      });
+      candidates.sort((a, b) => a.free - b.free || a.createdAt - b.createdAt);
+      return candidates[0]?.code ?? null;
     },
 
     /** Public lobbies for the lobby browser: open ones first, then the most players. */

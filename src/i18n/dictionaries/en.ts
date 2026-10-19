@@ -493,6 +493,13 @@ const en = {
     subtitle: "Lobbies opened to everyone. Other lobbies are joined with their code or an invite link.",
     empty: "No public lobby right now. Start one and make it public from its rules.",
     emptyFiltered: "No public lobby in this language right now.",
+    quickRace: {
+      title: "Quick race",
+      text: "Jump into the public lobby that is closest to full.",
+      button: "Race now",
+      none: "No public lobby is open right now.",
+      create: "Open a public lobby",
+    },
     filters: {
       language: "Text language",
       complexity: "Complexity",

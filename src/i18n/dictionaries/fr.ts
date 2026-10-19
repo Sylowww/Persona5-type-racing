@@ -495,6 +495,13 @@ const fr: Dictionary = {
     subtitle: "Les salons ouverts à tous. Les autres se rejoignent avec leur code ou un lien d'invitation.",
     empty: "Aucun salon public pour l'instant. Crées-en un et rends-le public dans ses règles.",
     emptyFiltered: "Aucun salon public dans cette langue pour l'instant.",
+    quickRace: {
+      title: "Faire une course",
+      text: "Entre dans le salon public le plus proche d'être complet.",
+      button: "Faire une course",
+      none: "Aucun salon public n'est ouvert pour l'instant.",
+      create: "Ouvrir un salon public",
+    },
     filters: {
       language: "Langue du texte",
       complexity: "Complexité",
