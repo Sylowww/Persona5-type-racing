@@ -190,6 +190,7 @@ const fr: Dictionary = {
       title: "+ Ajouter un bot",
       subtitle: "Choisis la difficulté",
       difficulties: {
+        noob: "Noob // Touriste",
         novice: "Novice // Stagiaire",
         rookie: "Recrue // Agent",
         master: "Maître // Ombre",

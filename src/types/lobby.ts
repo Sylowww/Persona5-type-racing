@@ -84,7 +84,8 @@ export type LobbyView = {
  */
 export type RaceMode = "normal" | "blocking" | "free" | "suddenDeath";
 
-export type BotDifficulty = "novice" | "rookie" | "master" | "godspeed";
+/** Five bot levels (BOT-01), slowest first. */
+export type BotDifficulty = "noob" | "novice" | "rookie" | "master" | "godspeed";
 
 export type KeySound = "clicky" | "tactile" | "silent";
 

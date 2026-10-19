@@ -65,9 +65,10 @@ describe("chat messages", () => {
 describe("matchmaking bot level", () => {
   it("picks the bot closest to the player's average speed", () => {
     expect(botForSpeed(null)).toBe("rookie");
+    expect(botForSpeed(10)).toBe("noob");
     expect(botForSpeed(25)).toBe("novice");
-    expect(botForSpeed(70)).toBe("rookie");
-    expect(botForSpeed(110)).toBe("master");
+    expect(botForSpeed(50)).toBe("rookie");
+    expect(botForSpeed(90)).toBe("master");
     expect(botForSpeed(200)).toBe("godspeed");
   });
 });
