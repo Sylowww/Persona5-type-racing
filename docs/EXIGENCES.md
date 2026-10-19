@@ -86,7 +86,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | CONF-05 | non fait | — | — | |
 | CONF-06 | partiel | `lib/race-settings.ts` | `race-settings.test.ts` | Options présentes : nombres, majuscules (sensibilité à la casse). La ponctuation est toujours activée et les accents ne sont pas configurables. |
 | CONF-07 | non fait | — | — | |
-| CONF-08 | partiel | `lib/typing.ts`, `lib/race-settings.ts` | `typing.test.ts` | Mode normal : les erreurs restent dans le texte et doivent être effacées pour terminer. Il manque les deux modes de l'énoncé, « correction obligatoire » (blocage) et « libre ». |
+| CONF-08 | complet | `lib/typing.ts` (`typeChar`, `netChars`, `progress`), `lib/race-settings.ts`, `lib/bots.ts` | `typing.test.ts`, `bots.test.ts` | « Correction obligatoire » (`blocking`) : une touche fausse compte comme erreur mais le curseur n'avance pas, et le caractère à corriger est marqué. « Libre » (`free`) : l'erreur reste, est comptée, et le joueur continue ; la course se termine au dernier caractère. Restent aussi « Normal » (les erreurs restent et doivent être effacées) et « Mort subite » (voir les choix plus haut). |
 | CONF-09 | partiel | `lib/race-settings.ts` | — | Le réglage existe, mais il n'a encore aucun effet. |
 | CONF-10 | complet | `lib/race-engine.ts` (`addBot`, `removeBot`) | `race-engine.test.ts` | Chaque bot a son propre niveau. |
 | CONF-11 | complet | `features/lobby/components/rules-dossier.tsx` | `tests/e2e/lobby.spec.ts` | Visibilité et nombre de places dans le panneau des réglages de l'hôte. Voir SALLE-03 et SALLE-05. |
@@ -99,13 +99,13 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | COURSE-01 | complet | `lib/race-engine.ts`, [ARCHITECTURE.md](ARCHITECTURE.md#race-state-machine) | `race-engine.test.ts` | Correspondance des noms d'états documentée. |
 | COURSE-02 | complet | `lib/lobby.ts` (`canStartRace`) | `lobby.test.ts`, `race-engine.test.ts` | Au moins 2 participants dont 1 humain ; les bots comptent dans le minimum, les spectateurs non. Tous les humains participants doivent aussi être prêts. |
 | COURSE-03 | complet | `lib/race-engine.ts` (`startRace`) | `race-engine.test.ts` | Décompte de 3 s synchronisé avec `serverNow`. Le texte est choisi au lancement. |
-| COURSE-04 | partiel | `features/race/` | `typing.test.ts` | Retour visuel immédiat, MPM et précision en direct. Le coller n'est pas bloqué explicitement. |
+| COURSE-04 | complet | `features/race/components/live-race.tsx`, `features/race/components/typing-text.tsx` | `typing.test.ts` | Retour visuel immédiat (correct, incorrect, curseur), MPM et précision en direct. Coller et glisser-déposer sont bloqués dans la zone de frappe ; côté serveur, plus de 30 touches par seconde sont refusées. |
 | COURSE-05 | complet | `features/race/components/live-race.tsx` | `tests/e2e/multiplayer.spec.ts` | Environ 10 mises à jour par seconde ; le joueur local est mis en évidence. Les spectateurs voient la piste sans zone de frappe. |
 | COURSE-06 | partiel | `lib/race-engine.ts`, `lib/typing.ts` | `race-engine.test.ts` | Le serveur calcule le temps, la progression et le classement, et refuse plus de 30 touches par seconde. Les bonus ne sont pas faits. |
-| COURSE-07 | non fait | — | — | |
-| COURSE-08 | complet | `lib/race-engine.ts` (`reconnectGraceMs`), `features/race/use-input-sender.ts` | `race-engine.test.ts`, `lobby-store.test.ts` | Délai de grâce de 30 s ; un rechargement restaure le texte tapé. |
+| COURSE-07 | complet | `lib/race-engine.ts` (`forfeitRace`), `features/race/components/live-race.tsx` | `race-engine.test.ts` | Bouton « Abandonner » avec confirmation, pendant le décompte ou la course. Le joueur ne tape plus et regarde la fin de la course. |
+| COURSE-08 | complet | `lib/race-engine.ts` (`reconnectGraceMs`, `finishRace`), `features/race/use-input-sender.ts` | `race-engine.test.ts`, `lobby-store.test.ts` | Délai de grâce de 30 s ; un rechargement restaure le texte tapé. Passé ce délai (ou après avoir quitté), le joueur est classé comme ayant abandonné. |
 | COURSE-09 | complet | `lib/race-engine.ts` (`isRaceOver`) | `race-engine.test.ts` | |
-| COURSE-10 | partiel | `lib/race-engine.ts` (`rankRacers`) | `race-engine.test.ts` | Les arrivées sont classées par temps, puis le reste par progression. Le cas « abandon » dépend de COURSE-07. |
+| COURSE-10 | complet | `lib/results.ts` (`rankRacers`), `lib/race-engine.ts` (`finishRace`, `liveOrder`) | `results.test.ts`, `race-engine.test.ts` | Arrivés par temps, puis ceux qui n'ont pas fini à temps par progression, puis les éliminés de la mort subite (le dernier éliminé d'abord), puis les abandons par progression au moment de l'abandon. |
 | COURSE-11 | complet | `features/results/components/results-actions.tsx`, `features/lobby/components/close-lobby-button.tsx`, `lib/race-engine.ts` (`closeLobby`) | `race-engine.test.ts`, `lobby-store.test.ts`, `tests/e2e/lobby.spec.ts` | La revanche est possible, et l'hôte peut fermer la salle (après confirmation) depuis les résultats ou la salle. Les autres restent sur leurs résultats ou quittent. |
 
 ## Bots
@@ -114,7 +114,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | --- | --- | --- | --- | --- |
 | BOT-01 | partiel | `lib/bots.ts` | `bots.test.ts` | 4 niveaux (environ 30, 60, 120 et 150 MPM) au lieu de 5. |
 | BOT-02 | complet | `lib/bots.ts` | `bots.test.ts` | Vitesse variable : ±8 % par course, ralentissements sur les majuscules et la ponctuation, pauses entre les mots. |
-| BOT-03 | complet | `lib/bots.ts` | `bots.test.ts` | Les fautes de frappe sont remarquées en retard, effacées puis retapées. |
+| BOT-03 | complet | `lib/bots.ts` | `bots.test.ts` | Les fautes de frappe ralentissent les bots et suivent le mode d'erreur : en mode normal, remarquées en retard, effacées puis retapées ; en correction obligatoire, retapées après un temps de réaction ; en mode libre, laissées dans le texte. |
 | BOT-04 | partiel | `lib/race-engine.ts` | — | Les bots suivent les mêmes règles que les joueurs. Les bonus n'existent pas encore. |
 | BOT-05 | complet | `lib/bots.ts` (`planBotRun`) | `bots.test.ts` (générateur à graine) | Le hasard est injecté. Voir l'ADR-002. |
 
@@ -132,7 +132,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | RES-01 | complet | `features/results/components/results-podium.tsx` | `results.test.ts` | |
-| RES-02 | partiel | `features/results/` | `results.test.ts` | Certaines colonnes ne sont pas encore affichées (MPM brut, statut, bonus). |
+| RES-02 | partiel | `features/results/components/results-table.tsx`, `lib/race-engine.ts` (`finishRace`) | `results.test.ts`, `race-engine.test.ts`, `tests/e2e/multiplayer.spec.ts` | Tableau complet : rang, participant, MPM, MPM brut, précision, erreurs, temps et statut (terminé, temps écoulé, éliminé, abandon). Il manque la colonne des bonus reçus (les bonus ne sont pas faits). |
 | RES-03 | partiel | `features/results/components/keyboard-heatmap.tsx` | `results.test.ts` | La carte de chaleur du clavier est faite. Le graphique du MPM de tous les participants reste à vérifier ou compléter. |
 | RES-04 | non fait | — | — | |
 | RES-05 | partiel | `lib/race-history-db.ts`, `db/migrations/003_race_results.sql` | `race-history.test.ts` | Seul un résumé par joueur est conservé. La série temporelle du MPM n'est pas enregistrée. |
