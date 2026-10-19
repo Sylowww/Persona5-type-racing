@@ -39,8 +39,9 @@ export type CreateAccountResult =
   | { ok: true; user: User }
   | { ok: false; error: "usernameTaken" | "emailTaken" };
 
-export async function createGuest(): Promise<User> {
-  const [row] = await getDb().insert(users).values({ kind: "guest", username: guestUsername() }).returning(userColumns);
+/** A guest with the nickname they picked (validated by the caller), or a generated one. Guest names may repeat. */
+export async function createGuest(username: string = guestUsername()): Promise<User> {
+  const [row] = await getDb().insert(users).values({ kind: "guest", username }).returning(userColumns);
   return toUser(row);
 }
 

@@ -20,7 +20,7 @@ export default async function QuickPlayPage({ params }: { params: Promise<{ loca
 
   // Racing needs an account until guest sessions exist (same as creating a lobby).
   const user = await getCurrentUser();
-  if (!user) redirect(`/${locale}/sign-in`);
+  if (!user) redirect(`/${locale}/guest?next=${encodeURIComponent(`/${locale}/quick`)}`);
   const { quick, profile, lobby } = await getDictionary(locale);
 
   return (

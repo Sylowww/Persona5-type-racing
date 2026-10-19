@@ -18,16 +18,23 @@ function toLocale(value: unknown): Locale {
   return typeof value === "string" && isLocale(value) ? value : "fr";
 }
 
-/** The signed-in player, or a redirect to sign in. Guests will be allowed once guest sessions exist. */
-async function requirePlayer(locale: Locale) {
+/** The current player (guest or registered); without a session, a redirect to pick a guest nickname, then to `next`. */
+async function requirePlayer(locale: Locale, next: string) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/${locale}/sign-in`);
+  if (!user) redirect(`/${locale}/guest?next=${encodeURIComponent(next)}`);
+  return { id: user.id, name: user.username, character: user.character };
+}
+
+/** Only registered players open lobbies (AUTH-03); guests and visitors are sent to create an account. */
+async function requireHost(locale: Locale) {
+  const user = await getCurrentUser();
+  if (user?.kind !== "registered") redirect(`/${locale}/sign-up?reason=host`);
   return { id: user.id, name: user.username, character: user.character };
 }
 
 export async function createLobby(localeValue: string): Promise<void> {
   const locale = toLocale(localeValue);
-  const player = await requirePlayer(locale);
+  const player = await requireHost(locale);
   const code = getLobbyStore().create(player, locale);
   redirect(`/${locale}/lobby/${code}`);
 }
@@ -39,17 +46,17 @@ export async function joinLobby(_previous: JoinFormState, form: FormData): Promi
   const code = normalizeLobbyCode(typed);
   if (!code) return { error: "invalidCode", code: typed };
 
-  const player = await requirePlayer(locale);
+  const player = await requirePlayer(locale, `/${locale}/lobby/${code}`);
   const error = getLobbyStore().join(code, player);
   if (error === "lobbyNotFound" || error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress") return { error, code: typed };
   if (error) return { error: "lobbyNotFound", code: typed };
   redirect(`/${locale}/lobby/${code}`);
 }
 
-/** Training dojo: a solo practice race that starts right away (never saved). */
+/** Training dojo: a solo practice race that starts right away (never saved). It opens a lobby, so registered players only. */
 export async function startTraining(localeValue: string): Promise<void> {
   const locale = toLocale(localeValue);
-  const player = await requirePlayer(locale);
+  const player = await requireHost(locale);
   const code = getLobbyStore().startTraining(player, locale);
   redirect(`/${locale}/lobby/${code}/race`);
 }
@@ -57,7 +64,7 @@ export async function startTraining(localeValue: string): Promise<void> {
 /** Quick 1v1: enters matchmaking. The fallback bot matches the player's average speed. */
 export async function joinQuickMatch(localeValue: string): Promise<QuickMatchStatus> {
   const locale = toLocale(localeValue);
-  const player = await requirePlayer(locale);
+  const player = await requirePlayer(locale, `/${locale}/quick`);
   const stats = await getPlayerStats(player.id);
   return getLobbyStore().joinQuickMatch(player, locale, botForSpeed(stats.races > 0 ? stats.averageWpm : null));
 }
@@ -121,7 +128,7 @@ export async function joinListedLobby(codeValue: string, localeValue: string): P
   const locale = toLocale(localeValue);
   const code = normalizeLobbyCode(String(codeValue));
   if (!code) return "lobbyNotFound";
-  const player = await requirePlayer(locale);
+  const player = await requirePlayer(locale, `/${locale}/lobby/${code}`);
   const error = getLobbyStore().join(code, player);
   if (error === "lobbyFull" || error === "privateLobby" || error === "raceInProgress") return error;
   if (error) return "lobbyNotFound";

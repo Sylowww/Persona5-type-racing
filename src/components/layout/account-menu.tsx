@@ -13,7 +13,7 @@ type AccountMenuProps = {
 };
 
 export function AccountMenu({ locale, dictionary, user }: AccountMenuProps) {
-  if (!user || user.kind === "guest") {
+  if (!user) {
     return (
       <nav aria-label={dictionary.label} className="flex items-center gap-2">
         <Link
@@ -33,21 +33,43 @@ export function AccountMenu({ locale, dictionary, user }: AccountMenuProps) {
     );
   }
 
+  const isGuest = user.kind === "guest";
+  const identity = (
+    <>
+      <PlayerAvatar avatarUrl={user.avatarUrl} alt="" size={32} className="rounded-full" generateFrom={isGuest ? user.username : undefined} />
+      <div className="hidden flex-col sm:flex">
+        <span className="font-hud text-[11px] font-black uppercase leading-none tracking-widest text-secondary-fixed">
+          {isGuest ? dictionary.guest : dictionary.registered}
+        </span>
+        <span className="max-w-[120px] truncate font-body text-body-md font-bold text-secondary">{user.username}</span>
+      </div>
+    </>
+  );
+
   return (
     <div className="flex items-center gap-1">
-      <Link
-        href={`/${locale}/profile`}
-        className="flex items-center gap-2 bg-surface-container px-2 py-1 transition-colors hover:bg-surface-container-high"
-      >
-        <PlayerAvatar avatarUrl={user.avatarUrl} alt="" size={32} className="rounded-full" />
-        <span className="sr-only sm:hidden">{dictionary.profile}</span>
-        <div className="hidden flex-col sm:flex">
-          <span className="font-hud text-[11px] font-black uppercase leading-none tracking-widest text-secondary-fixed">
-            {dictionary.registered}
-          </span>
-          <span className="max-w-[120px] truncate font-body text-body-md font-bold text-secondary">{user.username}</span>
-        </div>
-      </Link>
+      {isGuest ? (
+        // Guests have no profile page: they are offered an account instead.
+        <>
+          <div className="flex items-center gap-2 bg-surface-container px-2 py-1">{identity}</div>
+          <Link
+            href={`/${locale}/sign-up`}
+            title={dictionary.signUp}
+            className="flex size-10 items-center justify-center bg-primary-container text-on-primary-container transition-colors hover:bg-secondary-container hover:text-on-secondary-fixed"
+          >
+            <Icon name="login" size={20} />
+            <span className="sr-only">{dictionary.signUp}</span>
+          </Link>
+        </>
+      ) : (
+        <Link
+          href={`/${locale}/profile`}
+          className="flex items-center gap-2 bg-surface-container px-2 py-1 transition-colors hover:bg-surface-container-high"
+        >
+          {identity}
+          <span className="sr-only sm:hidden">{dictionary.profile}</span>
+        </Link>
+      )}
       <form action={signOut}>
         <input type="hidden" name="locale" value={locale} />
         <button

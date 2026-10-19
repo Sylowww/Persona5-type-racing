@@ -2,9 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { isLocale, type Locale } from "@/i18n/locales";
-import { parseSignInForm, parseSignUpForm, type AuthErrorCode } from "@/lib/auth/forms";
+import { parseGuestForm, parseSignInForm, parseSignUpForm, safeNextPath, type AuthErrorCode } from "@/lib/auth/forms";
 import { endSession, getCurrentUser, startSession } from "@/lib/auth/session";
-import { createAccount, verifyCredentials } from "@/lib/users";
+import { normalizeLobbyCode } from "@/lib/lobby-code";
+import { getLobbyStore } from "@/lib/lobby-server";
+import { createAccount, createGuest, verifyCredentials } from "@/lib/users";
 
 export type AuthFormState = {
   errors: Partial<Record<"username" | "email" | "password" | "form", AuthErrorCode>>;
@@ -57,6 +59,26 @@ export async function signIn(_previous: AuthFormState, form: FormData): Promise<
   await endSession();
   await startSession(user.id);
   redirect(`/${locale}`);
+}
+
+/**
+ * Plays without an account: creates a guest with the chosen nickname and a session cookie, then goes back to
+ * `next`. When `next` is a lobby, the guest joins it right away (if that fails, the lobby page explains why).
+ */
+export async function continueAsGuest(_previous: AuthFormState, form: FormData): Promise<AuthFormState> {
+  const locale = localeFrom(form);
+  const next = safeNextPath(locale, form.get("next"));
+  const values = { username: textValue(form, "username") };
+
+  if (!(await getCurrentUser())) {
+    const parsed = parseGuestForm(form);
+    if (!parsed.ok) return { errors: parsed.errors, values };
+    const guest = await createGuest(parsed.values.username);
+    await startSession(guest.id);
+    const code = normalizeLobbyCode(next.match(/^\/[a-z]{2}\/lobby\/([^/]+)$/)?.[1] ?? "");
+    if (code) getLobbyStore().join(code, { id: guest.id, name: guest.username, character: guest.character });
+  }
+  redirect(next);
 }
 
 export async function signOut(form: FormData): Promise<void> {
