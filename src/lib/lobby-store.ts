@@ -14,6 +14,7 @@ import {
   closeLobby,
   createInvite,
   createLobby,
+  forfeitRace,
   isMember,
   joinLobby,
   joinWithInvite,
@@ -383,6 +384,11 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     removeBot(code: string, userId: string, botId: string): StoreError | null {
       return updateOutcome(code, (state) => removeBot(state, userId, botId));
+    },
+
+    /** The racer gives up; the race may end at once if they were the last one typing. */
+    forfeit(code: string, userId: string): StoreError | null {
+      return updateOutcome(code, (state, time) => forfeitRace(state, userId, time));
     },
 
     input(code: string, userId: string, batch: InputBatch): StoreError | null {

@@ -326,6 +326,9 @@ const fr: Dictionary = {
       finished: "Terminé !",
       mistakes: "Erreurs : {count}",
       eliminated: "Éliminé ! Une erreur de trop",
+      forfeit: "Abandonner",
+      forfeitConfirm: "Abandonner cette course ? Tu seras classé après tous ceux qui courent encore.",
+      forfeited: "Tu as abandonné. Les autres finissent la course",
       suddenDeath: "Mort subite : une erreur et tu es éliminé",
     },
     cutIn: {

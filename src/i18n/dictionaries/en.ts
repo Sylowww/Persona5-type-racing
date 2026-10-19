@@ -324,6 +324,9 @@ const en = {
       finished: "Finished!",
       mistakes: "Mistakes: {count}",
       eliminated: "Eliminated! One mistake was one too many",
+      forfeit: "Give up",
+      forfeitConfirm: "Give up this race? You will rank after everyone still racing.",
+      forfeited: "You gave up. Watching the others finish",
       suddenDeath: "Sudden death: one mistake and you're out",
     },
     cutIn: {
