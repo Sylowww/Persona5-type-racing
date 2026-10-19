@@ -1,3 +1,5 @@
+"use client";
+
 import type { CSSProperties } from "react";
 import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
@@ -7,6 +9,7 @@ import { characterSprite } from "@/lib/characters";
 import { laneOrder } from "@/lib/race-lanes";
 import { RUNNER_OBSTACLES } from "@/lib/race-runner";
 import type { RaceRacer } from "@/types/race";
+import { useLaneMotion } from "../use-lane-motion";
 import { RaceRunner, RUNNER_SIZE } from "./race-runner";
 
 type RaceTrackProps = {
@@ -56,6 +59,7 @@ export function RaceTrack({
   exitGlow = 0,
   chaos = false,
 }: RaceTrackProps) {
+  const laneRef = useLaneMotion(racers.filter((racer) => racer.place <= 3).map((racer) => racer.id));
   const percent = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
 
@@ -96,6 +100,7 @@ export function RaceTrack({
           return (
             <li
               key={racer.id}
+              ref={laneRef(racer.id)}
               aria-label={label}
               className={`flex h-[76px] shrink-0 items-stretch bg-surface-container-highest ${racer.isConnected && !racer.isEliminated && !racer.isForfeited ? "" : "opacity-50"} ${
                 overtakerIds?.has(racer.id) ? "lane-overtake" : ""
