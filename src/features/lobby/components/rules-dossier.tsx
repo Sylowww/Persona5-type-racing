@@ -145,7 +145,7 @@ export function RulesDossier({
           </div>
           {settings.mode === "suddenDeath" && <p className="mt-1 text-[12px] italic text-on-surface-variant">{mode.note}</p>}
           <ToggleRow label={mode.powers} enabled={settings.powers} disabled={disabled} dictionary={text} onToggle={() => onChange({ powers: !settings.powers })} />
-          <p className="text-[12px] italic text-outline">{mode.powersSoon}</p>
+          <p className="text-[12px] italic text-outline">{mode.powersHint}</p>
         </div>
 
         <hr className="border-surface-container-highest" />

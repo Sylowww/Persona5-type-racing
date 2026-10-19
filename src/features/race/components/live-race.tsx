@@ -25,6 +25,7 @@ import type { LobbyView } from "@/types/lobby";
 import type { InputEvent, RaceYou } from "@/types/race";
 import { useInputSender } from "../use-input-sender";
 import { useFinishFrame, useFirstFinisher, useOvertakeFlash } from "../use-race-highlights";
+import { BonusFeed } from "./bonus-feed";
 import { CountdownCutIn } from "./countdown-cut-in";
 import { FinishCutIn } from "./finish-cut-in";
 import { MonaComms } from "./mona-comms";
@@ -248,6 +249,8 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
             racerCount={racers.length}
           />
 
+          {race && <BonusFeed dictionary={dictionary.bonuses} events={race.bonusEvents} youId={view.youId} />}
+
           <RaceTrack
             dictionary={dictionary.track}
             locale={locale}
@@ -308,7 +311,12 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                 }`}
               >
                 {/* In blocking mode a wrong key is not typed: the character to fix is marked instead. */}
-              <TypingText text={text} typed={typing.typed} blocked={mode === "blocking" && typing.mistakes > 0 && typing.streak === 0} />
+              <TypingText
+                text={text}
+                typed={typing.typed}
+                blocked={mode === "blocking" && typing.mistakes > 0 && typing.streak === 0}
+                fog={(race?.you?.fogUntil ?? 0) > now}
+              />
                 {isCountdown && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-container-lowest/85">
                     <span className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">
