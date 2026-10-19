@@ -88,18 +88,35 @@ export type BotDifficulty = "novice" | "rookie" | "master" | "godspeed";
 
 export type KeySound = "clicky" | "tactile" | "silent";
 
+/** `coherent`: real passages from the corpus. `random`: words drawn from a word list (CONF-03). */
+export type TextType = "coherent" | "random";
+
+/** Measurable difficulty of a text (CONF-05); criteria in `lib/text-builder.ts`. */
+export type TextComplexity = "easy" | "medium" | "hard";
+
 export type RaceSettings = {
   mode: RaceMode;
-  /** Saved for when bonuses exist; no effect on races yet. */
+  /** Catch-up bonuses on (CONF-09). */
   powers: boolean;
   /** Race time limit in seconds; null for no limit. */
   timeLimitSec: number | null;
-  /** Texts with digits. */
+  /** Digits in the text. */
   numbers: boolean;
   /** When false, a letter typed in the wrong case counts as correct. */
   caseSensitive: boolean;
   /** Language of the race text, independent of the interface language. */
   language: "fr" | "en";
+  textType: TextType;
+  /** Length of the text in words (CONF-04). */
+  wordCount: number;
+  complexity: TextComplexity;
+  /** Punctuation, capitals and (French) accents kept in the text (CONF-06). */
+  punctuation: boolean;
+  capitals: boolean;
+  accents: boolean;
+  /** Random texts only (CONF-07): words must contain one of these letters / none of those. Empty when unused. */
+  includeChars: string;
+  excludeChars: string;
 };
 
 export type LobbyMessage = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LOBBY_CODE_ALPHABET, generateLobbyCode, generateUniqueLobbyCode, normalizeLobbyCode } from "../../src/lib/lobby-code";
-import { pickRaceText, raceTexts } from "../../src/lib/race-texts";
+import { builtInCorpus, raceTexts } from "../../src/lib/race-texts";
 
 /** Returns the given indexes in order, then repeats the last one. */
 function sequence(...values: number[]) {
@@ -41,8 +41,8 @@ describe("lobby codes", () => {
 });
 
 describe("race texts", () => {
-  it("picks a text in the requested language", () => {
-    expect(pickRaceText("fr", () => 1)).toBe(raceTexts.fr[1]);
-    expect(pickRaceText("en", () => 0)).toBe(raceTexts.en[0]);
+  it("offers the built-in passages as a corpus in both languages", () => {
+    expect(builtInCorpus.filter((text) => text.language === "fr").map((text) => text.body)).toEqual(expect.arrayContaining([...raceTexts.fr]));
+    expect(builtInCorpus.some((text) => text.language === "en" && text.hasNumbers)).toBe(true);
   });
 });

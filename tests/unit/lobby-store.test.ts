@@ -73,7 +73,8 @@ describe("lobby store", () => {
     expect(store.updateSettings(code, "ann", { language: "fr" })).toBeNull();
     store.setReady(code, "bob", true);
     expect(store.start(code, "ann")).toBeNull();
-    expect(raceTexts.fr).toContain(bobStream.last()?.race?.text);
+    const text = bobStream.last()?.race?.text ?? "";
+    expect(raceTexts.fr.some((passage) => text.startsWith(passage.split(" ").slice(0, 4).join(" ")))).toBe(true);
   });
 
   it("runs the countdown and race on server time, then shares results", () => {
@@ -84,7 +85,7 @@ describe("lobby store", () => {
 
     const race = bobStream.last()?.race;
     const text = race?.text ?? "";
-    expect(raceTexts.en).toContain(text);
+    expect(raceTexts.en.some((passage) => text.startsWith(passage.split(" ").slice(0, 4).join(" ")))).toBe(true);
     const startsAt = race?.startsAt ?? 0;
     clock = startsAt;
     store.tick();
@@ -194,7 +195,7 @@ describe("training dojo", () => {
     // Typed within the 30 keys/s limit.
     clock += 3_000 + 20_000;
     store.tick();
-    const text = raceTexts.en[0];
+    const text = stream.last()?.race?.text ?? "";
     store.input(code, "ann", { clientId: "tab", seq: 1, events: chars(text.slice(0, 100)) });
     store.input(code, "ann", { clientId: "tab", seq: 2, events: chars(text.slice(100)) });
     expect(stream.last()?.phase).toBe("finished");
