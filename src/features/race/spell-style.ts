@@ -1,5 +1,5 @@
 import type { IconName } from "@/components/ui/icon";
-import type { SpellElement } from "@/types/race";
+import type { RaceBonusEvent, SpellElement } from "@/types/race";
 
 /** Color and icon of each spell element (tokens in globals.css). */
 export const spellStyle: Record<SpellElement, { text: string; bg: string; border: string; icon: IconName }> = {
@@ -15,3 +15,11 @@ export const spellStyle: Record<SpellElement, { text: string; bg: string; border
   heal: { text: "text-spell-heal", bg: "bg-spell-heal", border: "border-spell-heal", icon: "healing" },
   support: { text: "text-spell-support", bg: "bg-spell-support", border: "border-spell-support", icon: "radar" },
 };
+
+/**
+ * Spell events this page knows how to show. A server still running an older race engine (e.g. during a deploy, or a
+ * dev server not restarted) can send events in another shape; they are skipped instead of breaking the race.
+ */
+export function knownSpellEvents(events: readonly RaceBonusEvent[], names: Readonly<Record<string, string>>): RaceBonusEvent[] {
+  return events.filter((event) => Object.hasOwn(spellStyle, event.element) && Object.hasOwn(names, event.spell));
+}
