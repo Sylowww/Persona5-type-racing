@@ -12,6 +12,8 @@ type RulesSummaryProps = {
   onOpen: () => void;
 };
 
+const visibilityIcons: Record<LobbyVisibility, IconName> = { public: "visibility", code: "key", private: "lock" };
+
 type Chip = { key: string; icon: IconName; label: string; tone?: "danger" | "off" };
 
 /** The host's rules at a glance, for every player; the button opens the settings panel. */
@@ -19,7 +21,7 @@ export function RulesSummary({ dictionary, settings, visibility, canEdit, onOpen
   const { mode, text, time } = dictionary;
   const onOff = (enabled: boolean) => (enabled ? text.on : text.off);
   const chips: Chip[] = [
-    ...(visibility ? [{ key: "visibility", icon: (visibility === "private" ? "lock" : "visibility") as IconName, label: dictionary.visibility[visibility] }] : []),
+    ...(visibility ? [{ key: "visibility", icon: visibilityIcons[visibility], label: dictionary.visibility[visibility] }] : []),
     { key: "mode", icon: "swords", label: mode[settings.mode], tone: settings.mode === "suddenDeath" ? "danger" : undefined },
     { key: "time", icon: "timer", label: timeLimitLabel(time, settings.timeLimitSec) },
     { key: "language", icon: "translate", label: text.languages[settings.language] },

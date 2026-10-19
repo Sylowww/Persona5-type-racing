@@ -17,7 +17,7 @@ import type { InputBatch, InputEvent, KeyStat, RaceRacer, RaceResult, RaceView, 
 import { planBotRun, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
-import { canStartRace } from "./lobby";
+import { canStartRace, lobbyVisibilities } from "./lobby";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-settings";
 import { rankRacers } from "./results";
 import {
@@ -119,7 +119,7 @@ export type StoredResult = {
 export type LobbyState = {
   code: string;
   kind: LobbyKind;
-  /** Only custom lobbies can be public. */
+  /** Custom lobbies start joinable with their code; quick and training lobbies are always private. */
   visibility: LobbyVisibility;
   config: EngineConfig;
   phase: LobbyPhase;
@@ -179,7 +179,7 @@ export function createLobby(input: {
   return {
     code: input.code,
     kind,
-    visibility: "private",
+    visibility: kind === "custom" ? "code" : "private",
     config,
     phase: "waiting",
     hostId: input.host.id,
@@ -242,10 +242,13 @@ function reopen(state: LobbyState): LobbyState {
   });
 }
 
-/** Joining with a code only works for custom lobbies; matchmaking adds quick players with `admitPlayer`. */
+/**
+ * Joining with a code only works for custom lobbies that are not private (those need an invite link);
+ * matchmaking adds quick players with `admitPlayer`.
+ */
 export function joinLobby(state: LobbyState, player: Player, now: number): Outcome {
   if (isMember(state, player.id)) return ok(state);
-  if (state.kind !== "custom") return fail("privateLobby");
+  if (state.kind !== "custom" || state.visibility === "private") return fail("privateLobby");
   return admitPlayer(state, player, now);
 }
 
@@ -327,13 +330,14 @@ export function updateSettings(state: LobbyState, userId: string, change: unknow
   return ok({ ...open, settings });
 }
 
-/** The host makes a custom lobby public (listed in the lobby browser) or private (code or link only). */
+/** The host sets who can join a custom lobby: public (listed), code (code or link) or private (invite link only). */
 export function setVisibility(state: LobbyState, userId: string, visibility: unknown): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
   if (state.hostId !== userId) return fail("notHost");
   if (state.kind !== "custom") return fail("privateLobby");
-  if (visibility !== "public" && visibility !== "private") return fail("invalidSettings");
-  return ok({ ...state, visibility });
+  const allowed = lobbyVisibilities.find((option) => option === visibility);
+  if (!allowed) return fail("invalidSettings");
+  return ok({ ...state, visibility: allowed });
 }
 
 /** How the lobby browser shows a public lobby; null for lobbies it does not list. */

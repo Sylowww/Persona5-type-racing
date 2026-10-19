@@ -12,6 +12,7 @@ export const iconNames = [
   "content_copy",
   "graphic_eq",
   "home",
+  "key",
   "keyboard",
   "lock",
   "login",
