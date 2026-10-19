@@ -13,6 +13,8 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 - **Mode « mort subite »** : mode d'erreur supplémentaire (la première erreur élimine le joueur), en plus de ceux de CONF-08.
 - **Cookie de session des invités (AUTH-02)** : au lieu d'un cookie signé, la session (invité ou compte) est un jeton aléatoire de 256 bits dans un cookie HttpOnly ; seul son hachage SHA-256 est stocké. Il est aussi impossible à falsifier qu'un cookie signé, et la session peut en plus être révoquée côté serveur.
 - **Dojo et invités** : le dojo ouvre une salle (solo), donc il est réservé aux comptes, comme la création de salle (AUTH-03).
+- **Complexité des textes (CONF-05)** : un passage cohérent est *facile* s'il a en moyenne 4,6 lettres par mot ou moins et au plus 3 % de caractères spéciaux (ni lettre ni espace : ponctuation, chiffres, symboles), *difficile* s'il a 5,4 lettres par mot ou plus, ou 6 % de caractères spéciaux ou plus, et *moyen* sinon. Pour le texte aléatoire : facile = parmi les 120 mots les plus courants, 5 lettres au maximum, ponctuation légère ; moyen = toute la liste, 8 lettres au maximum ; difficile = toute la liste, plus de signes (; : ! ?) et des nombres jusqu'à 9 999.
+- **Modes d'erreur (CONF-08)** : en plus des deux modes de l'énoncé, le mode « Normal » (les erreurs restent et doivent être effacées pour finir) est conservé.
 - **Partie rapide 1v1 et dojo** : modes supplémentaires (salles `quick` et `training`), en plus des salles personnalisées.
 
 ## Contraintes techniques
@@ -72,20 +74,20 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | JOIN-01 | complet | `features/home/` | `tests/e2e/home.spec.ts`, `tests/e2e/lobby.spec.ts` | |
-| JOIN-02 | partiel | `app/[locale]/lobbies/`, `features/lobbies/components/lobby-browser.tsx` | `tests/e2e/multiplayer.spec.ts` | La liste des salles publiques se rafraîchit toutes les 5 s et se filtre par langue du texte. Le filtre par complexité n'est pas fait, car la complexité n'existe pas encore (CONF-05). |
+| JOIN-02 | complet | `app/[locale]/lobbies/`, `features/lobbies/components/lobby-browser.tsx` | `tests/e2e/multiplayer.spec.ts` | Liste des salles publiques avec joueurs et capacité, langue, complexité, mode, temps, hôte et état ; filtres par langue et par complexité ; rafraîchie toutes les 5 s. |
 | JOIN-03 | non fait | `app/[locale]/quick/`, `lib/matchmaking.ts` | — | Le bouton actuel lance un jumelage 1v1 (contre un bot après 15 s). Ce n'est pas la règle de l'énoncé. |
 
 ## Configuration de la course
 
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
-| CONF-01 | partiel | `lib/race-settings.ts` | `race-settings.test.ts` | Aucune limite, ou 30 s, 1, 2 ou 3 min. Il faut aller jusqu'à 10 min. |
+| CONF-01 | complet | `lib/race-settings.ts` (`timeLimitOptions`) | `race-settings.test.ts` | Aucune limite, ou 30 s, 1, 2, 3, 5 ou 10 min. Sans limite, une course s'arrête quand même après 30 min. |
 | CONF-02 | complet | `lib/race-settings.ts`, `features/lobby/components/rules-dossier.tsx`, `lib/race-texts.ts` | `race-settings.test.ts`, `race-engine.test.ts`, `lobby-store.test.ts`, `tests/e2e/multiplayer.spec.ts` | L'hôte choisit le français ou l'anglais dans les réglages. Par défaut, c'est la langue de l'interface de l'hôte à la création de la salle. Le réglage est indépendant de la langue de l'interface de chaque joueur. |
-| CONF-03 | partiel | `lib/race-texts.ts`, `db/migrations/006_race_texts.sql` | — | Le corpus de textes cohérents est en base de données (table `race_texts`, remplie par le seed), mais les courses choisissent encore leur texte dans la liste du code. Le texte aléatoire n'est pas fait. |
-| CONF-04 | non fait | — | — | |
-| CONF-05 | non fait | — | — | |
-| CONF-06 | partiel | `lib/race-settings.ts` | `race-settings.test.ts` | Options présentes : nombres, majuscules (sensibilité à la casse). La ponctuation est toujours activée et les accents ne sont pas configurables. |
-| CONF-07 | non fait | — | — | |
+| CONF-03 | complet | `lib/text-builder.ts`, `lib/race-text-db.ts`, `lib/lobby-server.ts`, `lib/word-lists.ts`, `db/migrations/006_race_texts.sql` | `text-builder.test.ts`, `lobby-store.test.ts` | Cohérent : passages de la table `race_texts` (relue toutes les 10 min, complétée par les passages intégrés au code, qui servent aussi si la base est indisponible). Aléatoire : mots tirés d'une liste de mots courants par langue. Les passages sont originaux, écrits pour le projet. |
+| CONF-04 | complet | `lib/text-builder.ts`, `lib/race-settings.ts` (`wordCountOptions`) | `text-builder.test.ts` | 15, 30, 50 ou 100 mots. En mode cohérent, les passages sont enchaînés puis coupés au nombre de mots voulu. |
+| CONF-05 | complet | `lib/text-builder.ts` (`textComplexity`, `randomWordPool`) | `text-builder.test.ts` | Critères mesurables : voir « Complexité des textes » plus haut. |
+| CONF-06 | complet | `lib/text-builder.ts` (`stripPunctuation`, `stripAccents`), `lib/race-settings.ts` | `text-builder.test.ts` | Ponctuation, chiffres, majuscules et accents (affiché seulement pour un texte en français) s'activent ou se désactivent. En plus : la sensibilité à la casse. |
+| CONF-07 | complet | `lib/text-builder.ts` (`randomWordPool`), `lib/race-settings.ts` (`parseCharFilter`) | `text-builder.test.ts`, `race-settings.test.ts` | Lettres à inclure (chaque mot en contient au moins une) et à éviter (aucun mot n'en contient), 12 au maximum. Comportement retenu : l'option ne s'applique qu'au texte aléatoire et n'est pas affichée en mode cohérent. Si les filtres ne laissent aucun mot, ils sont ignorés. |
 | CONF-08 | complet | `lib/typing.ts` (`typeChar`, `netChars`, `progress`), `lib/race-settings.ts`, `lib/bots.ts` | `typing.test.ts`, `bots.test.ts` | « Correction obligatoire » (`blocking`) : une touche fausse compte comme erreur mais le curseur n'avance pas, et le caractère à corriger est marqué. « Libre » (`free`) : l'erreur reste, est comptée, et le joueur continue ; la course se termine au dernier caractère. Restent aussi « Normal » (les erreurs restent et doivent être effacées) et « Mort subite » (voir les choix plus haut). |
 | CONF-09 | complet | `lib/race-settings.ts` (`powers`), `features/lobby/components/rules-dossier.tsx` | `race-engine.test.ts`, `tests/e2e/multiplayer.spec.ts` | Interrupteur « Pouvoirs » de l'hôte : sans lui, aucun bonus n'est donné. |
 | CONF-10 | complet | `lib/race-engine.ts` (`addBot`, `removeBot`) | `race-engine.test.ts` | Chaque bot a son propre niveau. |
