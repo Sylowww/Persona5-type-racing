@@ -9,8 +9,11 @@ export type PlayerEmblem = "domino" | "cat" | "skull" | "mask";
  */
 export type LobbyKind = "custom" | "quick" | "training";
 
-/** Private custom lobbies are joined with their code or link; public ones are also listed in the lobby browser. */
-export type LobbyVisibility = "private" | "public";
+/**
+ * Who can join a custom lobby (SALLE-03). `public`: listed in the lobby browser and joined directly or with the code.
+ * `code`: not listed, joined with the code or an invite link. `private`: invite link only.
+ */
+export type LobbyVisibility = "public" | "code" | "private";
 
 /** A public lobby as the lobby browser lists it. */
 export type PublicLobby = {

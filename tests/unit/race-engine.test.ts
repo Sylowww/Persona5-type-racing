@@ -473,16 +473,23 @@ describe("lobby chat", () => {
 });
 
 describe("lobby visibility", () => {
-  it("starts private and lets only the host make it public", () => {
+  it("starts joinable with the code and lets only the host change who can join", () => {
     const state = lobbyWith("ann", "bob");
-    expect(viewFor(state, "bob", T0)?.visibility).toBe("private");
+    expect(viewFor(state, "bob", T0)?.visibility).toBe("code");
     expect(publicLobbyFor(state)).toBeNull();
     expect(setVisibility(state, "bob", "public")).toEqual({ ok: false, error: "notHost" });
     expect(setVisibility(state, "ann", "secret")).toEqual({ ok: false, error: "invalidSettings" });
 
     const open = unwrap(setVisibility(state, "ann", "public"));
     expect(publicLobbyFor(open)).toMatchObject({ code: "P5-TEST", hostName: "ann", playerCount: 2, phase: "waiting" });
+    expect(publicLobbyFor(unwrap(setVisibility(open, "ann", "code")))).toBeNull();
     expect(publicLobbyFor(unwrap(setVisibility(open, "ann", "private")))).toBeNull();
+  });
+
+  it("refuses code joins to private lobbies, which need an invite link", () => {
+    const state = unwrap(setVisibility(lobbyWith("ann"), "ann", "private"));
+    expect(joinLobby(state, { id: "bob", name: "bob" }, T0)).toEqual({ ok: false, error: "privateLobby" });
+    expect(joinLobby(unwrap(setVisibility(state, "ann", "code")), { id: "bob", name: "bob" }, T0).ok).toBe(true);
   });
 
   it("keeps quick and training lobbies private", () => {

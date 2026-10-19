@@ -193,7 +193,9 @@ const en = {
       visibility: {
         title: "Directive 00 // Access",
         private: "Private",
-        privateHint: "Only players with the code or link can join.",
+        privateHint: "Invite links only: the code alone is not enough.",
+        code: "Code",
+        codeHint: "Not listed: players join with the code or an invite link.",
         public: "Public",
         publicHint: "Listed in the lobby browser: anyone can join.",
       },

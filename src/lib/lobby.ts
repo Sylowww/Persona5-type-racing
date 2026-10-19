@@ -1,4 +1,6 @@
-import type { BotDifficulty } from "@/types/lobby";
+import type { BotDifficulty, LobbyVisibility } from "@/types/lobby";
+
+export const lobbyVisibilities: readonly LobbyVisibility[] = ["public", "code", "private"];
 
 type Readiness = { isReady: boolean };
 

@@ -2,6 +2,7 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { locales } from "@/i18n/locales";
+import { lobbyVisibilities } from "@/lib/lobby";
 import { raceModes, timeLimitOptions } from "@/lib/race-settings";
 import type { LobbyVisibility, RaceSettings } from "@/types/lobby";
 import { KeySoundPicker } from "./key-sound-picker";
@@ -21,7 +22,7 @@ type RulesDossierProps = {
   onClose?: () => void;
 };
 
-const visibilities: readonly LobbyVisibility[] = ["private", "public"];
+const visibilityIcons = { public: "visibility", code: "key", private: "lock" } as const;
 
 export function timeLimitLabel(dictionary: Dictionary["lobby"]["rules"]["time"], seconds: number | null): string {
   if (seconds === null) return dictionary.unlimited;
@@ -66,8 +67,8 @@ export function RulesDossier({
           <>
             <div className="flex flex-col gap-1">
               <DirectiveTitle title={dictionary.visibility.title} tag={dictionary.visibility[visibility]} />
-              <div className="grid grid-cols-2 gap-2">
-                {visibilities.map((option) => {
+              <div className="grid grid-cols-3 gap-2">
+                {lobbyVisibilities.map((option) => {
                   const isActive = option === visibility;
                   return (
                     <button
@@ -80,14 +81,14 @@ export function RulesDossier({
                         isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
                       }`}
                     >
-                      <Icon name={option === "private" ? "lock" : "visibility"} size={16} />
+                      <Icon name={visibilityIcons[option]} size={16} />
                       {dictionary.visibility[option]}
                     </button>
                   );
                 })}
               </div>
               <p className="mt-1 text-[12px] italic text-on-surface-variant">
-                {visibility === "private" ? dictionary.visibility.privateHint : dictionary.visibility.publicHint}
+                {dictionary.visibility[`${visibility}Hint`]}
               </p>
             </div>
 

@@ -195,7 +195,9 @@ const fr: Dictionary = {
       visibility: {
         title: "Directive 00 // Accès",
         private: "Privé",
-        privateHint: "Seuls les joueurs avec le code ou le lien peuvent entrer.",
+        privateHint: "Liens d'invitation seulement : le code ne suffit pas.",
+        code: "Code",
+        codeHint: "Non affiché : on entre avec le code ou un lien d'invitation.",
         public: "Public",
         publicHint: "Affiché dans la liste des salons : tout le monde peut entrer.",
       },
