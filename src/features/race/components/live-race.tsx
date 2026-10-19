@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition, type ChangeEvent } from "react";
 import { forfeitLobbyRace } from "@/features/lobby/actions";
+import { Icon } from "@/components/ui/icon";
 import { useLobbyStream } from "@/features/lobby/use-lobby-stream";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -25,6 +26,7 @@ import type { LobbyView } from "@/types/lobby";
 import type { InputEvent, RaceYou } from "@/types/race";
 import { useInputSender } from "../use-input-sender";
 import { useFinishFrame, useFirstFinisher, useOvertakeFlash } from "../use-race-highlights";
+import { spellStyle } from "../spell-style";
 import { BonusFeed } from "./bonus-feed";
 import { CountdownCutIn } from "./countdown-cut-in";
 import { FinishCutIn } from "./finish-cut-in";
@@ -33,6 +35,7 @@ import { PalaceCollapse } from "./palace-collapse";
 import { RaceHud } from "./race-hud";
 import { RaceStats } from "./race-stats";
 import { RaceTrack } from "./race-track";
+import { SpellCutIn } from "./spell-cut-in";
 import { TypingText } from "./typing-text";
 import { WinnerCutIn } from "./winner-cut-in";
 
@@ -139,8 +142,19 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const isCountdown = now < startsAt;
   // Keys typed before hydration would be dropped when React takes over the input, so it opens only after.
   const hydrated = useHydrated();
+  // Spells cast on you: a hex blurs your next words, a stun locks your keys (the server ignores them meanwhile).
+  const hex = race?.you?.hex && race.you.hex.until > now ? race.you.hex.element : null;
+  const stun = race?.you?.stun && race.you.stun.until > now ? race.you.stun.element : null;
   const isOpen =
-    hydrated && !isSpectator && race !== null && !isCountdown && !finished && !eliminated && forfeitedAt === null && view.phase !== "finished";
+    hydrated &&
+    !isSpectator &&
+    race !== null &&
+    !isCountdown &&
+    !finished &&
+    !eliminated &&
+    forfeitedAt === null &&
+    stun === null &&
+    view.phase !== "finished";
   const canForfeit = !isSpectator && race !== null && !finished && !eliminated && forfeitedAt === null && view.phase !== "finished";
 
   // autoFocus can run before hydration, so place the caret here too.
@@ -216,6 +230,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
       {isCountdown && (
         <CountdownCutIn dictionary={dictionary.cutIn} callingCard={dictionary.callingCard} now={now} startsAt={startsAt} />
       )}
+      {race && !raceOver && <SpellCutIn dictionary={dictionary.spells} events={race.bonusEvents} youId={view.youId} />}
       {winner && !raceOver && <WinnerCutIn dictionary={dictionary.winner} name={winner.name} character={winner.character} />}
       {showFinishFrame && youRacer && (
         <FinishCutIn dictionary={dictionary.finish} character={youRacer.character} />
@@ -249,7 +264,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
             racerCount={racers.length}
           />
 
-          {race && <BonusFeed dictionary={dictionary.bonuses} events={race.bonusEvents} youId={view.youId} />}
+          {race && <BonusFeed dictionary={dictionary.spells} events={race.bonusEvents} youId={view.youId} />}
 
           <RaceTrack
             dictionary={dictionary.track}
@@ -308,15 +323,23 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
               <div
                 className={`relative min-h-[220px] bg-surface-container-low px-4 py-7 md:px-7 ${
                   isFocused ? "outline-2 outline-secondary-fixed" : ""
-                }`}
+                } ${stun === "elec" ? "spell-shake" : ""}`}
               >
                 {/* In blocking mode a wrong key is not typed: the character to fix is marked instead. */}
-              <TypingText
-                text={text}
-                typed={typing.typed}
-                blocked={mode === "blocking" && typing.mistakes > 0 && typing.streak === 0}
-                fog={(race?.you?.fogUntil ?? 0) > now}
-              />
+                <TypingText
+                  text={text}
+                  typed={typing.typed}
+                  blocked={mode === "blocking" && typing.mistakes > 0 && typing.streak === 0}
+                  hex={hex}
+                />
+                {stun && (
+                  <div className={`absolute inset-0 flex items-center justify-center spell-stun-${stun}`}>
+                    <span className={`spell-burst flex items-center gap-2 bg-surface-container-lowest px-4 py-1 font-display text-headline-md uppercase italic shadow-hard-md ${spellStyle[stun].text}`}>
+                      <Icon name={spellStyle[stun].icon} size={32} filled />
+                      {dictionary.spells.stunned}
+                    </span>
+                  </div>
+                )}
                 {isCountdown && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-container-lowest/85">
                     <span className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">

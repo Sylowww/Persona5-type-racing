@@ -221,7 +221,7 @@ test("a public lobby shows in the lobby browser and can be joined from it", asyn
   await guestContext.close();
 });
 
-test("catch-up bonuses go to the lagging racer and are announced on the track", async ({ page }) => {
+test("the lagging racer casts a Persona spell, announced on the track", async ({ page }) => {
   test.setTimeout(90_000);
   await signUp(page, "bonus");
   const code = await createLobby(page);
@@ -241,5 +241,6 @@ test("catch-up bonuses go to the lagging racer and are announced on the track", 
   const text = await raceText(page);
   // Pass the first checkpoint (25%) well ahead of a 30 WPM bot.
   await input.pressSequentially(text.slice(0, Math.ceil(text.length * 0.3)), { delay: KEY_DELAY_MS });
-  await expect(page.getByRole("status").getByText(/takes a shortcut: 3 words fewer/)).toBeVisible({ timeout: 5_000 });
+  // The bot races as a random character, so any Persona spell may come; it is announced on the track.
+  await expect(page.getByRole("status").getByRole("listitem").first()).toContainText(/bot|with|casts|uses|heals/i, { timeout: 5_000 });
 });

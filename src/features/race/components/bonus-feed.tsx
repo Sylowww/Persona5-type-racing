@@ -1,42 +1,52 @@
-import { Icon, type IconName } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import type { BonusKind, RaceBonusEvent } from "@/types/race";
+import type { RaceBonusEvent } from "@/types/race";
+import { spellStyle } from "../spell-style";
 
 type BonusFeedProps = {
-  dictionary: Dictionary["race"]["bonuses"];
+  dictionary: Dictionary["race"]["spells"];
   events: readonly RaceBonusEvent[];
   youId: string;
 };
 
-const icons: Record<BonusKind, IconName> = { shortcut: "bolt", burden: "add_circle", fog: "visibility" };
-
 /**
- * Announces catch-up bonuses on the track (BONUS-03): one line per bonus for everyone, and a louder line for the
- * player it acts on.
+ * Announces catch-up spells on the track (BONUS-03): one line per spell for everyone, in its element's color, and a
+ * louder line for the player it acts on.
  */
 export function BonusFeed({ dictionary, events, youId }: BonusFeedProps) {
   if (events.length === 0) return null;
   const forYou = events.filter((event) => event.targetId === youId);
 
   return (
-    <div role="status" aria-live="polite" className="flex flex-col gap-2">
-      {forYou.map((event) => (
-        <p
-          key={`you-${event.id}`}
-          className="flex -rotate-1 items-center gap-2 bg-secondary-fixed px-4 py-2 font-hud text-headline-sm font-black uppercase italic text-on-secondary-fixed shadow-hard-md shadow-primary-container motion-safe:animate-pulse"
-        >
-          <Icon name={icons[event.kind]} size={24} />
-          {dictionary.onYou[event.kind]}
-        </p>
-      ))}
+    <div role="status" aria-live="polite" className="flex flex-col gap-4">
+      {forYou.map((event) => {
+        const style = spellStyle[event.element];
+        return (
+          <p
+            key={`you-${event.id}`}
+            className={`spell-burst flex -rotate-1 items-center gap-2 border-l-8 bg-surface-container-lowest px-4 py-2 font-hud text-headline-sm font-black uppercase italic shadow-hard-md ${style.border} ${style.text}`}
+          >
+            <Icon name={style.icon} size={26} filled />
+            {formatMessage(dictionary.onYou[event.spell], { name: dictionary.names[event.spell] })}
+          </p>
+        );
+      })}
       <ul className="flex flex-wrap gap-2">
-        {events.map((event) => (
-          <li key={event.id} className="flex items-center gap-1.5 bg-primary-container px-3 py-1 font-hud text-label-hud font-black uppercase text-on-primary-container shadow-hard-xs">
-            <Icon name={icons[event.kind]} size={16} />
-            {formatMessage(dictionary.announce[event.kind], { receiver: event.receiver, target: event.target })}
-          </li>
-        ))}
+        {events.map((event) => {
+          const style = spellStyle[event.element];
+          return (
+            <li key={event.id} className="flex items-center gap-1.5 bg-surface-container-highest px-3 py-1 font-hud text-label-hud font-black uppercase text-secondary shadow-hard-xs">
+              <Icon name={style.icon} size={16} filled className={style.text} />
+              {formatMessage(dictionary.announce[event.spell], {
+                caster: event.receiver,
+                target: event.target,
+                persona: event.persona,
+                name: dictionary.names[event.spell],
+              })}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

@@ -1,4 +1,5 @@
 import { charStatus, splitWords, type CharStatus } from "@/lib/typing";
+import type { SpellElement } from "@/types/race";
 
 const charClass: Record<CharStatus, string> = {
   correct: "text-secondary",
@@ -11,18 +12,18 @@ type TypingTextProps = {
   typed: string;
   /** The last key was wrong and not typed (blocking mode): mark the character waiting to be fixed. */
   blocked?: boolean;
-  /** Fog bonus: the words after the cursor are blurred. */
-  fog?: boolean;
+  /** A spell's hex on the words after the cursor (fire, psy, light, curse); null when none. */
+  hex?: SpellElement | null;
 };
 
 /** The target text, colored by what was typed. Kept flat and calm: no rotation on the text itself. */
-export function TypingText({ text, typed, blocked = false, fog = false }: TypingTextProps) {
+export function TypingText({ text, typed, blocked = false, hex = null }: TypingTextProps) {
   // Each word keeps its trailing space so a mistyped space is visible.
   return (
     <p aria-hidden="true" className="flex flex-wrap gap-y-2 font-body text-typing-stream font-bold select-none">
       {splitWords(text).map(({ start, chars }) => {
         return (
-          <span key={start} className={`whitespace-pre transition-[filter] ${fog && start > typed.length ? "blur-sm" : ""}`}>
+          <span key={start} className={`whitespace-pre transition-[filter] ${hex && start > typed.length ? `spell-hex-${hex}` : ""}`}>
             {[...chars].map((char, charIndex) => {
               const index = start + charIndex;
               return (

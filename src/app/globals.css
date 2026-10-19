@@ -7,6 +7,19 @@
 }
 
 @theme {
+  /* Persona spell elements (catch-up spells, see lib/spells.ts). */
+  --color-spell-fire: #ff6a1f;
+  --color-spell-ice: #6fd8ff;
+  --color-spell-elec: #ffe14a;
+  --color-spell-wind: #5ff2a0;
+  --color-spell-nuclear: #3ef0e0;
+  --color-spell-psy: #ff5fd2;
+  --color-spell-bless: #fff3b0;
+  --color-spell-curse: #a04dff;
+  --color-spell-phys: #ff3b3b;
+  --color-spell-heal: #9dff7a;
+  --color-spell-support: #74a8ff;
+
   --color-surface-container-lowest: #0e0e10;
   --color-surface-container-low: #1c1b1d;
   --color-surface-container: #201f21;
@@ -450,5 +463,101 @@
   }
   to {
     opacity: 0;
+  }
+}
+
+/* Persona spells (features/race/components/spell-*.tsx). Hexes act on the words after the cursor. */
+.spell-hex-fire {
+  color: var(--color-spell-fire);
+  text-shadow: 0 0 6px var(--color-spell-fire), 0 -2px 10px var(--color-spell-elec);
+}
+
+.spell-hex-psy {
+  color: var(--color-spell-psy);
+  filter: blur(3px);
+}
+
+.spell-hex-bless {
+  color: var(--color-spell-bless);
+  filter: blur(2px) brightness(1.8);
+  text-shadow: 0 0 14px var(--color-spell-bless);
+}
+
+.spell-hex-curse {
+  color: var(--color-spell-curse);
+  filter: blur(3px) brightness(0.6);
+}
+
+.spell-stun-elec {
+  background: repeating-linear-gradient(115deg, transparent 0 18px, color-mix(in srgb, var(--color-spell-elec) 35%, transparent) 18px 22px);
+}
+
+.spell-stun-ice {
+  background:
+    radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--color-spell-ice) 55%, transparent), transparent 45%),
+    radial-gradient(circle at 80% 70%, color-mix(in srgb, var(--color-spell-ice) 45%, transparent), transparent 50%),
+    color-mix(in srgb, var(--color-spell-ice) 20%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spell-hex-fire {
+    animation: spell-flicker 220ms steps(2) infinite;
+  }
+
+  .spell-hex-psy {
+    animation: spell-wobble 900ms ease-in-out infinite;
+  }
+
+  .spell-stun-elec {
+    animation: spell-zap 160ms steps(2) infinite;
+  }
+
+  .spell-shake {
+    animation: spell-shake 120ms linear infinite;
+  }
+
+  .spell-burst {
+    animation: spell-burst 700ms cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+  }
+}
+
+@keyframes spell-flicker {
+  50% {
+    opacity: 0.55;
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes spell-wobble {
+  50% {
+    filter: blur(4px) hue-rotate(60deg);
+    transform: skewX(-4deg);
+  }
+}
+
+@keyframes spell-zap {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes spell-shake {
+  25% {
+    transform: translate(-3px, 1px);
+  }
+  75% {
+    transform: translate(3px, -1px);
+  }
+}
+
+@keyframes spell-burst {
+  from {
+    opacity: 0;
+    transform: scale(0.6) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(-3deg);
   }
 }
