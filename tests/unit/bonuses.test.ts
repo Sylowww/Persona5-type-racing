@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appendWords, checkpointsReached, pickBonusReceivers, removeLastWords } from "../../src/lib/bonuses";
-import { characterSpells, isSelfSpell, spellFor } from "../../src/lib/spells";
+import { bigSpellChance, characterPersonas, drawSpell, isSelfSpell, spellPool } from "../../src/lib/spells";
 
 describe("catch-up bonuses", () => {
   it("counts the checkpoints passed by the leader", () => {
@@ -24,16 +24,20 @@ describe("catch-up bonuses", () => {
     expect(pickBonusReceivers([{ id: "solo", progress: 0.5, bonuses: 0 }])).toEqual({ leaderId: null, receiverIds: [] });
   });
 
-  it("gives every character a spell true to their Persona, Joker drawing one with his Wild Card", () => {
-    expect(spellFor("panther", () => 0)).toEqual({ spell: characterSpells.panther, wildCard: false });
-    expect(characterSpells.panther).toMatchObject({ id: "agi", persona: "Carmen", element: "fire" });
-    expect(characterSpells.skull).toMatchObject({ id: "zio", element: "elec", effect: { type: "stun" } });
-    const wild = spellFor("joker", () => 0.99);
-    expect(wild.wildCard).toBe(true);
-    expect(Object.values(characterSpells)).toContain(wild.spell);
-    // At least one spell helps the caster and at least one slows the leader (BONUS-02).
-    expect(Object.values(characterSpells).some(isSelfSpell)).toBe(true);
-    expect(Object.values(characterSpells).some((spell) => !isSelfSpell(spell))).toBe(true);
+  it("draws from one pool for everyone, with better odds of a big spell further behind (Mario Kart style)", () => {
+    expect(bigSpellChance(0)).toBe(0.2);
+    expect(bigSpellChance(0.25)).toBeCloseTo(0.525);
+    expect(bigSpellChance(0.9)).toBe(0.85);
+    expect(drawSpell(0.1, () => 0.99).tier).toBe("small");
+    expect(drawSpell(0.1, () => 0.1).tier).toBe("big");
+    // Every character casts with their own Persona, but none has a spell of their own.
+    expect(characterPersonas.panther).toBe("Carmen");
+    // At least one spell helps the caster and at least one slows the leader (BONUS-02), in both tiers.
+    for (const tier of ["small", "big"] as const) {
+      const pool = spellPool.filter((spell) => spell.tier === tier);
+      expect(pool.some(isSelfSpell)).toBe(true);
+      expect(pool.some((spell) => !isSelfSpell(spell))).toBe(true);
+    }
   });
 
   it("removes words from the end without touching the word being typed", () => {

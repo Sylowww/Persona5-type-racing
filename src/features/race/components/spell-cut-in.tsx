@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { CutInBand, useCutInClock } from "@/components/ui/cut-in";
 import { Icon } from "@/components/ui/icon";
-import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { characterAllOutPortrait } from "@/lib/characters";
 import { revealedLength, SPELL_CUT_IN_TIMELINE } from "@/lib/cut-in";
@@ -30,7 +29,7 @@ export function SpellCutIn({ dictionary, events, youId }: SpellCutInProps) {
 
 function SpellBand({ dictionary, event, onDone }: { dictionary: SpellCutInProps["dictionary"]; event: RaceBonusEvent; onDone: () => void }) {
   const name = dictionary.names[event.spell];
-  const line = event.wildCard ? formatMessage(dictionary.wildCard, { spell: name }) : `${name}!`;
+  const line = `${name}!`;
   const elapsed = useCutInClock(true, line, SPELL_CUT_IN_TIMELINE);
   const style = spellStyle[event.element];
   const isDone = elapsed !== null && elapsed >= SPELL_CUT_IN_TIMELINE.endsAt;

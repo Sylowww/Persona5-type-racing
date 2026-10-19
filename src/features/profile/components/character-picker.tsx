@@ -1,9 +1,8 @@
-import { Icon, type IconName } from "@/components/ui/icon";
-import { spellStyle } from "@/features/race/spell-style";
+import { Icon } from "@/components/ui/icon";
 import { SpriteFrames } from "@/components/ui/sprite-frames";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { characterIds, characters } from "@/lib/characters";
-import { characterSpells } from "@/lib/spells";
+import { characterPersonas } from "@/lib/spells";
 import type { CharacterId } from "@/types/character";
 import { chooseCharacter } from "../actions";
 
@@ -11,11 +10,6 @@ type CharacterPickerProps = {
   dictionary: Dictionary["profile"]["character"];
   selected: CharacterId;
 };
-
-/** Color and icon of a character's power; Joker's Wild Card has no element of its own. */
-function powerStyle(id: CharacterId): { text: string; bg: string; icon: IconName } {
-  return id === "joker" ? { text: "text-secondary-fixed", bg: "bg-secondary-fixed", icon: "star" } : spellStyle[characterSpells[id].element];
-}
 
 // Plain form buttons: picking works without client JavaScript.
 export function CharacterPicker({ dictionary, selected }: CharacterPickerProps) {
@@ -33,7 +27,7 @@ export function CharacterPicker({ dictionary, selected }: CharacterPickerProps) 
 
         <form action={chooseCharacter} className="grid grid-cols-3 gap-3 self-start">
           {characterIds.map((id) => (
-            <RosterCard key={id} id={id} name={dictionary.names[id]} power={dictionary.powers[id].name} isSelected={id === selected} />
+            <RosterCard key={id} id={id} name={dictionary.names[id]} isSelected={id === selected} />
           ))}
         </form>
       </div>
@@ -72,34 +66,28 @@ function Showcase({ dictionary, selected }: CharacterPickerProps) {
           <p className="-skew-x-6 font-display text-headline-lg uppercase italic leading-none tracking-wider text-secondary [text-shadow:4px_4px_0_var(--color-surface-container-lowest)]">
             {dictionary.names[selected]}
           </p>
-          <PowerPanel dictionary={dictionary} id={selected} />
+          <PersonaPanel dictionary={dictionary} id={selected} />
         </div>
       </div>
     </div>
   );
 }
 
-/** The selected thief's power (catch-up spell): its name, Persona and what it does. */
-function PowerPanel({ dictionary, id }: { dictionary: CharacterPickerProps["dictionary"]; id: CharacterId }) {
-  const style = powerStyle(id);
-  const persona = id === "joker" ? "Arsène" : characterSpells[id].persona;
+/** The selected thief's Persona, which casts the spells they draw in a race (the same pool for every thief). */
+function PersonaPanel({ dictionary, id }: { dictionary: CharacterPickerProps["dictionary"]; id: CharacterId }) {
   return (
     <div className="mt-3 flex flex-col gap-1 bg-surface-container-lowest/90 p-3 shadow-hard-sm">
-      <span className="flex items-center gap-2 font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">
-        {`${dictionary.power} // ${persona}`}
+      <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">{dictionary.persona}</span>
+      <span className="flex items-center gap-2 font-display text-headline-sm uppercase italic text-secondary-fixed">
+        <Icon name="star" size={22} filled />
+        {characterPersonas[id]}
       </span>
-      <span className={`flex items-center gap-2 font-display text-headline-sm uppercase italic ${style.text}`}>
-        <Icon name={style.icon} size={24} filled />
-        {dictionary.powers[id].name}
-      </span>
-      <p className="text-[13px] text-on-surface">{dictionary.powers[id].text}</p>
-      <p className="text-[12px] italic text-on-surface-variant">{dictionary.powerHint}</p>
+      <p className="text-[12px] italic text-on-surface-variant">{dictionary.personaHint}</p>
     </div>
   );
 }
 
-function RosterCard({ id, name, power, isSelected }: { id: CharacterId; name: string; power: string; isSelected: boolean }) {
-  const style = powerStyle(id);
+function RosterCard({ id, name, isSelected }: { id: CharacterId; name: string; isSelected: boolean }) {
   return (
     <button
       type="submit"
@@ -139,10 +127,7 @@ function RosterCard({ id, name, power, isSelected }: { id: CharacterId; name: st
       >
         {name}
       </span>
-      <span className={`relative mb-2 flex items-center gap-1 font-hud text-[11px] font-black uppercase tracking-wider ${style.text}`}>
-        <Icon name={style.icon} size={14} filled />
-        {power}
-      </span>
+      <span className="relative mb-2 font-hud text-[11px] font-black uppercase tracking-wider text-on-surface-variant">{characterPersonas[id]}</span>
     </button>
   );
 }
