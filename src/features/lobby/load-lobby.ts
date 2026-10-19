@@ -15,5 +15,8 @@ export async function loadLobby(locale: Locale, rawCode: string) {
   if (!code || !store.exists(code)) notFound();
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/guest?next=${encodeURIComponent(`/${locale}/lobby/${code}`)}`);
-  return { user, code, store, view: store.view(code, user.id) };
+  const view = store.view(code, user.id);
+  // Non-members see a join form; tell them up front when the code alone cannot get them in.
+  const joinError = view ? null : store.joinError(code, { id: user.id, name: user.username });
+  return { user, code, store, view, joinError };
 }

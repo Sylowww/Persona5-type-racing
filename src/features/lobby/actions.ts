@@ -1,9 +1,11 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isLocale, type Locale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isBotDifficulty } from "@/lib/bots";
+import { clientIp } from "@/lib/client-ip";
 import { normalizeLobbyCode } from "@/lib/lobby-code";
 import { getLobbyStore } from "@/lib/lobby-server";
 import type { QuickMatchStatus, StoreError } from "@/lib/lobby-store";
@@ -11,6 +13,8 @@ import { botForSpeed } from "@/lib/matchmaking";
 import { getPlayerStats } from "@/lib/race-history-db";
 
 export type JoinErrorCode = "invalidCode" | "lobbyNotFound" | "lobbyFull" | "privateLobby" | "raceInProgress" | "kicked";
+
+export type InviteErrorCode = "invalidInvite" | "inviteUsed" | "lobbyFull" | "raceInProgress" | "kicked";
 
 export type JoinFormState = { error: JoinErrorCode | null; code: string };
 
@@ -104,6 +108,22 @@ export async function closeLobbyForAll(codeValue: string, localeValue: string): 
   const error = await lobbyCommand(codeValue, (lobby, userId) => getLobbyStore().close(lobby, userId));
   if (error) return error;
   redirect(`/${locale}`);
+}
+
+/** Host only: adds an invite link to the lobby; it shows up in the host's next snapshot. */
+export async function createLobbyInvite(code: string): Promise<StoreError | null> {
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().createInvite(lobby, userId));
+}
+
+/** Joins the lobby of an invite link from this request's IP address (SALLE-04); returns why it failed, or redirects into it. */
+export async function joinWithInviteLink(token: string, localeValue: string): Promise<InviteErrorCode> {
+  const locale = toLocale(localeValue);
+  if (typeof token !== "string" || token.length > 64) return "invalidInvite";
+  const player = await requirePlayer(locale, `/${locale}/invite/${encodeURIComponent(token)}`);
+  const result = getLobbyStore().joinWithInvite(token, player, clientIp(await headers()));
+  if ("code" in result) redirect(`/${locale}/lobby/${result.code}`);
+  const { error } = result;
+  return error === "inviteUsed" || error === "lobbyFull" || error === "raceInProgress" || error === "kicked" ? error : "invalidInvite";
 }
 
 /** Host only: removes a player from the lobby for good. */

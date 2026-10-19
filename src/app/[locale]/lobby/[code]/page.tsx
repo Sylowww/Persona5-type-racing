@@ -21,7 +21,7 @@ export default async function LobbyPage({ params }: Params) {
   const { locale, code: rawCode } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [{ code, view }, dictionary] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
+  const [{ code, view, joinError }, dictionary] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
   if (view && (view.phase === "countdown" || view.phase === "racing") && view.race?.you) {
     redirect(`/${locale}/lobby/${code}/race`);
   }
@@ -35,9 +35,14 @@ export default async function LobbyPage({ params }: Params) {
           {view ? (
             <LobbyRoom dictionary={dictionary.lobby} locale={locale} initialView={view} />
           ) : (
-            // Opened from an invite link: join first.
+            // Opened from a lobby link: join first (or see why the code is not enough).
             <div className="mx-auto w-full max-w-md py-10">
-              <JoinCodeCard dictionary={dictionary.home.joinCode} locale={locale} defaultCode={code} />
+              <JoinCodeCard
+                dictionary={dictionary.home.joinCode}
+                locale={locale}
+                defaultCode={code}
+                initialError={joinError === "lobbyFull" || joinError === "privateLobby" || joinError === "raceInProgress" || joinError === "kicked" ? joinError : null}
+              />
             </div>
           )}
         </div>

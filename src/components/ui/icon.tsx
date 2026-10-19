@@ -16,6 +16,7 @@ export const iconNames = [
   "home",
   "key",
   "keyboard",
+  "link",
   "lock",
   "login",
   "logout",

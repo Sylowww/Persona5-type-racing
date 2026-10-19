@@ -45,6 +45,15 @@ export type LobbyMember = {
   isSpectator: boolean;
 };
 
+/** An invite link as its lobby's host sees it (SALLE-04). */
+export type LobbyInvite = {
+  token: string;
+  /** Who used the link first; null while unused. */
+  usedBy: string | null;
+  /** Revoked when its player was kicked. */
+  isRevoked: boolean;
+};
+
 /** Snapshot of a lobby for one viewer, sent by the server on every change. */
 export type LobbyView = {
   code: string;
@@ -63,6 +72,8 @@ export type LobbyView = {
   settings: RaceSettings;
   /** Latest chat messages, oldest first. */
   messages: readonly LobbyMessage[];
+  /** Invite links of a custom lobby, for its host only; null for everyone else. */
+  invites: readonly LobbyInvite[] | null;
 };
 
 /** `suddenDeath`: the first mistake eliminates the racer. */

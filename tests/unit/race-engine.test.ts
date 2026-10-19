@@ -4,9 +4,11 @@ import {
   advance,
   applyInput,
   closeLobby,
+  createInvite,
   createLobby,
   isRaceOver,
   joinLobby,
+  joinWithInvite,
   kickMember,
   leaveLobby,
   liveOrder,
@@ -515,6 +517,43 @@ describe("spectators", () => {
   it("hands the host role to a spectator when the host leaves", () => {
     const state = unwrap(setRole(lobbyWith("ann", "bob"), "bob", "spectator"));
     expect(viewFor(leaveLobby(state, "ann"), "bob", T0)?.players.find((player) => player.id === "bob")?.isHost).toBe(true);
+  });
+});
+
+describe("invite links", () => {
+  const privateLobby = () => unwrap(createInvite(unwrap(setVisibility(lobbyWith("ann"), "ann", "private")), "ann", "tok-1"));
+
+  it("lets only the host create links, shown to the host only", () => {
+    const state = lobbyWith("ann", "bob");
+    expect(createInvite(state, "bob", "x")).toEqual({ ok: false, error: "notHost" });
+    const invited = unwrap(createInvite(state, "ann", "tok-1"));
+    expect(viewFor(invited, "ann", T0)?.invites).toEqual([{ token: "tok-1", usedBy: null, isRevoked: false }]);
+    expect(viewFor(invited, "bob", T0)?.invites).toBeNull();
+  });
+
+  it("lets the first person in, even in a private lobby, and binds the link to their address", () => {
+    const state = unwrap(joinWithInvite(privateLobby(), { id: "bob", name: "bob" }, "tok-1", "1.1.1.1", T0));
+    expect(viewFor(state, "bob", T0)).not.toBeNull();
+    expect(viewFor(state, "ann", T0)?.invites).toEqual([{ token: "tok-1", usedBy: "bob", isRevoked: false }]);
+
+    // Anyone else, from another address, is refused; the same address may come back.
+    expect(joinWithInvite(state, { id: "cid", name: "cid" }, "tok-1", "2.2.2.2", T0)).toEqual({ ok: false, error: "inviteUsed" });
+    const left = leaveLobby(state, "bob");
+    expect(joinWithInvite(left, { id: "bob", name: "bob" }, "tok-1", "1.1.1.1", T0).ok).toBe(true);
+    expect(joinWithInvite(left, { id: "bob", name: "bob" }, "nope", "1.1.1.1", T0)).toEqual({ ok: false, error: "invalidInvite" });
+  });
+
+  it("revokes the link of a kicked player", () => {
+    const joined = unwrap(joinWithInvite(privateLobby(), { id: "bob", name: "bob" }, "tok-1", "1.1.1.1", T0));
+    const kicked = unwrap(kickMember(joined, "ann", "bob"));
+    expect(viewFor(kicked, "ann", T0)?.invites?.[0].isRevoked).toBe(true);
+    expect(joinWithInvite(kicked, { id: "bob", name: "bob" }, "tok-1", "1.1.1.1", T0)).toEqual({ ok: false, error: "invalidInvite" });
+  });
+
+  it("does not bind the link when joining fails", () => {
+    const racingLobby = unwrap(createInvite(racing("ann", "bob"), "ann", "tok-1"));
+    expect(joinWithInvite(racingLobby, { id: "cid", name: "cid" }, "tok-1", "1.1.1.1", START)).toEqual({ ok: false, error: "raceInProgress" });
+    expect(racingLobby.invites[0].usedBy).toBeNull();
   });
 });
 

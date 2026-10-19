@@ -8,6 +8,7 @@ import { canStartRace, countReady, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from
 import type { LobbyView } from "@/types/lobby";
 import {
   addLobbyBot,
+  createLobbyInvite,
   kickLobbyMember,
   leaveLobby,
   removeLobbyBot,
@@ -20,6 +21,7 @@ import {
   updateLobbySettings,
 } from "../actions";
 import { useLobbyStream } from "../use-lobby-stream";
+import { InvitePanel } from "./invite-panel";
 import { LobbyActions } from "./lobby-actions";
 import { LobbyHeader } from "./lobby-header";
 import { LobbyRoster } from "./lobby-roster";
@@ -111,6 +113,15 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
           />
         </div>
         <div className="flex flex-col gap-4 xl:col-span-4">
+          {view.invites && (
+            <InvitePanel
+              dictionary={dictionary.invites}
+              locale={locale}
+              invites={view.invites}
+              isPending={isPending}
+              onCreate={() => startTransition(async () => void (await createLobbyInvite(code)))}
+            />
+          )}
           <RulesSummary
             dictionary={dictionary.rules}
             settings={view.settings}
