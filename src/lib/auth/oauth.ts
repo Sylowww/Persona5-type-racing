@@ -1,7 +1,8 @@
 // Pure OAuth 2.0 helpers (authorization code + PKCE) for Google, GitHub and Discord.
 // Network calls live in oauth-client.ts.
 import { createHash, randomBytes } from "node:crypto";
-import { oauthProviders, type OAuthProvider } from "../../types/user";
+import type { OAuthProvider } from "../../types/user";
+import { oauthProviderSchema } from "../schemas";
 import { USERNAME_MAX, USERNAME_MIN } from "./validation";
 
 /** Short-lived cookie holding state + PKCE verifier during the redirect. */
@@ -36,7 +37,7 @@ export const providerConfigs: Record<OAuthProvider, ProviderConfig> = {
 };
 
 export function isOAuthProvider(value: string): value is OAuthProvider {
-  return oauthProviders.some((provider) => provider === value);
+  return oauthProviderSchema.safeParse(value).success;
 }
 
 export type OAuthProfile = { id: string; username: string; avatarUrl: string | null };

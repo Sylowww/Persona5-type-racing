@@ -1,5 +1,6 @@
 // Authoritative lobby and race rules. Pure functions of (state, event, now): no timers, no I/O and no
 // transport, so the same rules work behind SSE today and any other transport later.
+import { z } from "zod";
 import type { Locale } from "@/i18n/locales";
 import type { CharacterId } from "@/types/character";
 import type {
@@ -37,9 +38,10 @@ import {
 import { planBotRun, replanBotRun, seededRandom, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
-import { canStartRace, lobbyVisibilities, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
+import { canStartRace, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-settings";
 import { rankRacers } from "./results";
+import { inputBatchSchema, memberRoleSchema, visibilitySchema } from "./schemas";
 import {
   accuracy,
   deleteChar,
@@ -360,13 +362,14 @@ export function admitPlayer(state: LobbyState, player: Player, now: number): Out
 export function setRole(state: LobbyState, userId: string, role: unknown): Outcome {
   if (!isMember(state, userId)) return fail("notMember");
   if (state.kind !== "custom") return fail("privateLobby");
-  if (role !== "player" && role !== "spectator") return fail("invalidSettings");
+  const parsed = memberRoleSchema.safeParse(role);
+  if (!parsed.success) return fail("invalidSettings");
   const open = reopen(state);
   if (open.phase !== "waiting") return fail("wrongPhase");
   const member = open.members.find((candidate) => candidate.id === userId);
-  if (!member || member.role === role) return ok(open);
-  if (role === "player" && seatedMembers(open).length >= open.config.capacity) return fail("lobbyFull");
-  return ok({ ...open, members: open.members.map((candidate) => (candidate === member ? { ...candidate, role, isReady: false } : candidate)) });
+  if (!member || member.role === parsed.data) return ok(open);
+  if (parsed.data === "player" && seatedMembers(open).length >= open.config.capacity) return fail("lobbyFull");
+  return ok({ ...open, members: open.members.map((candidate) => (candidate === member ? { ...candidate, role: parsed.data, isReady: false } : candidate)) });
 }
 
 /** The host adds a bot of the chosen difficulty while the lobby is waiting. `random` picks its character. */
@@ -440,9 +443,9 @@ export function setVisibility(state: LobbyState, userId: string, visibility: unk
   if (!isMember(state, userId)) return fail("notMember");
   if (state.hostId !== userId) return fail("notHost");
   if (state.kind !== "custom") return fail("privateLobby");
-  const allowed = lobbyVisibilities.find((option) => option === visibility);
-  if (!allowed) return fail("invalidSettings");
-  return ok({ ...state, visibility: allowed });
+  const parsed = visibilitySchema.safeParse(visibility);
+  if (!parsed.success) return fail("invalidSettings");
+  return ok({ ...state, visibility: parsed.data });
 }
 
 /** The host sets the number of seats of a custom lobby, between 2 and 30 and never below the players already in. */
@@ -453,10 +456,9 @@ export function setCapacity(state: LobbyState, userId: string, capacity: unknown
   const open = reopen(state);
   if (open.phase !== "waiting") return fail("wrongPhase");
   const min = Math.max(MIN_LOBBY_CAPACITY, seatedMembers(open).length);
-  if (typeof capacity !== "number" || !Number.isInteger(capacity) || capacity < min || capacity > MAX_LOBBY_CAPACITY) {
-    return fail("invalidSettings");
-  }
-  return ok({ ...open, config: { ...open.config, capacity } });
+  const parsed = z.number().int().min(min).max(MAX_LOBBY_CAPACITY).safeParse(capacity);
+  if (!parsed.success) return fail("invalidSettings");
+  return ok({ ...open, config: { ...open.config, capacity: parsed.data } });
 }
 
 /** Free seats of a public lobby that can be joined now (JOIN-03); null when it cannot. */
@@ -1004,25 +1006,8 @@ export function resultFor(state: LobbyState, userId: string): RaceResult | null 
   return { youId: userId, endedAt: state.result.endedAt, racers: state.result.racers, ...details };
 }
 
-/** Validates an input batch received from a client; null when malformed. */
+/** Validates an input batch received from a client (`inputBatchSchema`, TECH-07); null when malformed. */
 export function parseInputBatch(value: unknown): InputBatch | null {
-  if (typeof value !== "object" || value === null) return null;
-  const { clientId, seq, events } = value as { clientId?: unknown; seq?: unknown; events?: unknown };
-  if (typeof clientId !== "string" || clientId.length === 0 || clientId.length > 64) return null;
-  if (typeof seq !== "number" || !Number.isSafeInteger(seq) || seq < 1) return null;
-  if (!Array.isArray(events) || events.length > MAX_EVENTS_PER_BATCH) return null;
-
-  const parsed: InputBatch["events"][number][] = [];
-  for (const event of events) {
-    if (typeof event !== "object" || event === null) return null;
-    const { type, char, delayMs } = event as { type?: unknown; char?: unknown; delayMs?: unknown };
-    if (type === "delete") {
-      parsed.push({ type: "delete" });
-    } else if (type === "char" && typeof char === "string" && [...char].length === 1 && typeof delayMs === "number" && Number.isFinite(delayMs)) {
-      parsed.push({ type: "char", char, delayMs });
-    } else {
-      return null;
-    }
-  }
-  return { clientId, seq, events: parsed };
+  const result = inputBatchSchema.safeParse(value);
+  return result.success ? result.data : null;
 }

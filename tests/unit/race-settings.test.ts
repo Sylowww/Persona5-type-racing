@@ -5,6 +5,16 @@ import { defaultRaceSettings, parseRaceSettings, raceDurationMs, UNTIMED_RACE_CA
 import { numberRaceTexts, raceTexts } from "../../src/lib/race-texts";
 import { normalizeTypedChar } from "../../src/lib/typing";
 
+describe("settings change validation (TECH-07)", () => {
+  it("keeps current values for undefined fields and refuses unknown ones", () => {
+    expect(parseRaceSettings(defaultRaceSettings, { mode: undefined })).toEqual(defaultRaceSettings);
+    expect(parseRaceSettings(defaultRaceSettings, { wordCount: 50, includeChars: "QZ" })).toMatchObject({ wordCount: 50, includeChars: "qz" });
+    expect(parseRaceSettings(defaultRaceSettings, { wordCount: 42 })).toBeNull();
+    expect(parseRaceSettings(defaultRaceSettings, { secret: true })).toBeNull();
+    expect(parseRaceSettings(defaultRaceSettings, { includeChars: "a1" })).toBeNull();
+  });
+});
+
 describe("race settings", () => {
   it("applies a valid partial change", () => {
     expect(parseRaceSettings(defaultRaceSettings, { mode: "suddenDeath", timeLimitSec: null, numbers: true })).toEqual({

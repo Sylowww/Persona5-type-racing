@@ -7,28 +7,27 @@ export type ValidationError =
   | "emailInvalid"
   | "passwordLength";
 
-export const USERNAME_MIN = 3;
-export const USERNAME_MAX = 20;
-export const PASSWORD_MIN = 8;
-export const PASSWORD_MAX = 128;
+import type { ZodType } from "zod";
+import { emailSchema, passwordSchema, usernameSchema } from "../schemas";
 
-const USERNAME_PATTERN = /^[A-Za-z0-9_-]+$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export { PASSWORD_MAX, PASSWORD_MIN, USERNAME_MAX, USERNAME_MIN } from "../schemas";
+
+/** The first error code of a schema check (the schemas carry the codes as messages), or null when valid. */
+function firstError<Code extends ValidationError>(schema: ZodType, value: string): Code | null {
+  const result = schema.safeParse(value);
+  return result.success ? null : (result.error.issues[0].message as Code);
+}
 
 export function validateUsername(value: string): Extract<ValidationError, "usernameLength" | "usernameChars"> | null {
-  const username = value.trim();
-  if (username.length < USERNAME_MIN || username.length > USERNAME_MAX) return "usernameLength";
-  if (!USERNAME_PATTERN.test(username)) return "usernameChars";
-  return null;
+  return firstError(usernameSchema, value);
 }
 
 export function validateEmail(value: string): ValidationError | null {
-  const email = value.trim();
-  return email.length <= 254 && EMAIL_PATTERN.test(email) ? null : "emailInvalid";
+  return firstError(emailSchema, value);
 }
 
 export function validatePassword(value: string): ValidationError | null {
-  return value.length < PASSWORD_MIN || value.length > PASSWORD_MAX ? "passwordLength" : null;
+  return firstError(passwordSchema, value);
 }
 
 export function normalizeEmail(value: string): string {
