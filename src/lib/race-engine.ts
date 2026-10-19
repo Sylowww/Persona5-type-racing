@@ -838,7 +838,7 @@ function isGone(member: Member | undefined, now: number, graceMs: number): boole
 
 /**
  * Over at the time limit, once every racer finished, was eliminated, left or stayed disconnected past
- * the grace period, or once no player is left to race the bots.
+ * the grace period, or once no player is left to race (or, in a bots-only race, to watch) the bots.
  */
 export function isRaceOver(state: LobbyState, now: number): boolean {
   const race = state.race;
@@ -846,8 +846,14 @@ export function isRaceOver(state: LobbyState, now: number): boolean {
   if (now >= race.endsAt) return true;
   const graceMs = state.config.reconnectGraceMs;
   const memberOf = (racerId: string) => state.members.find((member) => member.id === racerId);
-  // Spectators do not keep a race going: it stops once no human racer is left.
-  if (race.racers.every((racer) => racer.bot !== null || isGone(memberOf(racer.id), now, graceMs))) return true;
+  // Spectators do not keep a race with human racers going: it stops once none of them is left. A bots-only race runs
+  // while someone is still there to watch it.
+  const humanRacers = race.racers.filter((racer) => racer.bot === null);
+  const isAbandoned =
+    humanRacers.length > 0
+      ? humanRacers.every((racer) => isGone(memberOf(racer.id), now, graceMs))
+      : state.members.every((member) => member.bot !== null || isGone(member, now, graceMs));
+  if (isAbandoned) return true;
   return race.racers.every((racer) => isOut(racer) || isGone(memberOf(racer.id), now, graceMs));
 }
 

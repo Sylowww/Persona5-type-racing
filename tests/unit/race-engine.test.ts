@@ -660,6 +660,15 @@ describe("spectators", () => {
     expect(isRaceOver(leaveLobby(state, "ann"), START)).toBe(true);
   });
 
+  it("lets a spectating host start a bots-only race, which runs while someone watches", () => {
+    let state = unwrap(setRole(lobbyWith("ann"), "ann", "spectator"));
+    state = unwrap(addBot(unwrap(addBot(state, "ann", "rookie")), "ann", "master"));
+    const started = advance(unwrap(startRace(state, "ann", TEXT, T0)), START);
+    expect(started.race?.racers.every((racer) => racer.bot !== null)).toBe(true);
+    expect(isRaceOver(started, START)).toBe(false);
+    expect(isRaceOver(leaveLobby(started, "ann"), START)).toBe(true);
+  });
+
   it("hands the host role to a spectator when the host leaves", () => {
     const state = unwrap(setRole(lobbyWith("ann", "bob"), "bob", "spectator"));
     expect(viewFor(leaveLobby(state, "ann"), "bob", T0)?.players.find((player) => player.id === "bob")?.isHost).toBe(true);

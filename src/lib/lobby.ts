@@ -30,11 +30,11 @@ export function openSlotCount(playerCount: number, capacity: number): number {
 }
 
 /**
- * A race needs at least two racers, one of them human (COURSE-02), and every racer ready. Bots count as racers and are
- * always ready; pass racers only, not spectators.
+ * A race needs at least two racers (COURSE-02), every one ready. Bots count as racers and are always ready, so a
+ * spectating host can start a bots-only race; pass racers only, not spectators.
  */
-export function canStartRace(racers: readonly (Readiness & { bot: BotDifficulty | null })[]): boolean {
-  return racers.length >= 2 && racers.some((racer) => racer.bot === null) && countReady(racers) === racers.length;
+export function canStartRace(racers: readonly Readiness[]): boolean {
+  return racers.length >= 2 && countReady(racers) === racers.length;
 }
 
 /** Filled and total segments of the ready meter; large lobbies are scaled down to `maxSegments`. */

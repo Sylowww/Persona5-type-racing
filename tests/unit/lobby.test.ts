@@ -25,9 +25,10 @@ describe("lobby", () => {
     expect(canStartRace([player("a", true), player("b", true)])).toBe(true);
   });
 
-  it("counts bots as racers but needs one human (COURSE-02)", () => {
+  it("counts bots as racers, even without a human racer (COURSE-02)", () => {
     expect(canStartRace([player("a", true), bot("b")])).toBe(true);
-    expect(canStartRace([bot("a"), bot("b")])).toBe(false);
+    expect(canStartRace([bot("a"), bot("b")])).toBe(true);
+    expect(canStartRace([bot("a")])).toBe(false);
   });
 
   it("scales the ready meter down for large lobbies", () => {
