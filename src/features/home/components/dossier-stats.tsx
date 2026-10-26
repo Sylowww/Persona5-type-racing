@@ -10,7 +10,7 @@ type DossierStatsProps = {
 export function DossierStats({ dictionary, stats }: DossierStatsProps) {
   const empty = stats.races === 0;
   return (
-    <dl className="grid grid-cols-3 divide-x divide-surface-container-high">
+    <dl className="grid grid-cols-3 gap-3">
       <StatTile
         label={dictionary.record}
         value={empty ? "—" : String(Math.round(stats.bestWpm))}

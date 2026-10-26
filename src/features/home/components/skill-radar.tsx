@@ -22,15 +22,16 @@ export function SkillRadar({ dictionary, radar }: SkillRadarProps) {
     .join(", ");
 
   return (
-    <section className="flex flex-col gap-3 border-t border-surface-container-high pt-5">
+    <section className="flex flex-col gap-3 border-t-2 border-dashed border-surface-container-high pt-5">
       <div className="flex items-center justify-between gap-2">
         <h3 className="eyebrow">{dictionary.title}</h3>
-        <span className="shrink-0 font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">
+        <span className="shrink-0 -skew-x-12 bg-secondary-fixed px-2 py-0.5 font-hud text-label-hud font-black uppercase tracking-widest text-on-secondary-fixed">
           {formatMessage(dictionary.sync, { percent: radarSync(radar) })}
         </span>
       </div>
-      <div className="flex w-full items-center justify-center py-1">
-        <svg role="img" aria-label={description} viewBox="-55 -10 310 180" className="h-40 w-full max-w-72">
+      <div className="relative flex w-full items-center justify-center py-1">
+        <div aria-hidden="true" className="halftone absolute inset-y-0 left-1/2 w-full max-w-72 -translate-x-1/2 -skew-x-12 bg-primary-container/30" />
+        <svg role="img" aria-label={description} viewBox="-55 -10 310 180" className="relative h-40 w-full max-w-72">
           {rings.map((ratio, index) => (
             <polygon
               key={ratio}
@@ -90,7 +91,7 @@ export function SkillRadar({ dictionary, radar }: SkillRadarProps) {
 /** Shown until the player has finished a race. */
 export function RadarEmpty({ dictionary }: { dictionary: SkillRadarProps["dictionary"] }) {
   return (
-    <section className="flex flex-col gap-3 border-t border-surface-container-high pt-5">
+    <section className="flex flex-col gap-3 border-t-2 border-dashed border-surface-container-high pt-5">
       <h3 className="eyebrow">{dictionary.title}</h3>
       <p className="flex items-center gap-2 py-6 text-on-surface-variant">
         <Icon name="analytics" size={28} className="text-primary-container" />
