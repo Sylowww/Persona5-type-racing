@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { CSSProperties } from "react";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
@@ -35,6 +36,8 @@ export function ResultsPodium({ dictionary, locale, racers, youId }: ResultsPodi
         title={dictionary.title}
         badge={formatMessage(dictionary.racers, { count: racers.length })}
       />
+
+      {racers.length > 1 && <PodiumStage racers={racers.slice(0, 3)} />}
 
       <ol className="flex flex-col gap-2">
         {winner && (
@@ -94,6 +97,39 @@ export function ResultsPodium({ dictionary, locale, racers, youId }: ResultsPodi
         ))}
       </ol>
     </section>
+  );
+}
+
+// Second on the left, first in the middle, third on the right; `step` orders the rise (third first).
+const steps = [
+  { place: 2, step: 1, height: "h-20", face: "bg-secondary text-surface-container-lowest" },
+  { place: 1, step: 2, height: "h-28", face: "bg-secondary-fixed text-on-secondary-fixed" },
+  { place: 3, step: 0, height: "h-14", face: "bg-primary-container text-on-primary-container" },
+] as const;
+
+/** The top three on 3D steps that rise one by one, each thief dropping onto theirs (`.podium-*` in globals.css). */
+function PodiumStage({ racers }: { racers: readonly ResultRacer[] }) {
+  return (
+    <div aria-hidden="true" className="podium-stage flex items-end justify-center gap-1 pt-16">
+      {steps.map(({ place, step, height, face }) => {
+        const racer = racers[place - 1];
+        if (!racer) return null;
+        return (
+          <div key={racer.id} className="flex w-28 min-w-0 flex-col items-center [transform-style:preserve-3d]" style={{ "--podium-step": step } as CSSProperties}>
+            <div className="podium-racer flex w-full flex-col items-center gap-1 pb-7">
+              <div className="relative size-16 overflow-hidden border-2 border-secondary bg-surface-container-lowest shadow-hard-sm">
+                <Image src={characterAllOutPortrait(racer.character)} alt="" fill sizes="64px" className="object-cover" />
+              </div>
+              <span className="max-w-full truncate font-hud text-label-hud font-black uppercase text-secondary">{racer.name}</span>
+            </div>
+            <div className={`podium-block relative w-full ${height} ${face}`}>
+              <div className={`podium-top absolute inset-x-0 bottom-full h-8 brightness-125 ${face}`} />
+              <span className="absolute inset-0 flex items-center justify-center font-display text-headline-lg italic leading-none">{place}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
