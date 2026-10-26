@@ -46,10 +46,12 @@ export function TypingText({ text, typed, blocked = false, hex = null, redacted 
               const index = start + charIndex;
               const status = blocked && index === typed.length ? "incorrect" : charStatus(text, typed, index);
               const isRansom = isCurrent && status === "pending" && char !== " ";
+              // The key just typed sinks in; a wrong one wobbles once, when it turns red (`.key-*` in globals.css).
+              const press = status === "incorrect" ? "key-wobble" : index === typed.length - 1 ? "key-sink" : "";
               return (
                 <span
                   key={index}
-                  className={`relative ${isRansom ? `ransom-letter ${index === typed.length ? "ransom-next" : "ransom-pending"}` : charClass[status]}`}
+                  className={`relative ${press} ${isRansom ? `ransom-letter ${index === typed.length ? "ransom-next" : "ransom-pending"}` : charClass[status]}`}
                   style={isRansom ? { rotate: `${ransomTilts[index % ransomTilts.length]}deg` } : undefined}
                 >
                   {index === typed.length && (

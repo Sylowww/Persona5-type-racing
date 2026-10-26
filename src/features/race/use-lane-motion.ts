@@ -2,12 +2,12 @@
 
 import { useLayoutEffect, useRef } from "react";
 
-const SLIDE_MS = 450;
+const SLIDE_MS = 550;
 
 /**
- * Lane motion on the race track: when the order changes, every lane slides from its old place to its new one instead
- * of jumping (a FLIP animation), and a racer who enters the top three flashes (`.lane-rise`). Returns a ref callback
- * per racer id. Skipped when the player asks for reduced motion.
+ * Lane motion on the race track: when the order changes, every lane slides and flips from its old place to its new one
+ * instead of jumping (a FLIP animation), and a racer who enters the top three flashes (`.lane-rise`). Returns a ref
+ * callback per racer id. Skipped when the player asks for reduced motion.
  */
 export function useLaneMotion(laneIds: readonly string[], topThreeIds: readonly string[]) {
   const lanes = useRef(new Map<string, HTMLElement>());
@@ -27,10 +27,16 @@ export function useLaneMotion(laneIds: readonly string[], topThreeIds: readonly 
       const before = tops.current.get(id);
       tops.current.set(id, top);
       if (!reduceMotion && before !== undefined && before !== top) {
-        lane.animate([{ transform: `translateY(${before - top}px)` }, { transform: "translateY(0)" }], {
-          duration: SLIDE_MS,
-          easing: "cubic-bezier(0.2, 0.9, 0.3, 1)",
-        });
+        // Flips over on its way, like a split-flap board: forward when climbing, backward when dropping.
+        const flip = before > top ? -70 : 70;
+        lane.animate(
+          [
+            { transform: `perspective(800px) translateY(${before - top}px) rotateX(${flip}deg)` },
+            { transform: `perspective(800px) translateY(0) rotateX(${flip / -7}deg)`, offset: 0.7 },
+            { transform: "perspective(800px) translateY(0) rotateX(0deg)" },
+          ],
+          { duration: SLIDE_MS, easing: "cubic-bezier(0.2, 0.9, 0.3, 1)" },
+        );
       }
     }
 
