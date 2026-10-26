@@ -98,7 +98,7 @@ export function LobbyBrowser({ dictionary, modeNames, complexityNames, locale, l
             return (
               <li key={lobby.code} className="flex flex-col gap-1 px-4 py-4 transition-colors hover:bg-surface-container">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex min-w-0 flex-1 basis-full flex-col sm:basis-0">
                     <span className="truncate font-hud text-[15px] font-black uppercase tracking-wide text-secondary">
                       {formatMessage(dictionary.host, { name: lobby.hostName })}
                     </span>
