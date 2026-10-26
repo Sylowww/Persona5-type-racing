@@ -30,7 +30,7 @@ import type {
 import {
   AMBUSH_WORDS,
   appendWords,
-  BOT_HEX_DELAY_MS,
+  BOT_HEX_SPEED,
   CALLING_CARD_HEX_MS,
   callingCardTarget,
   checkpointsReached,
@@ -38,7 +38,7 @@ import {
   pickBonusReceivers,
   removeLastWords,
 } from "./bonuses";
-import { planBotRun, replanBotRun, seededRandom, type BotStep } from "./bots";
+import { planBotRun, replanBotRun, seededRandom, slowBotSteps, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
 import { canStartRace, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
@@ -838,7 +838,7 @@ export const CALLING_CARD_ANNOUNCE_MS = 4_000;
 
 /**
  * The last racer still typing sends their one calling card of the race to the leader (powers on only): the leader's
- * next words hide behind it for a moment (a bot leader hesitates instead). Refused while the leader is already under a
+ * next words hide behind it for a moment (a bot leader types at half pace instead). Refused while the leader is already under a
  * spell or a card, so the leader takes one malus at a time.
  */
 export function sendCallingCard(state: LobbyState, userId: string, now: number): Outcome {
@@ -853,7 +853,7 @@ export function sendCallingCard(state: LobbyState, userId: string, now: number):
   const until = now + CALLING_CARD_HEX_MS;
   const racers = race.racers.map((racer) => {
     if (racer === sender) return { ...racer, cardSent: true };
-    if (racer === target) return racer.bot ? delayBot(racer, BOT_HEX_DELAY_MS) : { ...racer, card: { fromId: userId, until } };
+    if (racer === target) return racer.bot ? slowBot(racer, race, now, CALLING_CARD_HEX_MS, BOT_HEX_SPEED) : { ...racer, card: { fromId: userId, until } };
     return racer;
   });
   const callingCards = [...race.callingCards, { id: race.callingCards.length + 1, fromId: userId, toId: target.id, at: now }];
@@ -869,11 +869,14 @@ function cardTarget(race: Race, userId: string, now: number): string | null {
   return isUnderMalus(race.racers.find((racer) => racer.id === targetId), now) ? null : targetId;
 }
 
-/** Pushes a bot's next keys back by `ms` (a bot cannot be blinded or frozen: it loses time instead). */
-function delayBot(target: Racer, ms: number): Racer {
+/**
+ * A bot cannot be frozen or blinded on screen, so a spell bends its planned keys instead: speed 0 stops it for `ms`
+ * (a stun), a lower speed slows it down for `ms` (a hex or a calling card).
+ */
+function slowBot(target: Racer, race: Race, now: number, ms: number, speed: number): Racer {
   const { bot } = target;
   if (!bot) return target;
-  return { ...target, bot: { ...bot, steps: bot.steps.map((step, index) => (index < bot.applied ? step : { ...step, atMs: step.atMs + ms })) } };
+  return { ...target, bot: { ...bot, steps: slowBotSteps(bot.steps, bot.applied, now - race.startsAt, ms, speed) } };
 }
 
 /** How long a lane shows a malus without a duration of its own (extra words). */
@@ -891,8 +894,12 @@ function applySpell(target: Racer, spell: Spell, race: Race, eventId: number, no
 
 function castSpell(target: Racer, spell: Spell, race: Race, eventId: number, now: number): Racer {
   const { effect, element } = spell;
-  if (effect.type === "stun") return target.bot ? delayBot(target, effect.ms) : { ...target, stun: { element, until: now + effect.ms } };
-  if (effect.type === "hex") return target.bot ? delayBot(target, BOT_HEX_DELAY_MS) : { ...target, hex: { element, until: now + effect.ms } };
+  if (effect.type === "stun") return target.bot ? slowBot(target, race, now, effect.ms, 0) : { ...target, stun: { element, until: now + effect.ms } };
+  // Kouga's flash hides even the word being typed, so it stops a bot like a stun.
+  if (effect.type === "hex")
+    return target.bot
+      ? slowBot(target, race, now, effect.ms, element === "bless" ? 0 : BOT_HEX_SPEED)
+      : { ...target, hex: { element, until: now + effect.ms } };
   const text =
     effect.type === "shorten"
       ? removeLastWords(target.text, target.typing.typed.length, effect.words)

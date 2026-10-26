@@ -9,8 +9,8 @@ export const MAX_BONUSES_PER_RACER = 3;
 /** Spells handed out at one checkpoint, to the racers furthest behind, so a full class does not bury the leader. */
 export const MAX_SPELLS_PER_CHECKPOINT = 3;
 export const BONUS_WORDS = 3;
-/** How long a bot hesitates under a hex, since it cannot be blinded. */
-export const BOT_HEX_DELAY_MS = 1_500;
+/** A bot cannot be blinded: under a hex (or a calling card) it types at this share of its pace for the whole duration. */
+export const BOT_HEX_SPEED = 0.5;
 
 /** Number of checkpoints passed by a leader at `leaderProgress`. */
 export function checkpointsReached(leaderProgress: number): number {
