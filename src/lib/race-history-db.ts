@@ -1,5 +1,6 @@
 import "server-only";
 import { and, avg, count, desc, eq, inArray, lt, max, sql } from "drizzle-orm";
+import { BIG_HEIST_RACERS, LIGHTNING_BOT_WPM, type RaceFeats } from "@/lib/achievements";
 import { isCharacterId } from "@/lib/characters";
 import { getDb } from "@/lib/db";
 import { raceResults, users } from "@/lib/db-schema";
@@ -179,6 +180,33 @@ export async function getStatsByCharacter(userId: string): Promise<Partial<Recor
     if (isCharacterId(id)) stats[id] = { races, wins, bestWpm: bestWpm ?? 0, averageWpm, accuracy };
   }
   return stats;
+}
+
+/** The feats achievement cards check (lib/achievements.ts), counted over the player's saved races. */
+export async function getRaceFeats(userId: string): Promise<RaceFeats> {
+  const finished = sql`${raceResults.finishMs} is not null`;
+  // Bots have `bot-` ids in the saved results; older races without results count as having none.
+  const hasBot = sql`coalesce(jsonb_path_exists(${raceResults.result}, '$.racers[*] ? (@.id starts with "bot-")'), false)`;
+  const fastBot = sql`coalesce(jsonb_path_exists(${raceResults.result}, '$.racers[*] ? (@.id starts with "bot-" && @.wpm >= $min && @.wpm < $you)', jsonb_build_object('min', ${LIGHTNING_BOT_WPM}::int, 'you', ${raceResults.wpm})), false)`;
+  const [row] = await getDb()
+    .select({
+      races: count(),
+      perfectRaces: sql<number>`count(*) filter (where ${finished} and ${raceResults.accuracy} >= 1)`.mapWith(Number),
+      bestFinishedWpm: sql<number>`coalesce(max(${raceResults.wpm}) filter (where ${finished}), 0)`.mapWith(Number),
+      duelWins: sql<number>`count(*) filter (where ${raceResults.place} = 1 and ${raceResults.racerCount} = 2 and not ${hasBot})`.mapWith(Number),
+      bigWins: sql<number>`count(*) filter (where ${raceResults.place} = 1 and ${raceResults.racerCount} >= ${BIG_HEIST_RACERS})`.mapWith(Number),
+      fastBotsBeaten: sql<number>`count(*) filter (where ${fastBot})`.mapWith(Number),
+    })
+    .from(raceResults)
+    .where(eq(raceResults.userId, userId));
+  return {
+    races: row?.races ?? 0,
+    perfectRaces: row?.perfectRaces ?? 0,
+    bestFinishedWpm: row?.bestFinishedWpm ?? 0,
+    duelWins: row?.duelWins ?? 0,
+    bigWins: row?.bigWins ?? 0,
+    fastBotsBeaten: row?.fastBotsBeaten ?? 0,
+  };
 }
 
 /** The thief the player raced as, read from the saved results (null for races saved before results were stored). */
