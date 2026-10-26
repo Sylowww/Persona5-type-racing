@@ -849,30 +849,22 @@
   animation: palace-fade 250ms ease-out both;
 }
 
-/* The current word's letters, cut from different "magazines": colors and a tilt only, so the line never reflows. */
+/* The current word's letters still to type, as cut-out tiles: quiet outlined tiles, and a white one for the next
+   letter. Colors and a tilt only, so the line never reflows. Red stays reserved for mistakes. */
 .ransom-letter {
   display: inline-block;
 }
 
-.ransom-a {
+.ransom-pending {
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface);
+  box-shadow: inset 0 0 0 1px var(--color-outline);
+}
+
+.ransom-next {
   background: var(--color-secondary);
   color: var(--color-surface-container-lowest);
-}
-
-.ransom-b {
-  background: var(--color-surface-container-lowest);
-  color: var(--color-secondary);
-  box-shadow: inset 0 0 0 1px var(--color-secondary);
-}
-
-.ransom-c {
-  background: var(--color-primary-container);
-  color: var(--color-secondary);
-}
-
-.ransom-d {
-  background: var(--color-secondary-fixed);
-  color: var(--color-on-secondary-fixed);
+  box-shadow: 2px 2px 0 var(--color-primary-container);
 }
 
 /* A calling card blacks out the leader's next words, like a censored document. */
