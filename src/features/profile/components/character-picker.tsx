@@ -60,7 +60,7 @@ function Showcase({ dictionary, selected }: CharacterPickerProps) {
         />
 
         <div className="relative -mt-6 px-4 pb-4">
-          <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-primary-container">
+          <span className="bg-surface-container-lowest px-2 py-0.5 font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">
             {dictionary.codename}
           </span>
           <p className="-skew-x-6 font-display text-headline-lg uppercase italic leading-none tracking-wider text-secondary [text-shadow:4px_4px_0_var(--color-surface-container-lowest)]">

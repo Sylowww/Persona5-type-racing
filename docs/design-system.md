@@ -38,6 +38,13 @@ Always use tokens; never hardcode hex colors in components (SVG included: use `f
 
 `shadow-hard-xs|sm|md|lg|xl` = 2/3/4/5/6px offset, no blur, black by default. Tint with a shadow color: `shadow-hard-md shadow-secondary-fixed`.
 
+### Contrast and focus (WCAG AA)
+
+- Small text (under 18.66px bold) in signature red on dark surfaces fails AA: use `text-primary` (pink-red) or `text-error` for errors. `text-primary-container` is fine for large display text.
+- On a red background, text is `text-on-primary-container` (near white). Dark red (`on-primary-fixed`) and yellow (`secondary-fixed`) are too faint there at small sizes.
+- Keyboard focus shows a 3px yellow ring (`:focus-visible` in `globals.css`). Do not remove it with `outline-none` unless the control gets another visible focus style.
+- `tests/e2e/accessibility.spec.ts` runs axe on the main pages and fails on any WCAG 2.1 AA violation.
+
 ## Recurring patterns
 
 - **Tilted panel with ink backing:** an `absolute -inset-1 translate-x-2 translate-y-2 rotate-[x] bg-surface-container-lowest` layer behind a `relative rotate-[-x]` panel with a hard shadow.

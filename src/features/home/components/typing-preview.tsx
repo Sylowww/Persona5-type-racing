@@ -6,7 +6,7 @@ export function TypingPreview({ dictionary }: { dictionary: Dictionary["home"]["
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1">
           <span className="size-2.5 rounded-full bg-primary-container motion-safe:animate-pulse" />
-          <h2 className="font-hud text-label-hud font-black uppercase tracking-widest text-primary-container">{dictionary.title}</h2>
+          <h2 className="font-hud text-label-hud font-black uppercase tracking-widest text-primary">{dictionary.title}</h2>
         </div>
         <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">{dictionary.subtitle}</span>
       </div>

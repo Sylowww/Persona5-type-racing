@@ -41,7 +41,7 @@ export function AuthField({ name, label, icon, type = "text", autoComplete, defa
         />
       </div>
       {error ? (
-        <p id={`${id}-error`} className="flex items-center gap-1 font-hud text-label-hud font-black text-primary-container">
+        <p id={`${id}-error`} className="flex items-center gap-1 font-hud text-label-hud font-black text-error">
           <Icon name="warning" size={16} />
           {error}
         </p>
