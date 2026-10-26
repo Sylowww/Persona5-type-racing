@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { type CSSProperties, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { characterAllOutPortrait } from "@/lib/characters";
@@ -31,6 +32,19 @@ const ring = rays.map(([x, y], index) => {
   return `${impact[0] + (x - impact[0]) * reach},${impact[1] + (y - impact[1]) * reach}`;
 });
 
+// Set once the poster has been shown, so coming back to the home page from another page goes straight to the options.
+let shownThisVisit = false;
+
+/**
+ * True only when the home page is the page the browser opened (first load, reload or a new tab), not an in-app return.
+ * Takes the router's path: during a client-side navigation the address bar still shows the previous page.
+ */
+function isSiteOpening(pathname: string): boolean {
+  if (typeof window === "undefined") return true;
+  const [entry] = performance.getEntriesByType("navigation");
+  return !shownThisVisit && (!entry || new URL(entry.name).pathname === pathname);
+}
+
 type HomeHeroProps = {
   dictionary: Dictionary["home"]["hero"];
 };
@@ -38,9 +52,17 @@ type HomeHeroProps = {
 /**
  * Full-screen red poster shown when the site opens. While the player scrolls, the poster stays still and its bottom
  * edge rolls up like a scroll closing, revealing the home page that follows it (no overlay, so nothing is hidden behind it).
+ * Only shown when the site opens on the home page; coming back from another page starts on the options.
  */
 export function HomeHero({ dictionary }: HomeHeroProps) {
   const ref = useRef<HTMLElement>(null);
+  // Matches the server render on the first load (shown); a client-side return renders nothing.
+  const pathname = usePathname();
+  const [opening] = useState(() => isSiteOpening(pathname));
+
+  useEffect(() => {
+    if (opening) shownThisVisit = true;
+  }, [opening]);
 
   useEffect(() => {
     const hero = ref.current;
@@ -66,7 +88,9 @@ export function HomeHero({ dictionary }: HomeHeroProps) {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [opening]);
+
+  if (!opening) return null;
 
   return (
     <section
