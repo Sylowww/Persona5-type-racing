@@ -93,6 +93,65 @@
   }
 }
 
+/* Flat content panel: one surface step above the page, a hairline edge, no tilt or hard shadow. */
+@utility panel {
+  background-color: var(--color-surface-container-low);
+  border: 1px solid var(--color-surface-container-high);
+}
+
+/* Small section label, led by a red slash. */
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-hud);
+  font-size: var(--text-label-hud);
+  line-height: var(--text-label-hud--line-height);
+  letter-spacing: 0.14em;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+
+  &::before {
+    content: "";
+    width: 0.9em;
+    height: 3px;
+    flex-shrink: 0;
+    background-color: var(--color-primary-container);
+    transform: skewX(-30deg);
+  }
+}
+
+/* Page backdrop: a single red slash cutting across the top corner, the way the official sites frame a page. */
+@utility phantom-slash {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: -10%;
+    right: -6%;
+    width: 46%;
+    height: 70%;
+    transform: skewX(-24deg);
+  }
+
+  &::before {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary-container) 22%, transparent), transparent 75%);
+  }
+
+  &::after {
+    right: 38%;
+    width: 0.6%;
+    background: linear-gradient(180deg, var(--color-primary-container), transparent 70%);
+    opacity: 0.6;
+  }
+}
+
 
 /* Race runner sprite: the strip slides one frame at a time inside a frame-sized window (see race-runner.tsx). */
 @layer components {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
-import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
+import { PageBackdrop } from "@/components/layout/page-backdrop";
 import { loadLobby } from "@/features/lobby/load-lobby";
 import { LiveRace } from "@/features/race/components/live-race";
 import { getDictionary } from "@/i18n/dictionaries";
@@ -28,9 +28,9 @@ export default async function RacePage({ params }: Params) {
   if (!view || view.phase === "waiting" || !view.race) redirect(`/${locale}/lobby/${code}`);
 
   return (
-    <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
+    <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <div className="relative flex w-full flex-col">
-        <HalftoneBackdrop />
+        <PageBackdrop />
         {/* Bottom room: Mona's comms bubble is fixed at the bottom left, and the text must be able to scroll above it. */}
         <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-4 pb-48 md:px-10">
           {/* Phones get a message instead of the race (DES-06): typing races need a physical keyboard. */}

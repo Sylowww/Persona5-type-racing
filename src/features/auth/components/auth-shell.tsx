@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Icon } from "@/components/ui/icon";
-import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
+import { PageBackdrop } from "@/components/layout/page-backdrop";
 
 type AuthShellProps = {
   tape: string;
@@ -20,9 +20,9 @@ const TYPED = 14;
 
 export function AuthShell({ tape, title, subtitle, note, switchPrompt, switchLabel, switchHref, preview, children }: AuthShellProps) {
   return (
-    <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
+    <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <div className="relative flex w-full flex-col">
-        <HalftoneBackdrop />
+        <PageBackdrop />
 
         <div className="relative z-10 mx-auto grid w-full max-w-[1200px] grid-cols-1 items-center gap-12 px-4 py-10 md:px-10 lg:grid-cols-2 lg:py-16">
           <section className="relative mx-auto w-full max-w-[480px]">

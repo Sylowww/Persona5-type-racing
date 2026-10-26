@@ -21,7 +21,7 @@ export function SiteNav({ locale, dictionary }: SiteNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label={dictionary.navLabel} className="hidden items-center gap-1 xl:flex">
+    <nav aria-label={dictionary.navLabel} className="hidden items-center gap-6 lg:flex">
       {navItems.map((item) => {
         const href = `/${locale}${routes[item]}`;
         const isActive = href === pathname;
@@ -31,10 +31,8 @@ export function SiteNav({ locale, dictionary }: SiteNavProps) {
             key={item}
             href={href}
             aria-current={isActive ? "page" : undefined}
-            className={`whitespace-nowrap px-1.5 py-1 font-hud text-base font-black uppercase italic min-[1800px]:px-3 min-[1800px]:text-lg ${
-              isActive
-                ? "bg-primary-container text-on-primary-container shadow-hard-sm shadow-secondary-fixed"
-                : "text-on-surface-variant hover:text-secondary"
+            className={`relative whitespace-nowrap py-1 font-hud text-label-hud font-black uppercase tracking-widest transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-[3px] after:-skew-x-[30deg] after:bg-primary-container after:transition-transform ${
+              isActive ? "text-secondary after:scale-x-100" : "text-on-surface-variant after:scale-x-0 hover:text-secondary hover:after:scale-x-100"
             }`}
           >
             {dictionary.nav[item]}
