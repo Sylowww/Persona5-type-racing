@@ -1,8 +1,10 @@
 import "server-only";
 import { and, avg, count, desc, eq, inArray, lt, max, sql } from "drizzle-orm";
+import { isCharacterId } from "@/lib/characters";
 import { getDb } from "@/lib/db";
 import { raceResults, users } from "@/lib/db-schema";
 import { recordFromResult } from "@/lib/race-history";
+import type { CharacterId } from "@/types/character";
 import type { PlayerStats, RaceRecord, RaceResult, SavedRaceRecord } from "@/types/race";
 
 /**
@@ -138,4 +140,21 @@ export async function getBestWpmBefore(userId: string, endedAt: number): Promise
     .from(raceResults)
     .where(and(eq(raceResults.userId, userId), lt(raceResults.endedAt, new Date(endedAt))));
   return row?.best ?? null;
+}
+
+/**
+ * How many saved races the player ran as each thief (their confidant bonds, see lib/confidants.ts), counting only the
+ * races that ended before `before` when given. The thief is read from the saved results, so races saved before
+ * results were stored do not count.
+ */
+export async function getRacesByCharacter(userId: string, before?: number): Promise<Partial<Record<CharacterId, number>>> {
+  const character = sql<string | null>`jsonb_path_query_first(${raceResults.result}, '$.racers[*] ? (@.id == $id).character', jsonb_build_object('id', ${raceResults.userId}::text)) #>> '{}'`;
+  const rows = await getDb()
+    .select({ character, races: count() })
+    .from(raceResults)
+    .where(and(eq(raceResults.userId, userId), before === undefined ? undefined : lt(raceResults.endedAt, new Date(before))))
+    .groupBy(character);
+  const races: Partial<Record<CharacterId, number>> = {};
+  for (const row of rows) if (isCharacterId(row.character)) races[row.character] = row.races;
+  return races;
 }
