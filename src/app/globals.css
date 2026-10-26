@@ -209,6 +209,12 @@
   }
 }
 
+/* Comic halftone dots, for signature stages only (character file). */
+@utility halftone {
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-surface-container-lowest) 45%, transparent) 1.5px, transparent 2px);
+  background-size: 10px 10px;
+}
+
 
 /* Race runner sprite: the strip slides one frame at a time inside a frame-sized window (see race-runner.tsx). */
 @layer components {
