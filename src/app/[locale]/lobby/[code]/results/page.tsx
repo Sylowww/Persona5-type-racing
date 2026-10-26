@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import type { CSSProperties } from "react";
 import { PageBackdrop } from "@/components/layout/page-backdrop";
 import { LobbyPresence } from "@/features/lobby/components/lobby-presence";
 import { loadLobby } from "@/features/lobby/load-lobby";
@@ -56,7 +57,11 @@ export default async function RaceResultsPage({ params }: Params) {
   const isTraining = view?.kind === "training";
 
   return (
-    <main className={`min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16 ${isTraining ? "velvet-room" : ""}`}>
+    // The podium rises once Mona's verdict is over (`.podium-*` in globals.css).
+    <main
+      className={`min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16 ${isTraining ? "velvet-room" : ""}`}
+      style={{ "--results-intro": "5.6s" } as CSSProperties}
+    >
       <CollapseReveal />
       <ResultsCutIn dictionary={dictionary.cutIn} verdict={resultsVerdict(you.finishMs !== null, place, ranked.length)} />
       <div className="relative flex w-full flex-col">
