@@ -148,6 +148,7 @@ Presentation-only layers on the race page; the server still decides places, fini
 - **HOLD UP!** (`hold-up-cut-in.tsx`, `useHoldUp`): when the player passes a racer, a tilted black band high on the screen shows « HOLD UP! » in cut-out letters and the passed racer's portrait, for 1.2 s, at most once every 4.2 s.
 - **Ambush and calling cards** (`race-announcement.tsx`, `calling-card-attack.tsx`): announced in the powers slot above the track for 3 s. The sender and the target of a calling card see the red card flip in; the target's next words are blacked out (`.card-redacted`) with the card pinned on the corner of the typing area. The last racer gets a pulsing « Send calling card » button in the arena header.
 - **Third Eye**: a toggle in the arena header (off by default, disabled without a record) turns the track cold blue (`.third-eye-track`) and runs a glowing ghost of the player's character in their lane at their record WPM (`ghostProgress`; the saved record for accounts, the tab's best race for guests), with the gap in characters next to the toggle.
+- **Velvet Room**: training race and results pages add the `velvet-room` class, which only swaps the color tokens for velvet blue and gold, plus blue drapes and gold chains (`VelvetRoomDecor`) and one line from Lavenza (before) or Igor (after) (`VelvetRoomLine`).
 - Reduced motion: no falling stones or sweeping light; overlays appear without sliding.
 
 ## Responsive

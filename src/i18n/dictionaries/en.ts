@@ -473,6 +473,13 @@ const en = {
       even: "Level with your record",
       ghost: "Your record ({wpm} WPM)",
     },
+    velvetRoom: {
+      kicker: "The Velvet Room",
+      lavenza: "Lavenza",
+      igor: "Igor",
+      welcome: "Welcome, Trickster. This room lies between dream and reality: train freely, nothing you type here is recorded.",
+      farewell: "Splendid. Your fingers grow sharper with every visit... The door remains open whenever you wish to return.",
+    },
   },
   results: {
     title: "Race results",

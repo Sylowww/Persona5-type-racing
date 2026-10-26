@@ -1002,3 +1002,75 @@
     transform: perspective(600px) rotateY(-90deg);
   }
 }
+
+/* Velvet Room: training races swap the red palette for velvet blue and gold (features/race/components/velvet-room.tsx).
+   Only colors change, so every component keeps working; the page header outside stays red. */
+.velvet-room {
+  --color-surface-container-lowest: #070b1f;
+  --color-surface-container-low: #0d1430;
+  --color-surface-container: #111a3b;
+  --color-surface-container-high: #1a2550;
+  --color-surface-container-highest: #243063;
+  --color-surface-variant: #243063;
+  --color-surface-bright: #2b3870;
+  --color-on-surface: #e3e8ff;
+  --color-on-surface-variant: #a9b8ff;
+  --color-primary: #b3c5ff;
+  --color-on-primary: #001a5c;
+  --color-primary-container: #1d3fd6;
+  --color-on-primary-container: #f2f5ff;
+  --color-secondary-fixed: #e9c46a;
+  --color-on-secondary-fixed: #1e1600;
+  --color-secondary-container: #e9c46a;
+  --color-tertiary-container: #2a4bff;
+  --color-outline: #7f8bc4;
+}
+
+/* Heavy velvet drapes at both edges of the page. */
+.velvet-curtains {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 7%;
+    background: repeating-linear-gradient(90deg, #0a1a5c 0 14px, #1d3fd6 22px, #0a1a5c 34px);
+    opacity: 0.55;
+  }
+
+  &::before {
+    left: 0;
+    mask-image: linear-gradient(90deg, #000 40%, transparent);
+  }
+
+  &::after {
+    right: 0;
+    mask-image: linear-gradient(270deg, #000 40%, transparent);
+  }
+}
+
+/* A gold chain hanging across a top corner, drawn as interlocking rings. */
+.velvet-chain {
+  position: absolute;
+  top: 6%;
+  width: 42%;
+  height: 12px;
+  background: radial-gradient(ellipse 8px 5px at center, transparent 50%, var(--color-secondary-fixed) 56% 76%, transparent 82%) 0 0 / 16px 12px repeat-x;
+  opacity: 0.45;
+}
+
+.velvet-chain-left {
+  left: -4%;
+  rotate: 14deg;
+}
+
+.velvet-chain-right {
+  right: -4%;
+  rotate: -14deg;
+}
