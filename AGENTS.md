@@ -112,10 +112,10 @@ Never claim tests passed unless they were actually run.
 
 ## Git
 
-* Never commit directly to `main`. Use dedicated branches for features and fixes.
+* Never commit directly to `main`. Work and commit directly on `dev`; no feature branches needed.
 * Commit frequently with small, focused commits; one logical change per commit.
 * Keep commit messages short and in English, using Conventional Commits (`feat:`, `fix:`, `chore:`, ...).
-* You may create local commits and branches.
+* You may create local commits.
 * Do not push, merge, rebase or force-push unless explicitly requested. The user handles pushes.
 * Never add Claude, Anthropic or any AI as a co-author, and never add `Co-Authored-By` trailers for AI.
 * Do not mention AI assistance in commits or PRs unless explicitly requested.
