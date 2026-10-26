@@ -1,6 +1,6 @@
 # Design system
 
-Visual direction: **Persona 5–inspired** "calling card" style. Red / black / white / yellow, tilted comic panels, hard offset shadows, halftone backdrops, loud condensed italic type.
+Visual direction: **Persona 5–inspired** "calling card" style. Red / black / white / yellow, loud condensed italic type. Pages stay flat and calm (black surfaces, thin borders, one red diagonal slash per page) so the race track, the cut-ins and the main call to action carry the drama, like the official Persona 5 sites.
 
 Use only original assets: no Atlus logos, character art or fonts. Exception: the runner sprite sheets in `public/sprites/` are Persona fan art used for the class prototype; replace them with original or licensed art before any public release.
 
@@ -19,7 +19,7 @@ Always use tokens; never hardcode hex colors in components (SVG included: use `f
 | `on-primary-container`, `on-primary-fixed` | Text on red (light / dark) |
 | `primary`, `primary-fixed`, `tertiary*` | Pink-red accents |
 | `secondary` `#ffffff` | Headline white, paper cutouts |
-| `secondary-fixed` / `secondary-container` `#fde400` | Yellow accents, tape, shortcut keys |
+| `secondary-fixed` / `secondary-container` `#fde400` | Yellow accents, ready state, shortcut keys |
 | `on-secondary-fixed` | Text on yellow |
 
 ### Fonts (`next/font`, set in the locale layout)
@@ -47,10 +47,21 @@ Always use tokens; never hardcode hex colors in components (SVG included: use `f
 
 ## Recurring patterns
 
-- **Tilted panel with ink backing:** an `absolute -inset-1 translate-x-2 translate-y-2 rotate-[x] bg-surface-container-lowest` layer behind a `relative rotate-[-x]` panel with a hard shadow.
-- **Badges / tape:** `font-hud text-label-hud font-black uppercase`, small rotation, `shadow-hard-xs`.
+Shared utilities live in `globals.css`; prefer them over one-off classes.
+
+| Utility | Use |
+| --- | --- |
+| `panel` | Default container: `surface-container-low` with a 1px `surface-container-high` border. No shadow, no rotation. |
+| `eyebrow` | Small uppercase HUD label with a short red skewed bar in front. Section titles (`h2`) inside panels. |
+| `btn-primary` | Red action button; turns yellow on hover, grey when disabled. One per section. |
+| `btn-ghost` | Secondary action: thin border, yellow text, red border on hover. |
+| `phantom-slash` | The page backdrop: one red diagonal slash in the top-right corner. Render it with `PageBackdrop` (`components/layout/page-backdrop.tsx`). |
+
+- **Page heading:** `PageHeading` (`components/ui/page-heading.tsx`): eyebrow, display `h1`, short red underline bar, optional intro.
+- **Lists and tables:** rows inside one `panel`, separated with `divide-y divide-surface-container-high`, not separate cards.
+- **Results sections:** `SectionTag` is a header line with a bottom border, not a tilted tape.
 - **Headlines:** `font-display uppercase italic tracking-wider`.
-- Keep rotations small (±0.5° to ±6°).
+- **Hard shadows and tilts are reserved** for signature elements: the race track, the home hero word and "Start a race" block, the lobby "Start the race" and results "Rematch" buttons, the results banner, the profile roster and the full-screen cut-ins. Everything else is flat. Keep rotations small (±0.5° to ±6°).
 
 ## Icons
 
@@ -73,7 +84,7 @@ Each racer on the race track is an animated character running along their lane (
 - The local player gets a yellow glow and the `YOU` badge; others get a thin light outline so the dark sprite stays visible on the lane.
 - With reduced motion, runners show the first frame of their animation and move without transitions.
 - `components/ui/sprite-frames.tsx` plays one animation of a sheet at any size; the race runner and the profile roster both use it.
-- **Profile roster** (`features/profile/components/character-picker.tsx`): a large animated showcase of the chosen character on a tilted red panel, next to a 3-column grid of tilted cards. Cards play their idle animation on hover or focus; the chosen one is red with a yellow name tag.
+- **Profile roster** (`features/profile/components/character-picker.tsx`): a large animated showcase of the chosen character on a red panel with dark diagonal stripes, next to a 3-column grid of tilted cards. Cards play their idle animation on hover or focus; the chosen one is red with a yellow name tag.
 
 ## Palace collapse (race page)
 
@@ -127,7 +138,7 @@ Presentation-only layers on the race page; the server still decides places, fini
 ## Responsive
 
 - The race itself targets desktop; other pages must work on phones without horizontal scroll.
-- Page gutter: `px-4 md:px-10`. Header nav appears at `xl` (compact until 1800px); server status and the header "Sign in" text link show from 1800px.
+- Page gutter: `px-4 md:px-10`. The header is 64px tall (`h-16`, pages use `pt-16`): wordmark and text nav on the left (nav from `lg`, active link underlined with a red skewed bar), language, music and account on the right. Signed out, the "Sign in" text link shows from `sm` (hidden at `xl` until 1800px to make room); server status shows from 1800px.
 
 ## Open points
 
