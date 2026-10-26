@@ -29,7 +29,7 @@ function ArrowLink({ icon, label, href }: { icon: IconName; label: string; href:
   const className = "flex size-10 -skew-x-6 items-center justify-center shadow-hard-sm";
   if (!href) {
     return (
-      <span aria-disabled="true" aria-label={label} className={`${className} bg-surface-container text-outline opacity-50`}>
+      <span role="link" aria-disabled="true" aria-label={label} className={`${className} bg-surface-container text-outline opacity-50`}>
         <Icon name={icon} size={24} />
       </span>
     );

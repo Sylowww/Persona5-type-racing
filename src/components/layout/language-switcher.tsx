@@ -31,7 +31,6 @@ export function LanguageSwitcher({ locale, dictionary }: LanguageSwitcherProps) 
             hrefLang={option}
             lang={option}
             aria-current={isCurrent ? "true" : undefined}
-            aria-label={dictionary.names[option]}
             onClick={() => saveLocale(option)}
             // On narrow screens only the other language shows, to keep the header on one line.
             className={`px-2 py-1.5 font-hud text-label-hud font-black uppercase transition-colors ${
@@ -41,6 +40,8 @@ export function LanguageSwitcher({ locale, dictionary }: LanguageSwitcherProps) 
             }`}
           >
             {option}
+            {/* Read after the visible code, so the accessible name still starts with what is on screen. */}
+            <span className="sr-only"> ({dictionary.names[option]})</span>
           </Link>
         );
       })}

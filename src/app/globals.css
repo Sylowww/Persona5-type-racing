@@ -85,6 +85,12 @@
   body {
     overscroll-behavior: none;
   }
+
+  /* Keyboard focus stays visible everywhere (A11Y-04): a thick yellow ring that stands out on red, black and white. */
+  :focus-visible {
+    outline: 3px solid var(--color-secondary-fixed);
+    outline-offset: 2px;
+  }
 }
 
 

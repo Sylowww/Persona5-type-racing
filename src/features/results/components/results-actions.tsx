@@ -33,7 +33,7 @@ export function ResultsActions({ dictionary, lobbyHref, close }: ResultsActionsP
         <span className="flex skew-x-12 items-center justify-center gap-4">
           <Icon name="bolt" size={32} filled className="group-hover:motion-safe:animate-bounce" />
           <span className="flex flex-col text-left">
-            <span className="font-hud text-[11px] font-black uppercase leading-none tracking-widest text-secondary-fixed">
+            <span className="font-hud text-[11px] font-black uppercase leading-none tracking-widest text-on-primary-container">
               {dictionary.eyebrow}
             </span>
             <span className="mt-1 font-display text-headline-md uppercase italic leading-none tracking-wider text-secondary md:text-headline-lg">

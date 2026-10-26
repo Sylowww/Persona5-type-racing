@@ -84,7 +84,7 @@ export function StartRaceButton({ dictionary, locale }: StartRaceButtonProps) {
                 <span className="bg-secondary-fixed px-2 py-0.5 font-hud text-label-hud font-black uppercase tracking-wider text-on-secondary-fixed">
                   {dictionary.queue}
                 </span>
-                <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-primary-fixed">
+                <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-primary-container">
                   {dictionary.mode}
                 </span>
               </span>
@@ -100,7 +100,7 @@ export function StartRaceButton({ dictionary, locale }: StartRaceButtonProps) {
               <span className="font-hud text-label-hud font-bold uppercase text-on-surface-variant">{dictionary.or}</span>
               <kbd className="font-hud text-headline-sm font-black uppercase text-secondary-fixed">{dictionary.altKeys}</kbd>
             </span>
-            <span className="font-hud text-[11px] font-black uppercase tracking-widest text-on-primary-fixed">
+            <span className="font-hud text-[11px] font-black uppercase tracking-widest text-on-primary-container">
               {dictionary.hint}
             </span>
           </span>

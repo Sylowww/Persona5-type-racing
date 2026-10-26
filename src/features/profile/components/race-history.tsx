@@ -50,7 +50,7 @@ export function RaceHistory({ locale, dictionary, races, page, pageCount }: Race
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate text-[13px] text-on-surface-variant">{date.format(race.endedAt)}</span>
                   {race.finishMs === null && (
-                    <span className="font-hud text-[11px] font-black uppercase tracking-widest text-primary-container">
+                    <span className="font-hud text-[11px] font-black uppercase tracking-widest text-primary">
                       {dictionary.notFinished}
                     </span>
                   )}

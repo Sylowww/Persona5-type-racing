@@ -29,7 +29,7 @@ const buttonStyles: Record<BotDifficulty, { button: string; wpm: string }> = {
   },
   godspeed: {
     button: "bg-surface-container text-on-surface hover:bg-secondary-fixed hover:text-on-secondary-fixed",
-    wpm: "text-primary-container",
+    wpm: "text-primary",
   },
 };
 

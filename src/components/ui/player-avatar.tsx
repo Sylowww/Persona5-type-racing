@@ -31,18 +31,22 @@ export function PlayerAvatar({ avatarUrl, alt, size, className = "", generateFro
         <Image src={avatarUrl} alt={alt} width={size} height={size} className="size-full object-cover" />
       ) : generated ? (
         <span
-          role="img"
-          aria-label={alt}
+          {...imageRole(alt)}
           className="font-display font-black italic leading-none"
           style={{ fontSize: Math.round(size * 0.42) }}
         >
           {generated.initials}
         </span>
       ) : (
-        <div role="img" aria-label={alt} className="flex size-full items-center justify-center">
+        <div {...imageRole(alt)} className="flex size-full items-center justify-center">
           <Icon name="person" filled size={Math.round(size * 0.66)} className="text-on-primary-container" />
         </div>
       )}
     </div>
   );
+}
+
+/** An empty `alt` marks the avatar as decorative (next to the player's name), like an `<img alt="">`. */
+function imageRole(alt: string) {
+  return alt ? { role: "img", "aria-label": alt } : { "aria-hidden": true };
 }
