@@ -170,6 +170,15 @@ export async function getLinkedProviders(userId: string): Promise<OAuthProvider[
   return rows.map((row) => row.provider);
 }
 
+/** A registered player's public name and thief (their compendium), or null for guests and unknown ids. */
+export async function getRegisteredPlayer(userId: string): Promise<{ username: string; character: CharacterId } | null> {
+  const [row] = await getDb()
+    .select({ username: users.username, characterId: users.characterId })
+    .from(users)
+    .where(and(eq(users.id, userId), eq(users.kind, "registered")));
+  return row ? { username: row.username, character: isCharacterId(row.characterId) ? row.characterId : DEFAULT_CHARACTER } : null;
+}
+
 export async function setUserCharacter(userId: string, character: CharacterId): Promise<void> {
   await getDb().update(users).set({ characterId: character, updatedAt: sql`now()` }).where(eq(users.id, userId));
 }
