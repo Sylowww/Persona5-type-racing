@@ -6,6 +6,7 @@ import { loadLobby } from "@/features/lobby/load-lobby";
 import { CollapseReveal } from "@/features/results/components/collapse-reveal";
 import { ResultsActions } from "@/features/results/components/results-actions";
 import { ResultsCutIn } from "@/features/results/components/results-cut-in";
+import { RankUp } from "@/features/results/components/rank-up";
 import { ResultsReport } from "@/features/results/components/results-report";
 import { SaveGuestRace } from "@/features/results/components/save-guest-race";
 import { VelvetRoomDecor, VelvetRoomLine } from "@/features/race/components/velvet-room";
@@ -13,7 +14,8 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
 import { resultsVerdict } from "@/lib/cut-in";
 import { isPersonalBest, recordFromResult } from "@/lib/race-history";
-import { getBestWpmBefore } from "@/lib/race-history-db";
+import { rankUpAfterRace } from "@/lib/confidants";
+import { getBestWpmBefore, getRacesByCharacter } from "@/lib/race-history-db";
 import { rankRacers } from "@/lib/results";
 
 type Params = { params: Promise<{ locale: string; code: string }> };
@@ -30,7 +32,7 @@ export default async function RaceResultsPage({ params }: Params) {
   const { locale, code: rawCode } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [{ user, code, store, view }, { results: dictionary, lobby: lobbyDictionary, race: raceDictionary }] = await Promise.all([
+  const [{ user, code, store, view }, { results: dictionary, lobby: lobbyDictionary, race: raceDictionary, confidants, profile }] = await Promise.all([
     loadLobby(locale, rawCode),
     getDictionary(locale),
   ]);
@@ -46,6 +48,10 @@ export default async function RaceResultsPage({ params }: Params) {
   const guestRecord = user.kind === "guest" && view?.kind !== "training" ? recordFromResult(result) : null;
   // Only saved races count toward a personal best (RES-04): guests have no saved history and training is never saved.
   const previousBest = user.kind === "registered" && view?.kind !== "training" ? await getBestWpmBefore(user.id, result.endedAt) : null;
+  // Each saved race raises the bond with the thief raced as: a rank up gets its tarot card.
+  const bondRaces =
+    user.kind === "registered" && view?.kind !== "training" ? ((await getRacesByCharacter(user.id, result.endedAt))[you.character] ?? 0) + 1 : null;
+  const rankUp = bondRaces === null ? null : rankUpAfterRace(bondRaces - 1);
   // Training ends in the Velvet Room too, with Igor's word.
   const isTraining = view?.kind === "training";
 
@@ -58,6 +64,9 @@ export default async function RaceResultsPage({ params }: Params) {
         {isTraining && <VelvetRoomDecor />}
         <div className="relative z-10 mx-auto w-full max-w-7xl space-y-10 px-4 py-10 md:px-10">
           {isTraining && <VelvetRoomLine dictionary={raceDictionary.velvetRoom} speaker={raceDictionary.velvetRoom.igor} line={raceDictionary.velvetRoom.farewell} />}
+          {rankUp !== null && bondRaces !== null && (
+            <RankUp dictionary={confidants} character={you.character} name={profile.character.names[you.character]} rank={rankUp} races={bondRaces} />
+          )}
           <ResultsReport
             dictionary={dictionary}
             locale={locale}

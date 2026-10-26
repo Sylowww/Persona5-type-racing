@@ -13,6 +13,8 @@ import { characterAllOutPortrait, characterIds, characterPortrait, characters, i
 import { characterPersonas } from "@/lib/spells";
 import type { CharacterId } from "@/types/character";
 import { chooseCharacter } from "@/features/profile/actions";
+import { RankPips, TarotCard, rankLines } from "@/features/characters/components/tarot-card";
+import { characterArcana, confidantRank } from "@/lib/confidants";
 
 type CharacterFileProps = {
   dictionary: Dictionary["characters"];
@@ -24,10 +26,13 @@ type CharacterFileProps = {
   titleSuffix: string;
   /** The signed-in player's thief, or null for guests and visitors (they cannot choose one). */
   chosen: CharacterId | null;
+  confidants: Dictionary["confidants"];
+  /** Saved races with each thief (confidant bonds); null for guests and visitors. */
+  bonds: Partial<Record<CharacterId, number>> | null;
 };
 
 /** One thief's calling-card file: name plate, profile, Persona and art on a red comic stage, then the roster. */
-export function CharacterFile({ dictionary, names, locale, initialId, titleSuffix, chosen }: CharacterFileProps) {
+export function CharacterFile({ dictionary, names, locale, initialId, titleSuffix, chosen, confidants, bonds }: CharacterFileProps) {
   // Switching thieves only rewrites the URL (see `select`), so the shown thief follows the path, back button included.
   const segment = usePathname().split("/").pop();
   const id = isCharacterId(segment) ? segment : initialId;
@@ -80,6 +85,8 @@ export function CharacterFile({ dictionary, names, locale, initialId, titleSuffi
             </div>
 
             <ChooseButton dictionary={dictionary} locale={locale} id={id} name={names[id]} chosen={chosen} />
+
+            {bonds && <ConfidantBond dictionary={confidants} id={id} name={names[id]} races={bonds[id] ?? 0} />}
           </div>
 
           <div className="relative flex flex-col items-center gap-8 pb-20 lg:min-h-[560px] lg:justify-center lg:pb-0">
@@ -203,5 +210,30 @@ function ChooseButton({ dictionary, locale, id, name, chosen }: ChooseButtonProp
         {formatMessage(dictionary.choose, { name })}
       </button>
     </form>
+  );
+}
+
+/** The player's confidant bond with this thief: the arcana card, rank pips and races left before the next rank. */
+function ConfidantBond({ dictionary, id, name, races }: { dictionary: Dictionary["confidants"]; id: CharacterId; name: string; races: number }) {
+  const { rank } = confidantRank(races);
+  const lines = rankLines(dictionary, races);
+  return (
+    <section aria-labelledby="confidant-title" className="flex items-center gap-5">
+      <TarotCard dictionary={dictionary} character={id} rank={rank} className={`-rotate-3 ${rank === 0 ? "opacity-50 grayscale" : ""}`} />
+      <div className="flex flex-col items-start gap-2">
+        <h2 id="confidant-title" className="eyebrow">
+          {`${dictionary.label} // ${formatMessage(dictionary.arcanaLabel, { arcana: dictionary.arcana[characterArcana[id]] })}`}
+        </h2>
+        {rank === 0 ? (
+          <p className="text-body-md text-secondary">{formatMessage(dictionary.none, { name })}</p>
+        ) : (
+          <>
+            <p className="-skew-x-12 bg-secondary-fixed px-3 font-display text-headline-sm uppercase text-on-secondary-fixed">{lines.rank}</p>
+            <RankPips rank={rank} />
+            <p className="font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">{lines.next}</p>
+          </>
+        )}
+      </div>
+    </section>
   );
 }

@@ -149,6 +149,7 @@ Presentation-only layers on the race page; the server still decides places, fini
 - **Ambush and calling cards** (`race-announcement.tsx`, `calling-card-attack.tsx`): announced in the powers slot above the track for 3 s. The sender and the target of a calling card see the red card flip in; the target's next words are blacked out (`.card-redacted`) with the card pinned on the corner of the typing area. The last racer gets a pulsing « Send calling card » button in the arena header.
 - **Third Eye**: a toggle in the arena header (off by default, disabled without a record) turns the track cold blue (`.third-eye-track`) and runs a glowing ghost of the player's character in their lane at their record WPM (`ghostProgress`; the saved record for accounts, the tab's best race for guests), with the gap in characters next to the toggle.
 - **Velvet Room**: training race and results pages add the `velvet-room` class, which only swaps the color tokens for velvet blue and gold, plus blue drapes and gold chains (`VelvetRoomDecor`) and one line from Lavenza (before) or Igor (after) (`VelvetRoomLine`).
+- **Confidant tarot card** (`TarotCard`): gold-framed card with the arcana numeral, the thief's all-out portrait, the arcana name and one gold diamond per rank. On the results it flips in (`.rank-up-card`, `tarot-flip`) after Mona's verdict, next to "RANK UP!" in cut-out letters; reduced motion shows it at once.
 - Reduced motion: no falling stones or sweeping light; overlays appear without sliding.
 
 ## Responsive
