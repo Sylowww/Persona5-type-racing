@@ -15,7 +15,7 @@ async function violations(page: Page): Promise<string[]> {
   );
 }
 
-for (const path of ["/fr", "/en", "/en/sign-in", "/en/sign-up", "/en/guest", "/en/lobbies", "/en/leaderboard", "/en/characters/joker"]) {
+for (const path of ["/fr", "/en", "/en/sign-in", "/en/sign-up", "/en/guest", "/en/lobbies", "/en/leaderboard", "/en/characters/joker", "/en/compendium"]) {
   test(`${path} passes the automated accessibility checks`, async ({ page }) => {
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();
