@@ -25,44 +25,33 @@ function formatRaceTime(ms: number): string {
 export function RaceHud({ dictionary, elapsedMs, remainingMs, wordCount, place, racerCount }: RaceHudProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="-skew-x-6 bg-surface-container-high px-4 py-1 shadow-hard-md">
-          <div className="flex skew-x-6 items-center gap-2">
-            <Icon name="timer" className="text-primary-container" />
-            <div className="flex flex-col">
-              <span className="font-hud text-label-hud font-black uppercase leading-none tracking-widest text-on-surface-variant">
-                {remainingMs === null ? dictionary.time : dictionary.timeLeft}
-              </span>
-              <span role="timer" className="font-display text-headline-md leading-tight tracking-wider text-secondary tabular-nums">
-                {formatRaceTime(remainingMs ?? elapsedMs)}
-              </span>
-            </div>
+      <div className="flex flex-wrap items-center gap-8">
+        <div className="flex items-center gap-3">
+          <Icon name="timer" size={28} className="text-primary-container" />
+          <div className="flex flex-col">
+            <span className="font-hud text-[11px] font-black uppercase leading-none tracking-widest text-on-surface-variant">
+              {remainingMs === null ? dictionary.time : dictionary.timeLeft}
+            </span>
+            <span role="timer" className="font-display text-headline-md leading-tight tracking-wider text-secondary tabular-nums">
+              {formatRaceTime(remainingMs ?? elapsedMs)}
+            </span>
           </div>
         </div>
-        <div className="-skew-x-6 bg-surface-container px-2 py-1 shadow-hard-sm">
-          <div className="flex skew-x-6 flex-col">
-            <span className="font-hud text-label-hud font-black uppercase tracking-wider text-secondary-fixed">
-              {dictionary.objective}
-            </span>
-            <span className="font-display text-[14px] uppercase tracking-wider text-on-surface">
-              {formatMessage(dictionary.target, { count: wordCount })}
-            </span>
-          </div>
+        <div className="flex flex-col border-l border-surface-container-high pl-8">
+          <span className="font-hud text-[11px] font-black uppercase tracking-widest text-on-surface-variant">{dictionary.objective}</span>
+          <span className="font-hud text-label-hud font-black uppercase tracking-wider text-on-surface">
+            {formatMessage(dictionary.target, { count: wordCount })}
+          </span>
         </div>
       </div>
 
-      <div className="relative rotate-2">
-        <div aria-hidden="true" className="absolute -inset-1 -rotate-3 bg-surface-container-lowest" />
-        <div className="relative flex items-center gap-2 bg-secondary-container px-7 py-1 text-on-secondary-fixed shadow-hard-lg shadow-primary-container">
-          <Icon name="military_tech" size={32} filled />
-          <div className="flex flex-col leading-none">
-            <span className="font-display text-headline-md uppercase tracking-tighter">
-              {place === null ? dictionary.spectating : formatMessage(dictionary.place, { place })}
-            </span>
-            <span className="font-hud text-[11px] font-black uppercase tracking-widest">
-              {formatMessage(dictionary.placeOf, { total: racerCount })}
-            </span>
-          </div>
+      <div className="flex items-center gap-3 bg-secondary-container px-5 py-2 text-on-secondary-fixed shadow-hard-md">
+        <Icon name="military_tech" size={28} filled />
+        <div className="flex flex-col leading-none">
+          <span className="font-display text-headline-md uppercase tracking-tight">
+            {place === null ? dictionary.spectating : formatMessage(dictionary.place, { place })}
+          </span>
+          <span className="font-hud text-[11px] font-black uppercase tracking-widest">{formatMessage(dictionary.placeOf, { total: racerCount })}</span>
         </div>
       </div>
     </div>

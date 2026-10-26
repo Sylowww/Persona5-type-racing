@@ -253,7 +253,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
         leaderProgress={leaderProgress}
         collapsing={raceOver}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           <RaceHud
             dictionary={dictionary.hud}
             elapsedMs={elapsedMs}
@@ -285,12 +285,12 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
           {!isSpectator && (
             <section
               aria-label={dictionary.arena.label}
-              className="relative flex cursor-text flex-col gap-4 bg-surface-container-lowest p-4 shadow-hard-xl shadow-primary-container md:p-7"
+              className="panel relative flex cursor-text flex-col gap-4 border-t-4 border-t-primary-container p-4 md:p-6"
               onClick={() => inputRef.current?.focus()}
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <h2 className="-skew-x-6 bg-primary-container px-2 py-0.5 font-hud text-[14px] font-black uppercase tracking-wider text-on-primary-container">
+                <div className="flex items-center gap-4">
+                  <h2 className="eyebrow text-secondary">
                     {dictionary.arena.label}
                   </h2>
                   <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">
@@ -310,7 +310,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                         event.stopPropagation();
                         if (window.confirm(dictionary.arena.forfeitConfirm)) startForfeit(async () => void (await forfeitLobbyRace(view.code)));
                       }}
-                      className="bg-surface-container px-2 py-0.5 font-hud text-label-hud font-black uppercase text-error transition-colors hover:bg-error-container hover:text-on-error-container disabled:opacity-60"
+                      className="border border-surface-container-highest px-2 py-0.5 font-hud text-label-hud font-black uppercase text-error transition-colors hover:bg-error-container hover:text-on-error-container disabled:opacity-60"
                     >
                       {dictionary.arena.forfeit}
                     </button>
@@ -326,7 +326,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
               </div>
 
               <div
-                className={`relative min-h-[220px] bg-surface-container-low px-4 py-7 md:px-7 ${
+                className={`relative min-h-[220px] bg-surface-container-lowest px-4 py-7 md:px-7 ${
                   isFocused ? "outline-2 outline-secondary-fixed" : ""
                 }`}
               >

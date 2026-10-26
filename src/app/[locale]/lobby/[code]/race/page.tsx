@@ -32,15 +32,15 @@ export default async function RacePage({ params }: Params) {
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
         {/* Bottom room: Mona's comms bubble is fixed at the bottom left, and the text must be able to scroll above it. */}
-        <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-4 pb-48 md:px-10">
+        <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 pt-8 pb-48 md:px-10">
           {/* Phones get a message instead of the race (DES-06): typing races need a physical keyboard. */}
-          <section className="mx-auto flex max-w-md flex-col items-center gap-4 bg-surface-container p-6 text-center shadow-hard-xl md:hidden">
+          <section className="panel mx-auto flex max-w-md flex-col items-center gap-4 p-8 text-center md:hidden">
             <Icon name="keyboard" size={48} className="text-primary-container" />
             <h1 className="font-display text-headline-md uppercase italic text-secondary">{dictionary.mobile.title}</h1>
             <p className="text-on-surface-variant">{dictionary.mobile.text}</p>
             <Link
               href={`/${locale}/lobby/${code}`}
-              className="-skew-x-6 bg-primary-container px-4 py-2 font-hud text-headline-sm font-black uppercase italic text-on-primary-container shadow-hard-sm"
+              className="btn-primary"
             >
               {dictionary.mobile.back}
             </Link>

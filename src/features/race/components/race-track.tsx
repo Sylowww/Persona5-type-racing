@@ -74,7 +74,7 @@ export function RaceTrack({
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
 
   return (
-    <section aria-label={dictionary.label} className="relative w-full overflow-hidden bg-surface-container-low p-2 shadow-hard-xl">
+    <section aria-label={dictionary.label} className="relative w-full overflow-hidden border border-surface-container-high bg-surface-container-low p-2 shadow-hard-xl">
       <div className="mb-1 flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <h2 className="font-hud text-label-hud font-black uppercase tracking-widest text-primary">{dictionary.label}</h2>
