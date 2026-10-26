@@ -62,3 +62,21 @@ export function rankUpAfterRace(racesBefore: number): number | null {
   const after = confidantRank(racesBefore + 1).rank;
   return after > before ? after : null;
 }
+
+export type CompendiumProgress = {
+  /** Thieves with at least rank 1 (their card is face up). */
+  unlocked: number;
+  /** Thieves at the max rank. */
+  maxed: number;
+  total: number;
+};
+
+/** How much of the compendium the player filled, from their saved races per thief. */
+export function compendiumProgress(races: Partial<Record<CharacterId, number>>, ids: readonly CharacterId[]): CompendiumProgress {
+  const ranks = ids.map((id) => confidantRank(races[id] ?? 0).rank);
+  return {
+    unlocked: ranks.filter((rank) => rank > 0).length,
+    maxed: ranks.filter((rank) => rank === CONFIDANT_MAX_RANK).length,
+    total: ids.length,
+  };
+}

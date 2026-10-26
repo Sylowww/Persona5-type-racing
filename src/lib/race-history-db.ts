@@ -148,7 +148,7 @@ export async function getBestWpmBefore(userId: string, endedAt: number): Promise
  * results were stored do not count.
  */
 export async function getRacesByCharacter(userId: string, before?: number): Promise<Partial<Record<CharacterId, number>>> {
-  const character = sql<string | null>`jsonb_path_query_first(${raceResults.result}, '$.racers[*] ? (@.id == $id).character', jsonb_build_object('id', ${raceResults.userId}::text)) #>> '{}'`;
+  const character = racedAs();
   const rows = await getDb()
     .select({ character, races: count() })
     .from(raceResults)
@@ -157,4 +157,31 @@ export async function getRacesByCharacter(userId: string, before?: number): Prom
   const races: Partial<Record<CharacterId, number>> = {};
   for (const row of rows) if (isCharacterId(row.character)) races[row.character] = row.races;
   return races;
+}
+
+/** The player's stats with each thief they raced as (compendium), read like `getRacesByCharacter`. */
+export async function getStatsByCharacter(userId: string): Promise<Partial<Record<CharacterId, PlayerStats>>> {
+  const character = racedAs();
+  const rows = await getDb()
+    .select({
+      character,
+      races: count(),
+      wins: sql<number>`count(*) filter (where ${raceResults.place} = 1)`.mapWith(Number),
+      bestWpm: max(raceResults.wpm),
+      averageWpm: avg(raceResults.wpm).mapWith(Number),
+      accuracy: avg(raceResults.accuracy).mapWith(Number),
+    })
+    .from(raceResults)
+    .where(eq(raceResults.userId, userId))
+    .groupBy(character);
+  const stats: Partial<Record<CharacterId, PlayerStats>> = {};
+  for (const { character: id, races, wins, bestWpm, averageWpm, accuracy } of rows) {
+    if (isCharacterId(id)) stats[id] = { races, wins, bestWpm: bestWpm ?? 0, averageWpm, accuracy };
+  }
+  return stats;
+}
+
+/** The thief the player raced as, read from the saved results (null for races saved before results were stored). */
+function racedAs() {
+  return sql<string | null>`jsonb_path_query_first(${raceResults.result}, '$.racers[*] ? (@.id == $id).character', jsonb_build_object('id', ${raceResults.userId}::text)) #>> '{}'`;
 }
