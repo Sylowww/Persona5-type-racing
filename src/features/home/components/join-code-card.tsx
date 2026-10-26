@@ -22,62 +22,55 @@ export function JoinCodeCard({ dictionary, locale, defaultCode = "", initialErro
   const [state, action, pending] = useActionState<JoinFormState, FormData>(joinLobby, { error: initialError, code: defaultCode });
 
   return (
-    <section className="relative">
-      <div className="absolute -inset-0.5 translate-x-2 translate-y-2 rotate-[0.5deg] bg-surface-container-lowest" />
-      <div className="relative h-full rotate-[-0.5deg] bg-surface-container-high p-4 shadow-hard-md shadow-secondary">
-        <div className="flex items-center justify-between">
-          <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">
-            {dictionary.eyebrow}
-          </span>
-          <Icon name="pin" size={20} className="text-secondary" />
-        </div>
-        <h2 className="mt-2 font-hud text-headline-sm font-black uppercase italic tracking-wider text-secondary">
-          {dictionary.title}
-        </h2>
-        <form action={action} className="mt-2 flex items-center gap-1">
-          <input type="hidden" name="locale" value={locale} />
-          <label htmlFor="lobby-code" className="sr-only">
-            {dictionary.label}
-          </label>
-          <input
-            id="lobby-code"
-            name="code"
-            type="text"
-            autoComplete="off"
-            maxLength={LOBBY_CODE_LENGTH}
-            defaultValue={state.code}
-            placeholder={dictionary.placeholder}
-            className="w-full min-w-0 bg-surface-container-lowest px-3 py-2 font-hud text-headline-sm font-black uppercase tracking-widest text-secondary-fixed shadow-inner placeholder:text-surface-variant focus:bg-surface-container focus:outline-2 focus:outline-secondary-fixed"
-          />
-          <button
-            type="submit"
-            disabled={pending}
-            className="shrink-0 bg-primary-container px-4 py-2 font-hud text-headline-sm font-black uppercase italic text-on-primary-container shadow-hard-sm transition-colors hover:bg-secondary-container hover:text-on-secondary-fixed"
-          >
-            {dictionary.submit}
-          </button>
-        </form>
-        {state.error && (
-          <div className="mt-2 flex flex-col gap-2">
-            <FormError message={formatMessage(dictionary.errors[state.error], { code: state.current ?? "" })} />
-            {state.error === "alreadyInLobby" && (
-              // Same form, sent again with the player's agreement to leave their current lobby (SALLE-06).
-              <form action={action}>
-                <input type="hidden" name="locale" value={locale} />
-                <input type="hidden" name="code" value={state.code} />
-                <input type="hidden" name="leaveCurrent" value="1" />
-                <button
-                  type="submit"
-                  disabled={pending}
-                  className="w-full bg-secondary-fixed px-3 py-1.5 font-hud text-label-hud font-black uppercase text-on-secondary-fixed shadow-hard-xs"
-                >
-                  {dictionary.leaveAndJoin}
-                </button>
-              </form>
-            )}
-          </div>
-        )}
+    <section className="panel flex h-full flex-col gap-3 p-5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="eyebrow">{dictionary.eyebrow}</span>
+        <Icon name="pin" size={22} className="text-primary-container" />
       </div>
+      <h2 className="font-display text-headline-sm uppercase italic tracking-wide text-secondary md:text-headline-md">{dictionary.title}</h2>
+      <form action={action} className="mt-auto flex items-stretch gap-2 pt-2">
+        <input type="hidden" name="locale" value={locale} />
+        <label htmlFor="lobby-code" className="sr-only">
+          {dictionary.label}
+        </label>
+        <input
+          id="lobby-code"
+          name="code"
+          type="text"
+          autoComplete="off"
+          maxLength={LOBBY_CODE_LENGTH}
+          defaultValue={state.code}
+          placeholder={dictionary.placeholder}
+          className="w-full min-w-0 border border-surface-container-highest bg-surface-container-lowest px-3 py-2 font-hud text-headline-sm font-black uppercase tracking-widest text-secondary-fixed placeholder:text-surface-bright focus:border-secondary-fixed"
+        />
+        <button
+          type="submit"
+          disabled={pending}
+          className="shrink-0 bg-primary-container px-4 py-2 font-hud text-label-hud font-black uppercase tracking-widest text-on-primary-container transition-colors hover:bg-secondary-container hover:text-on-secondary-fixed"
+        >
+          {dictionary.submit}
+        </button>
+      </form>
+      {state.error && (
+        <div className="mt-2 flex flex-col gap-2">
+          <FormError message={formatMessage(dictionary.errors[state.error], { code: state.current ?? "" })} />
+          {state.error === "alreadyInLobby" && (
+            // Same form, sent again with the player's agreement to leave their current lobby (SALLE-06).
+            <form action={action}>
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="code" value={state.code} />
+              <input type="hidden" name="leaveCurrent" value="1" />
+              <button
+                type="submit"
+                disabled={pending}
+                className="w-full bg-secondary-fixed px-3 py-1.5 font-hud text-label-hud font-black uppercase text-on-secondary-fixed"
+              >
+                {dictionary.leaveAndJoin}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
     </section>
   );
 }
