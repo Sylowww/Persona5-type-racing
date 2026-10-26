@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isCharacterId } from "@/lib/characters";
+import { getRacesByCharacter } from "@/lib/race-history-db";
 
 type Params = { params: Promise<{ locale: string; id: string }> };
 
@@ -22,6 +23,8 @@ export default async function CharacterPage({ params }: Params) {
   if (!isLocale(locale) || !isCharacterId(id)) notFound();
 
   const [dictionary, user] = await Promise.all([getDictionary(locale), getCurrentUser()]);
+  // Confidant bonds come from saved races, so only registered players have them.
+  const bonds = user?.kind === "registered" ? await getRacesByCharacter(user.id) : null;
 
   return (
     <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
@@ -36,6 +39,8 @@ export default async function CharacterPage({ params }: Params) {
             initialId={id}
             titleSuffix={` - ${dictionary.characters.metaTitle} - ${dictionary.metadata.title}`}
             chosen={user?.kind === "registered" ? user.character : null}
+            confidants={dictionary.confidants}
+            bonds={bonds}
           />
         </div>
       </div>
