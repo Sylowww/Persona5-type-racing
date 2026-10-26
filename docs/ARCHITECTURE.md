@@ -20,6 +20,7 @@ src/
     [locale]/lobbies/page.tsx       Lobby browser: public custom lobbies, refreshed every 5 s
     [locale]/quick/page.tsx         Quick 1v1 matchmaking (searching screen)
     [locale]/leaderboard/page.tsx   Top 100 registered players, 10 per page (`?page=`)
+    [locale]/characters/[id]/page.tsx  One thief's character file (`/characters` redirects to the player's own)
   components/
     layout/                 Site-wide chrome (header, footer, wordmark)
     ui/                     Generic, reusable primitives (Icon, PlayerAvatar)
