@@ -769,9 +769,7 @@ const en = {
   },
   footer: {
     rights: "All phantom rights reserved © {year}",
-    status: "Status // Online",
-    encryption: "Encryption // 512-bit acid",
-    version: "Version // {version}",
+    studentProject: "Student project",
   },
 };
 
