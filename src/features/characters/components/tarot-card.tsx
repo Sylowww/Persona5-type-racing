@@ -2,12 +2,15 @@ import Image from "next/image";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { formatMessage } from "@/i18n/format";
 import { characterAllOutPortrait } from "@/lib/characters";
-import { CONFIDANT_MAX_RANK, arcanaNumerals, characterArcana, confidantRank } from "@/lib/confidants";
+import { CONFIDANT_MAX_RANK, arcanaNumerals, characterArcana, confidantRank, hasReward } from "@/lib/confidants";
 import type { CharacterId } from "@/types/character";
 
 type ConfidantDictionary = Dictionary["confidants"];
 
-/** A thief's confidant tarot card: numeral, portrait, arcana and one pip per rank reached. */
+/**
+ * A thief's confidant tarot card: numeral, portrait, arcana and one pip per rank reached. The bond's rewards show on it
+ * (lib/confidants.ts): halftone dots from rank 3, a gold frame from rank 6 and a sweeping foil at MAX.
+ */
 export function TarotCard({
   dictionary,
   character,
@@ -28,7 +31,9 @@ export function TarotCard({
       role="img"
       aria-label={formatMessage(dictionary.card, { arcana: dictionary.arcana[arcana], rank, max: CONFIDANT_MAX_RANK })}
       style={{ width }}
-      className={`flex shrink-0 flex-col gap-2 border-2 border-secondary-fixed bg-surface-container-lowest p-2 shadow-hard-lg shadow-primary-container ${className}`}
+      className={`relative flex shrink-0 flex-col gap-2 border-2 border-secondary-fixed p-2 shadow-hard-lg shadow-primary-container ${
+        hasReward(rank, "halftone") ? "halftone bg-[color-mix(in_srgb,var(--color-primary-container)_35%,var(--color-surface-container-lowest))]" : "bg-surface-container-lowest"
+      } ${hasReward(rank, "gold") ? "outline-2 outline-offset-2 outline-secondary-fixed" : ""} ${className}`}
     >
       <span className="h-5 text-center font-display text-[18px] leading-5 text-secondary-fixed">{arcanaNumerals[arcana]}</span>
       <div className="relative aspect-[3/4] w-full overflow-hidden border border-secondary-fixed">
@@ -36,6 +41,7 @@ export function TarotCard({
       </div>
       <span className="text-center font-display text-[18px] uppercase leading-none tracking-wider text-secondary-fixed">{dictionary.arcana[arcana]}</span>
       <RankPips rank={rank} />
+      {hasReward(rank, "foil") && <span aria-hidden="true" className="foil-max pointer-events-none absolute inset-0" />}
     </div>
   );
 }
