@@ -26,6 +26,8 @@ type RaceTrackProps = {
   exitGlow?: number;
   /** Total chaos: stones fall onto the lanes. */
   chaos?: boolean;
+  /** Third Eye: a ghost of the player's record in their lane, and how fast it runs; null when off. */
+  ghost?: { progress: number; wpm: number } | null;
 };
 
 /** Stones falling on a lane during the chaos: position and timing, fixed per lane so they do not jump around. */
@@ -64,6 +66,7 @@ export function RaceTrack({
   overtakerIds,
   exitGlow = 0,
   chaos = false,
+  ghost = null,
 }: RaceTrackProps) {
   const lanes = laneOrder(racers, youId);
   const laneRef = useLaneMotion(
@@ -74,7 +77,7 @@ export function RaceTrack({
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
 
   return (
-    <section aria-label={dictionary.label} className="relative w-full overflow-hidden border border-surface-container-high bg-surface-container-low p-2 shadow-hard-xl">
+    <section aria-label={dictionary.label} className={`relative w-full overflow-hidden border border-surface-container-high bg-surface-container-low p-2 shadow-hard-xl ${ghost ? "third-eye-track" : ""}`}>
       <div className="mb-1 flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <h2 className="font-hud text-label-hud font-black uppercase tracking-widest text-primary">{dictionary.label}</h2>
@@ -194,6 +197,22 @@ export function RaceTrack({
                     </span>
                   )}
                 </div>
+                {isYou && ghost && (
+                  <div
+                    className="third-eye-ghost absolute bottom-0 left-0 transition-[translate] duration-300 ease-linear motion-reduce:transition-none"
+                    style={{ translate: `calc(${ghost.progress} * (100cqw - 100%)) 0` }}
+                  >
+                    <RaceRunner
+                      character={character}
+                      progress={ghost.progress}
+                      wpm={ghost.wpm}
+                      isFinished={ghost.progress >= 1}
+                      mistakes={0}
+                      isYou={false}
+                      now={now}
+                    />
+                  </div>
+                )}
                 <div
                   className={`absolute bottom-0 left-0 transition-[translate] duration-300 ease-linear motion-reduce:transition-none ${mark ? `lane-runner-${mark.element}` : ""}`}
                   style={{ translate: slide }}

@@ -1,5 +1,6 @@
 // Synthesized sound effects (Web Audio API, browser only): no audio files, so nothing to license or download.
 // Muting is shared with the background music through `setSoundMuted`, called by the header's mute button.
+import type { Feat } from "./race-feats";
 
 const MASTER_VOLUME = 0.6;
 
@@ -161,6 +162,39 @@ export function playVoiceBlip() {
   oscillator.connect(gain).connect(master);
   oscillator.start(start);
   oscillator.stop(start + 0.06);
+}
+
+/** A short tone with a quick decay, for the typing feats. */
+function tone(options: { delay?: number; type: OscillatorType; frequency: number; volume: number; duration: number }) {
+  const sound = engine();
+  if (!sound) return;
+  const { context, master } = sound;
+  const start = context.currentTime + (options.delay ?? 0);
+  const oscillator = context.createOscillator();
+  oscillator.type = options.type;
+  oscillator.frequency.setValueAtTime(options.frequency, start);
+  const gain = context.createGain();
+  gain.gain.setValueAtTime(options.volume, start);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + options.duration);
+  oscillator.connect(gain).connect(master);
+  oscillator.start(start);
+  oscillator.stop(start + options.duration + 0.05);
+}
+
+/** The sound of a typing feat: a dull buzz on a miss, a chime on a technical, a hit on a critical, a rising chord for 1 MORE. */
+export function playFeat(feat: Feat) {
+  if (feat === "miss") {
+    tone({ type: "square", frequency: 150, volume: 0.05, duration: 0.09 });
+  } else if (feat === "technical") {
+    tone({ type: "triangle", frequency: 660, volume: 0.12, duration: 0.12 });
+    tone({ delay: 0.07, type: "triangle", frequency: 990, volume: 0.12, duration: 0.18 });
+  } else if (feat === "critical") {
+    noiseBurst({ duration: 0.12, volume: 0.3, filter: "highpass", frequency: 2200 });
+    thump({ volume: 0.3, from: 220, to: 70, duration: 0.16 });
+  } else {
+    playCutInSwoosh();
+    [523, 659, 784, 1047].forEach((frequency, index) => tone({ delay: 0.05 * index, type: "triangle", frequency, volume: 0.1, duration: 0.3 }));
+  }
 }
 
 /** The cut-in band slamming onto the screen. */

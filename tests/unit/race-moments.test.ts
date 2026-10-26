@@ -5,6 +5,9 @@ import {
   detectMoments,
   exitGlow,
   overtakers,
+  passedRacers,
+  ghostLead,
+  ghostProgress,
   pickComment,
   recentMistakes,
   type MomentSnapshot,
@@ -68,6 +71,36 @@ describe("overtakers", () => {
     ];
     expect(overtakers(previous, racers, "you")).toEqual(["a"]);
     expect(overtakers(new Map(), racers, "you")).toEqual([]);
+  });
+});
+
+describe("passedRacers", () => {
+  it("lists the racers the player just passed, not the ones already behind", () => {
+    const previous = new Map([
+      ["you", 0.4],
+      ["a", 0.45],
+      ["b", 0.3],
+      ["c", 0.6],
+    ]);
+    const racers = [
+      { id: "you", progress: 0.5 },
+      { id: "a", progress: 0.48 },
+      { id: "b", progress: 0.35 },
+      { id: "c", progress: 0.62 },
+    ];
+    expect(passedRacers(previous, racers, "you")).toEqual(["a"]);
+    expect(passedRacers(new Map(), racers, "you")).toEqual([]);
+  });
+});
+
+describe("Third Eye ghost", () => {
+  it("runs at the record speed and stops at the finish", () => {
+    // 60 WPM is 300 characters a minute: 150 in 30 s.
+    expect(ghostProgress(60, 30_000, 300)).toBeCloseTo(0.5);
+    expect(ghostProgress(60, 120_000, 300)).toBe(1);
+    expect(ghostProgress(0, 30_000, 300)).toBe(0);
+    expect(ghostLead(0.6, 0.5, 300)).toBe(30);
+    expect(ghostLead(0.4, 0.5, 300)).toBe(-30);
   });
 });
 
