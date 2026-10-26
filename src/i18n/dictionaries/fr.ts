@@ -7,7 +7,6 @@ const fr: Dictionary = {
     description: "Des courses de frappe en temps réel contre des amis, des rivaux et des bots.",
   },
   header: {
-    tagline: "Système de dérive du métavers",
     navLabel: "Navigation principale",
     nav: {
       home: "Accueil // Radar",
@@ -44,11 +43,8 @@ const fr: Dictionary = {
     callingCard: {
       take: "Vole leurs",
       words: "mots!",
-      tag: "P5-clé//surrégime",
     },
     startRace: {
-      queue: "File active",
-      mode: "Syndicat classé",
       title: "Lancer une course",
       keys: "[Entrée]",
       altKeys: "[Espace]",
@@ -60,21 +56,18 @@ const fr: Dictionary = {
         badge: "Blitz 30 s",
         title: "Partie rapide // 1v1",
         description: "Lance un duel contre le prochain fantôme qui cherche un combat. Personne ? Un bot prend sa place.",
-        meta: "1v1 // 30 s",
         action: "Combattre",
       },
       browse: {
         badge: "Salons publics",
         title: "Chercher un salon",
         description: "Parcours les salons que d'autres fantômes ont ouverts à tous et rejoins-en un.",
-        meta: "Casses ouverts",
         action: "Parcourir",
       },
       training: {
         badge: "Exercices solo",
         title: "Dojo d'entraînement",
         description: "Cours seul à ton rythme, avec tes résultats et ta heatmap. Rien n'est sauvegardé.",
-        meta: "Solo // non classé",
         action: "Entrer",
       },
     },
@@ -106,7 +99,6 @@ const fr: Dictionary = {
     dossier: {
       tape: "Confidentiel // Dossier #{id}",
       avatarAlt: "Avatar du joueur",
-      codename: "Nom de code",
       memberSince: "Fantôme depuis le {date}",
       viewProfile: "Voir le profil",
       stats: {

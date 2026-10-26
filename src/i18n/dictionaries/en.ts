@@ -5,7 +5,6 @@ const en = {
     description: "Real-time typing races against friends, rivals and bots.",
   },
   header: {
-    tagline: "Metaverse drift system",
     navLabel: "Main navigation",
     nav: {
       home: "Home // Radar",
@@ -42,11 +41,8 @@ const en = {
     callingCard: {
       take: "Take their",
       words: "Words!",
-      tag: "P5-key//overdrive",
     },
     startRace: {
-      queue: "Active queue",
-      mode: "Ranked syndicate",
       title: "Start a race",
       keys: "[Enter]",
       altKeys: "[Space]",
@@ -58,21 +54,18 @@ const en = {
         badge: "30-sec blitz",
         title: "Quick play // 1v1",
         description: "Drop into a duel against the next phantom looking for a fight. No one around? A bot steps in.",
-        meta: "1v1 // 30 s",
         action: "Fight",
       },
       browse: {
         badge: "Public lobbies",
         title: "Find a lobby",
         description: "Browse the lobbies other phantoms opened to everyone and jump into one.",
-        meta: "Open heists",
         action: "Browse",
       },
       training: {
         badge: "Solo drills",
         title: "Training dojo",
         description: "Race alone at your own pace, with your results and heatmap. Nothing is saved.",
-        meta: "Solo // unranked",
         action: "Enter",
       },
     },
@@ -104,7 +97,6 @@ const en = {
     dossier: {
       tape: "Confidential // Dossier #{id}",
       avatarAlt: "Player avatar",
-      codename: "Codename",
       memberSince: "Phantom since {date}",
       viewProfile: "View profile",
       stats: {

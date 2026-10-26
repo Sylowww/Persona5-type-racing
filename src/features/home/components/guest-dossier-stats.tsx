@@ -14,9 +14,9 @@ type GuestDossierStatsProps = {
 export function GuestDossierStats({ dictionary, sessionNote }: GuestDossierStatsProps) {
   const stats = summarizeRaces(useGuestRaces());
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <DossierStats dictionary={dictionary} stats={stats} />
-      {stats.races > 0 && <p className="font-hud text-[11px] font-bold uppercase text-on-surface-variant">{sessionNote}</p>}
+      {stats.races > 0 && <p className="text-sm text-on-surface-variant">{sessionNote}</p>}
     </div>
   );
 }
