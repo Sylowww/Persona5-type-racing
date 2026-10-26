@@ -27,7 +27,17 @@ import type {
   SpellId,
   SpellMark,
 } from "@/types/race";
-import { appendWords, BOT_HEX_DELAY_MS, checkpointsReached, pickBonusReceivers, removeLastWords } from "./bonuses";
+import {
+  AMBUSH_WORDS,
+  appendWords,
+  BOT_HEX_DELAY_MS,
+  CALLING_CARD_HEX_MS,
+  callingCardTarget,
+  checkpointsReached,
+  firstWordLength,
+  pickBonusReceivers,
+  removeLastWords,
+} from "./bonuses";
 import { planBotRun, replanBotRun, seededRandom, type BotStep } from "./bots";
 import { DEFAULT_CHARACTER, randomCharacter } from "./characters";
 import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
@@ -38,6 +48,7 @@ import { characterPersonas, drawSpell, FALLBACK_SPELL, isSelfSpell, spellById, t
 import { inputBatchSchema, memberRoleSchema, visibilitySchema } from "./schemas";
 import {
   accuracy,
+  correctPrefixLength,
   deleteChar,
   initialTypingState,
   netChars,
@@ -125,7 +136,14 @@ export type Racer = {
   stun: SpellMark | null;
   /** The last malus this racer took, shown on their lane for everyone while it lasts; null otherwise. */
   mark: SpellMark | null;
+  /** A calling card hiding the racer's next words, and who sent it; null otherwise. */
+  card: { fromId: string; until: number } | null;
+  /** The racer sent their one calling card of the race. */
+  cardSent: boolean;
 };
+
+/** A calling card sent by the last racer to the leader. */
+export type CallingCardEvent = { id: number; fromId: string; toId: string; at: number };
 
 /** One catch-up spell cast at a checkpoint, announced on the track (BONUS-03). */
 export type BonusEvent = {
@@ -150,6 +168,9 @@ export type Race = {
   /** Bonus checkpoints already handed out (0 to 3). */
   checkpoints: number;
   bonusEvents: BonusEvent[];
+  /** The first racer to type the first word without a mistake; null until then (powers on only). */
+  ambush: { racerId: string; at: number } | null;
+  callingCards: CallingCardEvent[];
   /** Seeds the bot plans made during the race, so they stay reproducible. */
   seed: number;
 };
@@ -592,6 +613,8 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
       settings: open.settings,
       checkpoints: 0,
       bonusEvents: [],
+      ambush: null,
+      callingCards: [],
       seed: Math.floor(random() * 2 ** 31),
       racers: players.map((member) => ({
         id: member.id,
@@ -611,6 +634,8 @@ export function startRace(state: LobbyState, userId: string, text: string, now: 
         hex: null,
         stun: null,
         mark: null,
+        card: null,
+        cardSent: false,
       })),
     },
   });
@@ -774,7 +799,7 @@ function applyCatchUp(state: LobbyState, now: number): LobbyState {
       // One malus at a time on the leader: while one is running (or was just cast), the caster helps themself instead.
       const leader = racers.find((racer) => racer.id === leaderId);
       const isLeaderHit =
-        (leader?.stun?.until ?? 0) > now || (leader?.hex?.until ?? 0) > now || events.some((event) => event.at === now && event.targetId === leaderId);
+        isUnderMalus(leader, now) || events.some((event) => event.at === now && event.targetId === leaderId);
       const spell = !isSelfSpell(drawn) && isLeaderHit ? FALLBACK_SPELL : drawn;
       const targetId = isSelfSpell(spell) ? receiverId : leaderId;
       update(receiverId, (racer) => ({ ...racer, bonuses: racer.bonuses + 1 }));
@@ -783,6 +808,65 @@ function applyCatchUp(state: LobbyState, now: number): LobbyState {
     }
   }
   return { ...state, race: { ...race, racers, checkpoints: reached, bonusEvents: events } };
+}
+
+/** A spell or calling card is already slowing the racer down: one malus at a time. */
+function isUnderMalus(racer: Racer | undefined, now: number): boolean {
+  return (racer?.stun?.until ?? 0) > now || (racer?.hex?.until ?? 0) > now || (racer?.card?.until ?? 0) > now;
+}
+
+/**
+ * "Ambush!": the first racer to type the first word without a single mistake gets a word off their own text
+ * (powers on only). Bots can ambush too.
+ */
+function applyAmbush(state: LobbyState, now: number): LobbyState {
+  const race = state.race;
+  if (state.phase !== "racing" || !race || !race.settings.powers || race.ambush) return state;
+  const target = firstWordLength(race.text);
+  const ambusher = race.racers
+    .filter((racer) => !isOut(racer) && racer.typing.mistakes === 0 && correctPrefixLength(racer.text, racer.typing.typed) >= target)
+    .sort((a, b) => b.typing.typed.length - a.typing.typed.length)[0];
+  if (!ambusher) return state;
+  const racers = race.racers.map((racer) =>
+    racer === ambusher ? withText(racer, removeLastWords(racer.text, racer.typing.typed.length, AMBUSH_WORDS), race, race.seed, now) : racer,
+  );
+  return { ...state, race: { ...race, racers, ambush: { racerId: ambusher.id, at: now } } };
+}
+
+/** How long the track announces a calling card. */
+export const CALLING_CARD_ANNOUNCE_MS = 4_000;
+
+/**
+ * The last racer still typing sends their one calling card of the race to the leader (powers on only): the leader's
+ * next words hide behind it for a moment (a bot leader hesitates instead). Refused while the leader is already under a
+ * spell or a card, so the leader takes one malus at a time.
+ */
+export function sendCallingCard(state: LobbyState, userId: string, now: number): Outcome {
+  if (!isMember(state, userId)) return fail("notMember");
+  const race = state.race;
+  if (state.phase !== "racing" || !race || !race.settings.powers || now < race.startsAt) return fail("wrongPhase");
+  const sender = race.racers.find((racer) => racer.id === userId);
+  if (!sender || isOut(sender) || sender.cardSent) return fail("wrongPhase");
+  const target = race.racers.find((racer) => racer.id === cardTarget(race, userId, now));
+  if (!target) return fail("wrongPhase");
+
+  const until = now + CALLING_CARD_HEX_MS;
+  const racers = race.racers.map((racer) => {
+    if (racer === sender) return { ...racer, cardSent: true };
+    if (racer === target) return racer.bot ? delayBot(racer, BOT_HEX_DELAY_MS) : { ...racer, card: { fromId: userId, until } };
+    return racer;
+  });
+  const callingCards = [...race.callingCards, { id: race.callingCards.length + 1, fromId: userId, toId: target.id, at: now }];
+  return ok({ ...state, race: { ...race, racers, callingCards } });
+}
+
+/** The leader `userId` may send a calling card to now, or null (also while the leader is under a malus). */
+function cardTarget(race: Race, userId: string, now: number): string | null {
+  const contenders = race.racers
+    .filter((racer) => !isOut(racer))
+    .map((racer) => ({ id: racer.id, progress: progress(racer.text, racer.typing.typed, race.settings.mode) }));
+  const targetId = callingCardTarget(contenders, userId);
+  return isUnderMalus(race.racers.find((racer) => racer.id === targetId), now) ? null : targetId;
 }
 
 /** Pushes a bot's next keys back by `ms` (a bot cannot be blinded or frozen: it loses time instead). */
@@ -813,10 +897,15 @@ function castSpell(target: Racer, spell: Spell, race: Race, eventId: number, now
     effect.type === "shorten"
       ? removeLastWords(target.text, target.typing.typed.length, effect.words)
       : appendWords(target.text, race.text, race.seed + eventId, effect.words);
+  return withText(target, text, race, race.seed + eventId, now);
+}
+
+/** Gives the racer a new text; a bot plans the rest of its race again. */
+function withText(target: Racer, text: string, race: Race, seed: number, now: number): Racer {
   if (text === target.text) return target;
   if (!target.bot) return { ...target, text };
   const difficulty = target.bot.difficulty;
-  const steps = replanBotRun(text, target.typing.typed, difficulty, seededRandom(race.seed + eventId), race.settings.mode, now - race.startsAt);
+  const steps = replanBotRun(text, target.typing.typed, difficulty, seededRandom(seed), race.settings.mode, now - race.startsAt);
   return { ...target, text, bot: { difficulty, steps, applied: 0 } };
 }
 
@@ -825,6 +914,7 @@ export function advance(state: LobbyState, now: number): LobbyState {
   let next = state;
   if (next.phase === "countdown" && next.race && now >= next.race.startsAt) next = { ...next, phase: "racing" };
   next = runBots(next, now);
+  next = applyAmbush(next, now);
   next = applyCatchUp(next, now);
   if (next.phase === "racing" && isRaceOver(next, now)) next = finishRace(next, now);
   if (next.phase === "waiting" || next.phase === "finished") next = dropExpiredMembers(next, now);
@@ -971,6 +1061,7 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
   );
   const own = race.racers.find((racer) => racer.id === userId);
   const nameOf = (racerId: string) => race.racers.find((racer) => racer.id === racerId)?.name ?? "";
+  const characterOf = (racerId: string) => race.racers.find((racer) => racer.id === racerId)?.character ?? DEFAULT_CHARACTER;
   return {
     // Bonuses change texts per racer: each racer sees their own, spectators the original.
     text: own?.text ?? race.text,
@@ -999,6 +1090,10 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
           target: nameOf(event.targetId),
         };
       }),
+    ambush: race.ambush ? { ...race.ambush, name: nameOf(race.ambush.racerId), character: characterOf(race.ambush.racerId) } : null,
+    callingCards: race.callingCards
+      .filter((card) => now - card.at < CALLING_CARD_ANNOUNCE_MS)
+      .map((card) => ({ ...card, from: nameOf(card.fromId), fromCharacter: characterOf(card.fromId), to: nameOf(card.toId) })),
     racers,
     you: own
       ? {
@@ -1014,6 +1109,10 @@ function raceView(state: LobbyState, race: Race, userId: string, now: number): R
           forfeitedAt: own.forfeitedAt,
           hex: own.hex,
           stun: own.stun,
+          card: own.card && own.card.until > now ? { from: nameOf(own.card.fromId), until: own.card.until } : null,
+          canSendCard:
+            state.phase === "racing" && race.settings.powers && !own.cardSent && !isOut(own) && cardTarget(race, userId, now) !== null,
+          cardSent: own.cardSent,
         }
       : null,
   };

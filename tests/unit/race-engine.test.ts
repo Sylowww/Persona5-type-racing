@@ -7,6 +7,7 @@ import {
   createInvite,
   createLobby,
   forfeitRace,
+  sendCallingCard,
   isRaceOver,
   joinLobby,
   joinWithInvite,
@@ -362,8 +363,9 @@ describe("catch-up spells (BONUS-01 to BONUS-04)", () => {
   it("Frei adds words to the leader's text, and progress follows it (BONUS-04)", () => {
     const state = type(spellRace("frei"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
     const ann = racerOf(state, "ann");
-    expect(ann?.text.startsWith(LONG)).toBe(true);
-    expect(ann?.text.split(" ")).toHaveLength(15);
+    // Ann typed the first word cleanly first: her Ambush already took "twelve" off.
+    expect(ann?.text.startsWith(LONG.replace(" twelve", ""))).toBe(true);
+    expect(ann?.text.split(" ")).toHaveLength(14);
     expect(viewFor(state, "bob", START + 3_000)?.race?.racers.find((racer) => racer.id === "ann")?.progress).toBeCloseTo(16 / (ann?.text.length ?? 1));
   });
 
@@ -393,6 +395,62 @@ describe("catch-up spells (BONUS-01 to BONUS-04)", () => {
 
     state = advance(unwrap(forfeitRace(state, "ann", START + 2_000)), START + 120_000);
     expect(resultFor(state, "ann")?.racers.find((racer) => racer.id === bot?.id)).toMatchObject({ status: "finished", bonuses: 1 });
+  });
+});
+
+describe("Ambush and calling cards", () => {
+  const LONG = "one two three four five six seven eight nine ten eleven twelve";
+
+  function powersRace(...names: string[]): LobbyState {
+    const state = unwrap(updateSettings(lobbyWith(...names), names[0], { powers: true }));
+    return advance(unwrap(startRace(readyAll(state), names[0], LONG, T0)), START);
+  }
+
+  const type = (state: LobbyState, userId: string, text: string, seq: number, at: number) =>
+    advance(applyInput(state, userId, { clientId: "tab", seq, events: chars(text) }, at), at);
+  const racerOf = (state: LobbyState, id: string) => state.race?.racers.find((racer) => racer.id === id);
+
+  it("takes a word off the first racer to type the first word without a mistake", () => {
+    let state = type(powersRace("ann", "bob"), "bob", "onx", 1, START + 500);
+    state = type(state, "ann", "one ", 1, START + 800);
+    expect(racerOf(state, "ann")?.text).toBe(LONG.replace(" twelve", ""));
+    expect(racerOf(state, "bob")?.text).toBe(LONG);
+    expect(viewFor(state, "bob", START + 900)?.race?.ambush).toMatchObject({ racerId: "ann", name: "ann", at: START + 800 });
+
+    // Only one Ambush per race.
+    state = type(state, "ann", "two ", 2, START + 900);
+    expect(racerOf(state, "ann")?.text).toBe(LONG.replace(" twelve", ""));
+  });
+
+  it("has no Ambush when powers are off", () => {
+    const state = type(racing("ann", "bob"), "ann", "go ", 1, START + 500);
+    expect(viewFor(state, "ann", START + 500)?.race?.ambush).toBeNull();
+  });
+
+  it("lets the last racer send one calling card that hides the leader's words", () => {
+    let state = type(powersRace("ann", "bob", "cid"), "ann", "one two ", 1, START + 1_000);
+    state = type(state, "cid", "o", 1, START + 1_000);
+    expect(viewFor(state, "bob", START + 1_000)?.race?.you?.canSendCard).toBe(true);
+    expect(viewFor(state, "cid", START + 1_000)?.race?.you?.canSendCard).toBe(false);
+    expect(sendCallingCard(state, "cid", START + 1_000)).toEqual({ ok: false, error: "wrongPhase" });
+
+    state = unwrap(sendCallingCard(state, "bob", START + 1_200));
+    expect(viewFor(state, "ann", START + 1_200)?.race?.you?.card).toEqual({ from: "bob", until: START + 4_200 });
+    expect(viewFor(state, "cid", START + 1_200)?.race?.callingCards).toMatchObject([{ from: "bob", to: "ann" }]);
+    expect(viewFor(state, "bob", START + 1_200)?.race?.you).toMatchObject({ cardSent: true, canSendCard: false });
+    expect(viewFor(state, "ann", START + 4_300)?.race?.you?.card).toBeNull();
+    // One card per race.
+    expect(sendCallingCard(state, "bob", START + 5_000).ok).toBe(false);
+  });
+
+  it("refuses a calling card before the leader got away, or while the leader is under a malus", () => {
+    expect(sendCallingCard(powersRace("ann", "bob"), "bob", START).ok).toBe(false);
+    expect(sendCallingCard(racing("ann", "bob"), "bob", START).ok).toBe(false);
+    let state = type(powersRace("ann", "bob", "cid"), "ann", "one two ", 1, START + 1_000);
+    state = unwrap(sendCallingCard(state, "bob", START + 1_000));
+    state = type(state, "bob", "one ", 1, START + 1_500);
+    // Cid is last now, but ann is still behind bob's card.
+    expect(sendCallingCard(state, "cid", START + 2_000).ok).toBe(false);
   });
 });
 

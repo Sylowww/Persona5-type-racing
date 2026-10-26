@@ -24,6 +24,7 @@ import {
   quickRaceSeats,
   removeBot,
   resultFor,
+  sendCallingCard,
   sendMessage,
   setCapacity,
   setCharacter,
@@ -419,6 +420,11 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     /** The racer gives up; the race may end at once if they were the last one typing. */
     forfeit(code: string, userId: string): StoreError | null {
       return updateOutcome(code, (state, time) => forfeitRace(state, userId, time));
+    },
+
+    /** The last racer sends their calling card to the leader. */
+    sendCallingCard(code: string, userId: string): StoreError | null {
+      return updateOutcome(code, (state, time) => sendCallingCard(state, userId, time));
     },
 
     input(code: string, userId: string, batch: InputBatch): StoreError | null {

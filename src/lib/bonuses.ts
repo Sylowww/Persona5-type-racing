@@ -62,3 +62,30 @@ export function appendWords(text: string, source: string, seed: number, count: n
   const extra = Array.from({ length: count }, (_, index) => words[(seed * 7 + index * 13) % words.length]);
   return `${text} ${extra.join(" ")}`;
 }
+
+/** Words off the text of the first racer to type the first word without a mistake ("Ambush!"). */
+export const AMBUSH_WORDS = 1;
+
+/** Characters to type to finish the first word of `text`, its space included. */
+export function firstWordLength(text: string): number {
+  const space = text.indexOf(" ");
+  return space === -1 ? text.length : space + 1;
+}
+
+/** How long a calling card hides the leader's next words. */
+export const CALLING_CARD_HEX_MS = 3_000;
+/** Before the leader is this far, everyone is still bunched up at the start: no calling card yet. */
+export const CALLING_CARD_MIN_LEADER_PROGRESS = 0.1;
+
+/**
+ * Whether `senderId` may send their calling card to the leader: they are last among the racers still typing, someone
+ * else leads, and the leader got far enough for the gap to mean something. Ties go to the racer listed first, as for
+ * the spells. Returns the leader to target.
+ */
+export function callingCardTarget(contenders: readonly Omit<Contender, "bonuses">[], senderId: string): string | null {
+  if (contenders.length < 2) return null;
+  const leader = contenders.reduce((best, racer) => (racer.progress > best.progress ? racer : best));
+  const last = contenders.reduce((worst, racer) => (racer.progress < worst.progress ? racer : worst));
+  if (last.id !== senderId || leader === last || leader.progress < CALLING_CARD_MIN_LEADER_PROGRESS) return null;
+  return leader.id;
+}
