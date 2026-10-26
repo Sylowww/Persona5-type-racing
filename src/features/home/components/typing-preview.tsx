@@ -1,17 +1,18 @@
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
+/** A sample of the race text, shown as a Persona 5 dialogue box with the word being typed highlighted. */
 export function TypingPreview({ dictionary }: { dictionary: Dictionary["home"]["typingPreview"] }) {
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="eyebrow">{dictionary.title}</h2>
-        <span className="font-hud text-label-hud font-bold uppercase tracking-widest text-on-surface-variant">{dictionary.subtitle}</span>
-      </div>
-      <p className="panel flex items-center gap-2 overflow-hidden whitespace-nowrap px-5 py-4 font-body text-typing-stream font-bold">
+    <section className="relative rotate-1 border-2 border-secondary bg-surface-container-lowest px-5 pt-8 pb-5 shadow-[8px_8px_0_var(--color-primary-container)]">
+      <h2 className="absolute -top-4 left-4 -skew-x-12 bg-secondary px-3 py-1 font-hud text-label-hud font-black uppercase tracking-widest text-surface-container-lowest shadow-hard-sm">
+        {dictionary.title}
+      </h2>
+      <p className="mb-2 font-hud text-label-hud font-bold uppercase tracking-widest text-secondary-fixed">{dictionary.subtitle}</p>
+      <p className="flex items-center gap-2 overflow-hidden whitespace-nowrap font-body text-typing-stream font-bold">
         <span className="text-on-surface-variant opacity-70">{dictionary.typed}</span>
-        <span className="bg-secondary px-1.5 text-surface-container-lowest">{dictionary.current}</span>
+        <span className="-skew-x-6 bg-primary-container px-1.5 text-on-primary-container">{dictionary.current}</span>
         <span className="tracking-wide text-secondary">{dictionary.upcoming}</span>
-        <span aria-hidden="true" className="inline-block h-8 w-1 shrink-0 bg-primary-container motion-safe:animate-pulse" />
+        <span aria-hidden="true" className="inline-block h-8 w-1 shrink-0 bg-secondary-fixed motion-safe:animate-pulse" />
       </p>
     </section>
   );

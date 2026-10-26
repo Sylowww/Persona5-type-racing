@@ -48,8 +48,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
         <PhantomMarquee phrases={home.marquee} />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 items-start gap-10 px-4 pt-6 pb-14 md:px-10 xl:grid-cols-12 xl:gap-14">
-          <div className="flex flex-col gap-10 xl:col-span-7">
+        <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 items-start gap-12 px-4 pt-12 pb-16 md:px-10 xl:grid-cols-12 xl:gap-14">
+          <div className="flex flex-col gap-14 xl:col-span-7">
             <JoinCodeCard dictionary={home.joinCode} locale={locale} />
             <TypingPreview dictionary={home.typingPreview} />
           </div>
