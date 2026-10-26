@@ -33,7 +33,8 @@ export default async function CharacterPage({ params }: Params) {
             dictionary={dictionary.characters}
             names={dictionary.profile.character.names}
             locale={locale}
-            id={id}
+            initialId={id}
+            titleSuffix={` - ${dictionary.characters.metaTitle} - ${dictionary.metadata.title}`}
             chosen={user?.kind === "registered" ? user.character : null}
           />
         </div>

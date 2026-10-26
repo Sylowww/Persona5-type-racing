@@ -1,11 +1,15 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { type MouseEvent, useEffect } from "react";
 import { Icon } from "@/components/ui/icon";
 import { SpriteFrames } from "@/components/ui/sprite-frames";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { formatMessage } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
-import { characterAllOutPortrait, characterIds, characterPortrait, characters } from "@/lib/characters";
+import { characterAllOutPortrait, characterIds, characterPortrait, characters, isCharacterId } from "@/lib/characters";
 import { characterPersonas } from "@/lib/spells";
 import type { CharacterId } from "@/types/character";
 import { chooseCharacter } from "@/features/profile/actions";
@@ -14,21 +18,38 @@ type CharacterFileProps = {
   dictionary: Dictionary["characters"];
   names: Dictionary["profile"]["character"]["names"];
   locale: Locale;
-  id: CharacterId;
+  /** The thief in the URL when the page was loaded. */
+  initialId: CharacterId;
+  /** Rest of the tab title after the codename (" - Phantom Thieves - TYPE//STRIKE"). */
+  titleSuffix: string;
   /** The signed-in player's thief, or null for guests and visitors (they cannot choose one). */
   chosen: CharacterId | null;
 };
 
 /** One thief's calling-card file: name plate, profile, Persona and art on a red comic stage, then the roster. */
-export function CharacterFile({ dictionary, names, locale, id, chosen }: CharacterFileProps) {
+export function CharacterFile({ dictionary, names, locale, initialId, titleSuffix, chosen }: CharacterFileProps) {
+  // Switching thieves only rewrites the URL (see `select`), so the shown thief follows the path, back button included.
+  const segment = usePathname().split("/").pop();
+  const id = isCharacterId(segment) ? segment : initialId;
   const index = characterIds.indexOf(id);
   const previous = characterIds[(index - 1 + characterIds.length) % characterIds.length];
   const next = characterIds[(index + 1) % characterIds.length];
   const href = (characterId: CharacterId) => `/${locale}/characters/${characterId}`;
 
+  useEffect(() => {
+    document.title = `${names[id]}${titleSuffix}`;
+  }, [id, names, titleSuffix]);
+
+  // Every thief's data is already here: swap in place instead of loading the page again. The links still work without JavaScript.
+  function select(event: MouseEvent<HTMLAnchorElement>, characterId: CharacterId) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    if (characterId !== id) window.history.pushState(null, "", href(characterId));
+  }
+
   return (
     <div className="flex flex-col gap-10">
-      <section aria-labelledby="character-name" className="relative overflow-hidden border-t-4 border-primary-container bg-surface-container-low">
+      <section aria-labelledby="character-name" className="relative overflow-clip border-t-4 border-primary-container bg-surface-container-low">
         <Stage />
 
         <div className="relative grid gap-10 px-5 py-10 md:px-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:py-14">
@@ -83,8 +104,8 @@ export function CharacterFile({ dictionary, names, locale, id, chosen }: Charact
             </div>
 
             <div className="absolute right-0 bottom-0 flex gap-2">
-              <ArrowLink href={href(previous)} label={dictionary.previous} icon="chevron_left" />
-              <ArrowLink href={href(next)} label={dictionary.next} icon="chevron_right" />
+              <ArrowLink href={href(previous)} label={dictionary.previous} icon="chevron_left" onClick={(event) => select(event, previous)} />
+              <ArrowLink href={href(next)} label={dictionary.next} icon="chevron_right" onClick={(event) => select(event, next)} />
             </div>
           </div>
         </div>
@@ -98,6 +119,7 @@ export function CharacterFile({ dictionary, names, locale, id, chosen }: Charact
               <li key={characterId}>
                 <Link
                   href={href(characterId)}
+                  onClick={(event) => select(event, characterId)}
                   aria-current={isCurrent ? "page" : undefined}
                   className={`group flex flex-col items-center gap-1 border-2 p-1 pb-2 transition-colors ${
                     isCurrent ? "border-secondary-fixed bg-primary-container" : "border-surface-container-high bg-surface-container-low hover:border-primary-container"
@@ -124,7 +146,7 @@ export function CharacterFile({ dictionary, names, locale, id, chosen }: Charact
 /** Red comic bands and halftone dots behind the file, like a Persona 5 character screen. */
 function Stage() {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-clip">
       <div className="absolute inset-0 bg-gradient-to-br from-surface-container-lowest via-surface-container-low to-primary-container/40" />
       <div className="halftone absolute -inset-x-1/4 top-[8%] h-[38%] -rotate-[24deg] bg-primary-container/80" />
       <div className="halftone absolute -inset-x-1/4 top-[58%] h-[22%] -rotate-[24deg] bg-primary-container/60" />
@@ -133,10 +155,18 @@ function Stage() {
   );
 }
 
-function ArrowLink({ href, label, icon }: { href: string; label: string; icon: "chevron_left" | "chevron_right" }) {
+type ArrowLinkProps = {
+  href: string;
+  label: string;
+  icon: "chevron_left" | "chevron_right";
+  onClick: (event: MouseEvent<HTMLAnchorElement>) => void;
+};
+
+function ArrowLink({ href, label, icon, onClick }: ArrowLinkProps) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       aria-label={label}
       className="flex size-14 -skew-x-12 items-center justify-center border-2 border-secondary-fixed bg-surface-container-lowest text-secondary-fixed shadow-hard-md transition-colors hover:bg-secondary-fixed hover:text-on-secondary-fixed"
     >
@@ -145,7 +175,7 @@ function ArrowLink({ href, label, icon }: { href: string; label: string; icon: "
   );
 }
 
-type ChooseButtonProps = Pick<CharacterFileProps, "dictionary" | "locale" | "id" | "chosen"> & { name: string };
+type ChooseButtonProps = Pick<CharacterFileProps, "dictionary" | "locale" | "chosen"> & { id: CharacterId; name: string };
 
 function ChooseButton({ dictionary, locale, id, name, chosen }: ChooseButtonProps) {
   if (chosen === id) {
