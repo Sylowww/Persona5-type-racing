@@ -14,9 +14,9 @@ type CharacterPickerProps = {
 // Plain form buttons: picking works without client JavaScript.
 export function CharacterPicker({ dictionary, selected }: CharacterPickerProps) {
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <h2 className="-skew-x-6 bg-secondary px-3 py-1 font-display text-headline-sm uppercase italic tracking-wider text-surface-container-lowest shadow-hard-md shadow-primary-container md:text-headline-md">
+        <h2 className="font-display text-headline-sm uppercase italic tracking-wider text-secondary md:text-headline-md">
           {dictionary.title}
         </h2>
         <p className="max-w-md text-[13px] text-on-surface-variant">{dictionary.hint}</p>
@@ -39,8 +39,7 @@ export function CharacterPicker({ dictionary, selected }: CharacterPickerProps) 
 function Showcase({ dictionary, selected }: CharacterPickerProps) {
   return (
     <div className="relative min-h-[300px]">
-      <div className="absolute -inset-1 translate-x-2 translate-y-2 rotate-[1.5deg] bg-surface-container-lowest" />
-      <div className="relative flex h-full min-h-[300px] -rotate-1 flex-col justify-end overflow-hidden bg-primary-container shadow-hard-xl">
+      <div className="relative flex h-full min-h-[300px] flex-col justify-end overflow-hidden bg-primary-container shadow-hard-xl">
         {/* Speed lines behind the character. */}
         <div aria-hidden="true" className="absolute inset-0 opacity-25">
           <div className="absolute -inset-x-10 top-[18%] h-6 -rotate-12 bg-surface-container-lowest" />

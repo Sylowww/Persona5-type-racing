@@ -56,7 +56,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 py-10 md:px-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-col gap-12 px-4 py-10 md:px-10 md:py-14">
           <ProfileCard locale={locale} dictionary={profile} user={user} />
           <ProfileEditor
             dictionary={profile.edit}
@@ -65,8 +65,8 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
             avatarAlt={formatMessage(profile.avatarAlt, { name: user.username })}
           />
           <CharacterPicker dictionary={profile.character} selected={user.character} />
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-            <div className="flex flex-col gap-6 lg:col-span-2">
+          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
+            <div className="flex flex-col gap-8 lg:col-span-2">
               <ProfileStats dictionary={profile.stats} locale={locale} stats={stats} progress={progress} />
               <RaceHistory locale={locale} dictionary={profile.history} races={history.races} page={page} pageCount={pageCount} />
             </div>

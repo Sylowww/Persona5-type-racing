@@ -18,11 +18,11 @@ export function SignInMethods({ dictionary, email, providers }: SignInMethodsPro
   ];
 
   return (
-    <section className="flex flex-col gap-3 bg-surface-container p-5 shadow-hard-md shadow-secondary">
-      <h2 className="font-hud text-headline-sm font-black uppercase italic tracking-wider text-secondary">{dictionary.title}</h2>
-      <ul className="flex flex-col gap-2">
+    <section className="panel flex flex-col gap-4 p-6">
+      <h2 className="eyebrow text-secondary">{dictionary.title}</h2>
+      <ul className="flex flex-col divide-y divide-surface-container-high">
         {methods.map((method) => (
-          <li key={method.key} className="flex flex-col gap-1 bg-surface-container-lowest px-3 py-2">
+          <li key={method.key} className="flex flex-col gap-1 py-3">
             <span className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary">{method.name}</span>
             <span className="flex min-w-0 items-center gap-1 text-[13px] text-on-surface-variant">
               <Icon name="check" size={16} className="text-secondary-fixed" />

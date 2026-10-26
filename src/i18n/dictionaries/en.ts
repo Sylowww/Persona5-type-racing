@@ -633,7 +633,6 @@ const en = {
     metaTitle: "Profile",
     tape: "Phantom dossier // #{id}",
     avatarAlt: "{name}'s avatar",
-    registered: "Registered phantom",
     memberSince: "Phantom since {date}",
     edit: {
       title: "Edit profile",

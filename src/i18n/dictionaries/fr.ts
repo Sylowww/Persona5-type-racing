@@ -635,7 +635,6 @@ const fr: Dictionary = {
     metaTitle: "Profil",
     tape: "Dossier fantôme // #{id}",
     avatarAlt: "Avatar de {name}",
-    registered: "Fantôme inscrit",
     memberSince: "Fantôme depuis le {date}",
     edit: {
       title: "Modifier le profil",

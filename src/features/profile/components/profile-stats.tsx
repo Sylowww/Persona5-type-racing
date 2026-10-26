@@ -23,13 +23,13 @@ export function ProfileStats({ dictionary, locale, stats, progress }: ProfileSta
   ];
 
   return (
-    <section className="flex flex-col gap-4 bg-surface-container p-5 shadow-hard-md shadow-secondary">
-      <h2 className="font-hud text-headline-sm font-black uppercase italic tracking-wider text-secondary">{dictionary.title}</h2>
-      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+    <section className="panel flex flex-col gap-5 p-6">
+      <h2 className="eyebrow text-secondary">{dictionary.title}</h2>
+      <dl className="grid grid-cols-2 gap-px bg-surface-container-high sm:grid-cols-5">
         {tiles.map((tile) => (
-          <div key={tile.label} className="flex flex-col items-center bg-surface-container-high p-3 text-center shadow-hard-sm">
+          <div key={tile.label} className="flex flex-col gap-1 bg-surface-container-low px-3 py-4">
             <dt className="font-hud text-[11px] font-black uppercase tracking-widest text-on-surface-variant">{tile.label}</dt>
-            <dd className="mt-1 font-display text-headline-md italic leading-none text-secondary">{tile.value}</dd>
+            <dd className="font-display text-headline-md italic leading-none text-secondary">{tile.value}</dd>
           </div>
         ))}
       </dl>
