@@ -28,8 +28,8 @@ export function ProfileEditor({ dictionary, username, avatarUrl, avatarAlt }: Pr
   const avatarError: ProfileError | null = tooLarge ? "tooLarge" : avatarState.error;
 
   return (
-    <section aria-labelledby="profile-edit-title" className="flex flex-col gap-4 bg-surface-container p-6 shadow-hard-xl">
-      <h2 id="profile-edit-title" className="font-hud text-headline-sm font-black uppercase italic tracking-wider text-secondary">
+    <section aria-labelledby="profile-edit-title" className="panel flex flex-col gap-5 p-6">
+      <h2 id="profile-edit-title" className="eyebrow text-secondary">
         {dictionary.title}
       </h2>
 
@@ -58,7 +58,7 @@ export function ProfileEditor({ dictionary, username, avatarUrl, avatarAlt }: Pr
         >
           <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">{dictionary.avatar}</span>
           <div className="flex items-center gap-4">
-            <PlayerAvatar avatarUrl={avatarUrl} alt={avatarAlt} size={72} className="shadow-hard-sm shadow-secondary" />
+            <PlayerAvatar avatarUrl={avatarUrl} alt={avatarAlt} size={72} />
             <div className="flex min-w-0 flex-col gap-1">
               <label htmlFor="profile-avatar" className="sr-only">
                 {dictionary.avatarInput}

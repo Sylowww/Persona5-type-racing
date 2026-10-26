@@ -22,23 +22,23 @@ export function RaceHistory({ locale, dictionary, races, page, pageCount }: Race
   const pageHref = (target: number) => `/${locale}/profile?page=${target}#history`;
 
   return (
-    <section id="history" aria-labelledby="history-title" className="flex scroll-mt-24 flex-col gap-3 bg-surface-container p-5 shadow-hard-md shadow-secondary">
-      <h2 id="history-title" className="font-hud text-headline-sm font-black uppercase italic tracking-wider text-secondary">
+    <section id="history" aria-labelledby="history-title" className="panel flex scroll-mt-24 flex-col gap-4 p-6">
+      <h2 id="history-title" className="eyebrow text-secondary">
         {dictionary.title}
       </h2>
       {races.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 bg-surface-container-lowest px-4 py-8 text-center">
+        <div className="flex flex-col items-center gap-4 border border-dashed border-surface-container-highest px-4 py-10 text-center">
           <Icon name="timer" size={40} className="text-primary-container" />
           <p className="text-on-surface-variant">{dictionary.empty}</p>
           <Link
             href={`/${locale}/race`}
-            className="-skew-x-6 bg-primary-container px-4 py-2 font-hud text-label-hud font-black uppercase italic text-on-primary-container shadow-hard-sm shadow-secondary hover:bg-secondary-container hover:text-on-secondary-fixed"
+            className="btn-primary"
           >
             {dictionary.cta}
           </Link>
         </div>
       ) : (
-        <ol className="flex flex-col gap-2">
+        <ol className="flex flex-col divide-y divide-surface-container-high border-y border-surface-container-high">
           {races.map((race) => {
             const content = (
               <>
@@ -71,7 +71,7 @@ export function RaceHistory({ locale, dictionary, races, page, pageCount }: Race
                   // Opens the race's full results (HIST-02).
                   <Link
                     href={`/${locale}/profile/races/${race.id}`}
-                    className={`${rowClass} hover:bg-surface-container-high hover:shadow-hard-sm hover:shadow-primary-container`}
+                    className={`${rowClass} transition-colors hover:bg-surface-container`}
                   >
                     {content}
                   </Link>
@@ -102,16 +102,16 @@ function PageLink({ href, label, icon }: { href: string | null; label: string; i
       {icon === "chevron_right" && <Icon name={icon} size={18} />}
     </>
   );
-  const className = "inline-flex -skew-x-6 items-center gap-1 px-3 py-1.5 font-hud text-label-hud font-black uppercase italic";
+  const className = "inline-flex items-center gap-1 border px-3 py-1.5 font-hud text-label-hud font-black uppercase tracking-wider";
   if (href === null) {
     return (
-      <span aria-disabled="true" className={`${className} bg-surface-container-low text-outline`}>
+      <span aria-disabled="true" className={`${className} border-surface-container-high text-on-surface-variant opacity-60`}>
         {body}
       </span>
     );
   }
   return (
-    <Link href={href} className={`${className} bg-surface-container-high text-secondary shadow-hard-sm hover:bg-primary-container hover:text-on-primary-container`}>
+    <Link href={href} className={`${className} border-surface-container-highest text-secondary transition-colors hover:border-primary-container`}>
       {body}
     </Link>
   );
