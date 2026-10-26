@@ -98,7 +98,7 @@ export function LobbyRoom({ dictionary, characterNames, locale, initialView }: L
         close={isHost && isWaiting && view.kind === "custom" ? { code, locale } : null}
       />
 
-      <div className="grid grid-cols-1 items-start gap-7 xl:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-12">
         <div className="xl:col-span-8">
           <LobbyRoster
             dictionary={dictionary}
@@ -115,7 +115,7 @@ export function LobbyRoom({ dictionary, characterNames, locale, initialView }: L
             onKick={isHost && view.kind === "custom" ? (playerId) => startTransition(async () => void (await kickLobbyMember(code, playerId))) : null}
           />
         </div>
-        <div className="flex flex-col gap-4 xl:col-span-4">
+        <div className="flex flex-col gap-6 xl:col-span-4">
           {view.invites && (
             <InvitePanel
               dictionary={dictionary.invites}

@@ -57,11 +57,11 @@ export function RulesDossier({
   ] as const;
 
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="flex rotate-1 items-center justify-between bg-secondary-fixed px-4 py-2 text-on-secondary-fixed shadow-hard-md">
-        <span className="font-hud text-headline-sm font-black uppercase italic tracking-wider">{dictionary.title}</span>
+    <section className="flex flex-col">
+      <h2 className="flex items-center justify-between border-b-4 border-primary-container bg-surface-container-lowest px-5 py-3 text-secondary">
+        <span className="font-display text-headline-sm uppercase italic tracking-wider">{dictionary.title}</span>
         {onClose ? (
-          <button type="button" onClick={onClose} aria-label={dictionary.close} className="flex items-center hover:scale-110">
+          <button type="button" onClick={onClose} aria-label={dictionary.close} className="flex items-center text-on-surface-variant hover:text-secondary">
             <Icon name="close" size={22} />
           </button>
         ) : (
@@ -69,7 +69,7 @@ export function RulesDossier({
         )}
       </h2>
 
-      <div className="flex flex-col gap-4 bg-surface-container p-4 shadow-hard-xl">
+      <div className="flex flex-col gap-5 border border-t-0 border-surface-container-high bg-surface-container-low p-5">
         {!canEdit && <p className="text-[12px] italic text-on-surface-variant">{dictionary.hostOnly}</p>}
 
         {visibility && (
@@ -86,8 +86,8 @@ export function RulesDossier({
                       aria-pressed={isActive}
                       disabled={disabled}
                       onClick={() => onVisibilityChange(option)}
-                      className={`flex items-center justify-center gap-1.5 p-2 font-hud text-[12px] font-black uppercase transition-transform enabled:hover:-translate-y-0.5 ${
-                        isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
+                      className={`flex items-center justify-center gap-1.5 p-2 font-hud text-[12px] font-black uppercase transition-colors ${
+                        isActive ? "bg-primary-container text-on-primary-container" : "border border-surface-container-highest text-outline enabled:hover:text-secondary"
                       }`}
                     >
                       <Icon name={visibilityIcons[option]} size={16} />
@@ -133,11 +133,11 @@ export function RulesDossier({
                   aria-pressed={isActive}
                   disabled={disabled}
                   onClick={() => onChange({ mode: option })}
-                  className={`p-2 text-center transition-transform enabled:hover:-translate-y-0.5 ${
-                    isActive ? "bg-primary-container shadow-hard-xs" : "bg-surface-container-low opacity-70 enabled:hover:opacity-100"
+                  className={`p-2 text-center transition-colors ${
+                    isActive ? "bg-primary-container" : "border border-surface-container-highest opacity-70 enabled:hover:opacity-100"
                   }`}
                 >
-                  <span className={`block font-hud text-[11px] font-black uppercase ${isActive ? "text-secondary-fixed" : "text-outline"}`}>
+                  <span className={`block font-hud text-[11px] font-black uppercase ${isActive ? "text-on-primary-container" : "text-outline"}`}>
                     {mode[option]}
                   </span>
                   <span className={`font-hud text-[13px] font-black ${option === "suddenDeath" ? "text-error" : "text-secondary"}`}>
@@ -167,7 +167,7 @@ export function RulesDossier({
                   disabled={disabled}
                   onClick={() => onChange({ timeLimitSec: option })}
                   className={`px-1 py-1.5 font-hud text-[12px] font-black uppercase ${
-                    isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
+                    isActive ? "bg-primary-container text-on-primary-container" : "border border-surface-container-highest text-outline enabled:hover:text-secondary"
                   }`}
                 >
                   {timeLimitLabel(time, option)}
@@ -192,8 +192,8 @@ export function RulesDossier({
                   aria-pressed={isActive}
                   disabled={disabled}
                   onClick={() => onChange({ language: option })}
-                  className={`flex items-center justify-center gap-1.5 p-2 font-hud text-[12px] font-black uppercase transition-transform enabled:hover:-translate-y-0.5 ${
-                    isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
+                  className={`flex items-center justify-center gap-1.5 p-2 font-hud text-[12px] font-black uppercase transition-colors ${
+                    isActive ? "bg-primary-container text-on-primary-container" : "border border-surface-container-highest text-outline enabled:hover:text-secondary"
                   }`}
                 >
                   <Icon name="translate" size={16} />
@@ -276,7 +276,7 @@ function SeatButton({ icon, label, disabled, onClick }: { icon: "add" | "remove"
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex size-9 items-center justify-center bg-surface-container-low text-secondary transition-transform enabled:hover:-translate-y-0.5 enabled:hover:bg-primary-container disabled:opacity-40"
+      className="flex size-9 items-center justify-center bg-surface-container-low text-secondary transition-colors enabled:hover:bg-primary-container disabled:opacity-40"
     >
       <Icon name={icon} size={20} />
     </button>
@@ -306,7 +306,7 @@ function ChoiceRow<T extends string | number>({ label, options, value, disabled,
               disabled={disabled}
               onClick={() => onPick(option.value)}
               className={`flex-1 px-2 py-1.5 font-hud text-[12px] font-black uppercase ${
-                isActive ? "bg-primary-container text-secondary-fixed shadow-hard-xs" : "bg-surface-container-low text-outline enabled:hover:text-secondary"
+                isActive ? "bg-primary-container text-on-primary-container" : "border border-surface-container-highest text-outline enabled:hover:text-secondary"
               }`}
             >
               {option.label}
@@ -360,7 +360,7 @@ function ToggleRow({ label, enabled, disabled, dictionary, onToggle }: ToggleRow
         onClick={onToggle}
         className={`min-w-14 px-2 py-0.5 font-hud text-[13px] font-black uppercase ${
           enabled ? "bg-secondary-fixed text-on-secondary-fixed" : "bg-surface-container-high text-outline"
-        } enabled:hover:-translate-y-0.5 disabled:cursor-default`}
+        } disabled:cursor-default`}
       >
         {enabled ? dictionary.on : dictionary.off}
       </button>

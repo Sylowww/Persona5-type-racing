@@ -287,7 +287,6 @@ const en = {
       settings: "Lobby settings",
       chat: "Chat / taunts",
       leave: "Leave lobby",
-      badge: "Go!!",
       eyebrow: "All systems go",
       start: "Start the race",
       waiting: "Waiting for players",

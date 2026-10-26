@@ -31,7 +31,7 @@ export default async function LobbyPage({ params }: Params) {
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-[1720px] flex-col gap-7 px-4 py-4 md:px-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-4 py-10 md:px-10">
           {view ? (
             <LobbyRoom dictionary={dictionary.lobby} characterNames={dictionary.profile.character.names} locale={locale} initialView={view} />
           ) : (

@@ -31,8 +31,8 @@ export function KeySoundPicker({ dictionary }: { dictionary: Dictionary["lobby"]
               onClick={() => setSelected(option)}
               className={`py-2 text-center font-hud text-label-hud font-black uppercase transition-colors ${
                 isSelected
-                  ? "bg-secondary-fixed text-on-secondary-fixed shadow-hard-xs"
-                  : "bg-surface-container-low text-on-surface hover:bg-surface-bright"
+                  ? "bg-secondary-fixed text-on-secondary-fixed"
+                  : "border border-surface-container-highest text-on-surface hover:border-secondary-fixed"
               }`}
             >
               {dictionary[option]}

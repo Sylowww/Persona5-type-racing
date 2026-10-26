@@ -289,7 +289,6 @@ const fr: Dictionary = {
       settings: "Paramètres du salon",
       chat: "Chat / provocations",
       leave: "Quitter le salon",
-      badge: "Go!!",
       eyebrow: "Tous les systèmes sont prêts",
       start: "Lancer la course",
       waiting: "En attente des joueurs",
