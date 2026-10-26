@@ -69,6 +69,7 @@ export default async function RaceResultsPage({ params }: Params) {
           )}
           <ResultsReport
             dictionary={dictionary}
+            raceDictionary={raceDictionary}
             locale={locale}
             result={result}
             ranked={ranked}

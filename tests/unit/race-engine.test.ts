@@ -394,7 +394,14 @@ describe("catch-up spells (BONUS-01 to BONUS-04)", () => {
     expect(bot?.bonuses).toBe(1);
 
     state = advance(unwrap(forfeitRace(state, "ann", START + 2_000)), START + 120_000);
-    expect(resultFor(state, "ann")?.racers.find((racer) => racer.id === bot?.id)).toMatchObject({ status: "finished", bonuses: 1 });
+    const result = resultFor(state, "ann");
+    expect(result?.racers.find((racer) => racer.id === bot?.id)).toMatchObject({ status: "finished", bonuses: 1 });
+    // The replay gets the spell and Ambush on the race timeline, and each racer's progress over time.
+    expect(result?.events).toEqual([
+      expect.objectContaining({ type: "spell", casterId: bot?.id, atMs: 1_000 }),
+      { type: "ambush", racerId: "ann", atMs: 1_000 },
+    ]);
+    expect(result?.racers.find((racer) => racer.id === "ann")?.samples.at(-1)?.progress).toBeCloseTo(20 / LONG.length);
   });
 });
 

@@ -501,6 +501,16 @@ const en = {
       personalBest: "New personal best!",
       personalBestDetail: "Previous record: {wpm} WPM",
     },
+    replay: {
+      title: "Replay",
+      play: "Play the replay",
+      pause: "Pause the replay",
+      restart: "Watch again from the start",
+      speed: "Replay speed",
+      timeline: "Race time",
+      log: "Race log",
+      empty: "Nothing happened yet.",
+    },
     raceChart: {
       title: "Speed duel",
       racers: "{count} racers",

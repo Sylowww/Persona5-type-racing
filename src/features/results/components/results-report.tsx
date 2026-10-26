@@ -1,8 +1,10 @@
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
+import { hasReplay } from "@/lib/race-replay";
 import type { RaceResult, ResultRacer } from "@/types/race";
 import { CombatDossier } from "./combat-dossier";
 import { KeyboardHeatmap } from "./keyboard-heatmap";
+import { RaceReplay } from "./race-replay";
 import { ResultsBanner } from "./results-banner";
 import { ResultsPodium } from "./results-podium";
 import { ResultsTable } from "./results-table";
@@ -10,6 +12,8 @@ import { WpmRaceChart } from "./wpm-race-chart";
 
 type ResultsReportProps = {
   dictionary: Dictionary["results"];
+  /** The live race's labels, for the replay's track and log. */
+  raceDictionary: Dictionary["race"];
   locale: Locale;
   result: RaceResult;
   /** `result.racers`, ranked. */
@@ -21,7 +25,7 @@ type ResultsReportProps = {
 };
 
 /** The full results of a race, shown right after it and again from the history (HIST-02). */
-export function ResultsReport({ dictionary, locale, result, ranked, you, place, beatenRecord }: ResultsReportProps) {
+export function ResultsReport({ dictionary, raceDictionary, locale, result, ranked, you, place, beatenRecord }: ResultsReportProps) {
   return (
     <>
       <ResultsBanner
@@ -37,6 +41,7 @@ export function ResultsReport({ dictionary, locale, result, ranked, you, place, 
         <CombatDossier dictionary={dictionary.dossier} locale={locale} result={result} wpm={you.wpm} />
         <KeyboardHeatmap dictionary={dictionary.heatmap} keyStats={result.keyStats} />
       </div>
+      {hasReplay(result) && <RaceReplay dictionary={dictionary.replay} race={raceDictionary} locale={locale} result={result} />}
       <WpmRaceChart dictionary={dictionary.raceChart} locale={locale} racers={ranked} youId={result.youId} />
       <ResultsTable dictionary={dictionary.table} locale={locale} racers={ranked} youId={result.youId} />
     </>

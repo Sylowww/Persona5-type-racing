@@ -33,7 +33,7 @@ export default async function SavedRacePage({ params }: Params) {
   const raceId = uuidSchema.safeParse(id);
   if (!raceId.success) notFound();
 
-  const [result, { results: dictionary }] = await Promise.all([getSavedResult(user.id, raceId.data), getDictionary(locale)]);
+  const [result, { results: dictionary, race: raceDictionary }] = await Promise.all([getSavedResult(user.id, raceId.data), getDictionary(locale)]);
   if (!result) notFound();
   const ranked = rankRacers(result.racers);
   const place = ranked.findIndex((racer) => racer.id === result.youId) + 1;
@@ -61,6 +61,7 @@ export default async function SavedRacePage({ params }: Params) {
           </div>
           <ResultsReport
             dictionary={dictionary}
+            raceDictionary={raceDictionary}
             locale={locale}
             result={result}
             ranked={ranked}
