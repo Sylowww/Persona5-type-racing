@@ -9,15 +9,20 @@ const SLIDE_MS = 450;
  * of jumping (a FLIP animation), and a racer who enters the top three flashes (`.lane-rise`). Returns a ref callback
  * per racer id. Skipped when the player asks for reduced motion.
  */
-export function useLaneMotion(topThreeIds: readonly string[]) {
+export function useLaneMotion(laneIds: readonly string[], topThreeIds: readonly string[]) {
   const lanes = useRef(new Map<string, HTMLElement>());
   const tops = useRef(new Map<string, number>());
+  const order = useRef("");
   const topThree = useRef<ReadonlySet<string> | null>(null);
 
-  // Runs after every render: it only reads lane positions, and the track re-renders a few times per second.
+  // Runs after every render, but reads lane positions only when the order changed: the track re-renders several times
+  // per second, and each read forces a layout of the whole page.
+  const laneOrder = laneIds.join(",");
   useLayoutEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    for (const [id, lane] of lanes.current) {
+    const hasMoved = order.current !== laneOrder;
+    order.current = laneOrder;
+    for (const [id, lane] of hasMoved ? lanes.current : []) {
       const top = lane.offsetTop;
       const before = tops.current.get(id);
       tops.current.set(id, top);
