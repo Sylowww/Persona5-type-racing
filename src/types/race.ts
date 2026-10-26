@@ -45,6 +45,12 @@ export type RaceYou = {
   hex: SpellMark | null;
   /** A stun (shock or ice): keys do nothing until it ends; null otherwise. */
   stun: SpellMark | null;
+  /** A calling card hiding the next words, and who sent it; null otherwise. */
+  card: { from: string; until: number } | null;
+  /** The racer may send their calling card to the leader now (last place, not sent yet, powers on). */
+  canSendCard: boolean;
+  /** The racer already sent their calling card this race. */
+  cardSent: boolean;
 };
 
 /** Persona skills drawn as catch-up bonuses (`lib/spells.ts`). Names come from Persona 5 and are not translated. */
@@ -71,6 +77,20 @@ export type RaceBonusEvent = {
   target: string;
 };
 
+/** The first racer to type the first word without a mistake, who got a word off their text ("Ambush!"). */
+export type RaceAmbush = { racerId: string; name: string; character: CharacterId; at: number };
+
+/** A calling card the last racer sent to the leader, hiding the leader's next words for a moment. */
+export type RaceCallingCard = {
+  id: number;
+  fromId: string;
+  from: string;
+  fromCharacter: CharacterId;
+  toId: string;
+  to: string;
+  at: number;
+};
+
 /** Race part of a lobby snapshot. Times are server epoch milliseconds. */
 export type RaceView = {
   text: string;
@@ -86,6 +106,10 @@ export type RaceView = {
   bonusesOn: boolean;
   /** Bonuses handed out in the last few seconds. */
   bonusEvents: readonly RaceBonusEvent[];
+  /** Null until someone typed the first word cleanly, or when powers are off. */
+  ambush: RaceAmbush | null;
+  /** Calling cards sent in the last few seconds. */
+  callingCards: readonly RaceCallingCard[];
   /** In the order players joined, so lanes do not jump around. */
   racers: readonly RaceRacer[];
   /** Null when the viewer is not racing (e.g. joined after the start). */

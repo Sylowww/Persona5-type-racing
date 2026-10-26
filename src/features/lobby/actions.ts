@@ -191,6 +191,11 @@ export async function forfeitLobbyRace(code: string): Promise<StoreError | null>
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().forfeit(lobby, userId));
 }
 
+/** The viewer, last of the race, sends their calling card to the leader. */
+export async function sendLobbyCallingCard(code: string): Promise<StoreError | null> {
+  return lobbyCommand(code, (lobby, userId) => getLobbyStore().sendCallingCard(lobby, userId));
+}
+
 export async function startLobbyRace(code: string): Promise<StoreError | null> {
   return lobbyCommand(code, (lobby, userId) => getLobbyStore().start(lobby, userId));
 }
