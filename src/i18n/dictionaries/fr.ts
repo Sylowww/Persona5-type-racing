@@ -771,9 +771,7 @@ const fr: Dictionary = {
   },
   footer: {
     rights: "Tous droits fantômes réservés © {year}",
-    status: "Statut // En ligne",
-    encryption: "Chiffrement // 512 bits acide",
-    version: "Version // {version}",
+    studentProject: "Projet étudiant",
   },
 };
 
