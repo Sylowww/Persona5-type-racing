@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONFIDANT_MAX_RANK, CONFIDANT_RANK_RACES, confidantRank, rankUpAfterRace } from "../../src/lib/confidants";
+import { CONFIDANT_MAX_RANK, CONFIDANT_RANK_RACES, compendiumProgress, confidantRank, rankUpAfterRace } from "../../src/lib/confidants";
 
 describe("confidantRank", () => {
   it("starts at rank 0 and reaches rank 1 after the first race", () => {
@@ -23,5 +23,13 @@ describe("rankUpAfterRace", () => {
     expect(rankUpAfterRace(2)).toBeNull();
     expect(rankUpAfterRace(3)).toBe(3);
     expect(rankUpAfterRace(CONFIDANT_RANK_RACES[CONFIDANT_MAX_RANK - 1])).toBeNull();
+  });
+});
+
+describe("compendiumProgress", () => {
+  it("counts face-up and maxed cards out of every thief", () => {
+    const max = CONFIDANT_RANK_RACES[CONFIDANT_MAX_RANK - 1];
+    expect(compendiumProgress({ joker: 3, mona: max + 2, fox: 0 }, ["joker", "mona", "fox", "noir"])).toEqual({ unlocked: 2, maxed: 1, total: 4 });
+    expect(compendiumProgress({}, ["joker"])).toEqual({ unlocked: 0, maxed: 0, total: 1 });
   });
 });
