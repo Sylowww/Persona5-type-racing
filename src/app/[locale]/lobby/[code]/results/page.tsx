@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
+import { PageBackdrop } from "@/components/layout/page-backdrop";
 import { LobbyPresence } from "@/features/lobby/components/lobby-presence";
 import { loadLobby } from "@/features/lobby/load-lobby";
 import { CollapseReveal } from "@/features/results/components/collapse-reveal";
@@ -47,11 +47,11 @@ export default async function RaceResultsPage({ params }: Params) {
   const previousBest = user.kind === "registered" && view?.kind !== "training" ? await getBestWpmBefore(user.id, result.endedAt) : null;
 
   return (
-    <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
+    <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <CollapseReveal />
       <ResultsCutIn dictionary={dictionary.cutIn} verdict={resultsVerdict(you.finishMs !== null, place, ranked.length)} />
       <div className="relative flex w-full flex-col">
-        <HalftoneBackdrop />
+        <PageBackdrop />
         <div className="relative z-10 mx-auto w-full max-w-7xl space-y-6 px-4 py-4 md:px-10">
           <ResultsReport
             dictionary={dictionary}

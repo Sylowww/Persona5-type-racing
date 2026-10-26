@@ -20,7 +20,7 @@ export function LanguageSwitcher({ locale, dictionary }: LanguageSwitcherProps) 
   const pathname = usePathname();
 
   return (
-    <nav aria-label={dictionary.label} className="flex items-center bg-surface-container p-0.5">
+    <nav aria-label={dictionary.label} className="flex items-center gap-0.5">
       {locales.map((option) => {
         const isCurrent = option === locale;
 
@@ -35,8 +35,8 @@ export function LanguageSwitcher({ locale, dictionary }: LanguageSwitcherProps) 
             // On narrow screens only the other language shows, to keep the header on one line.
             className={`px-2 py-1.5 font-hud text-label-hud font-black uppercase transition-colors ${
               isCurrent
-                ? "hidden bg-primary-container text-on-primary-container sm:block"
-                : "text-on-surface-variant hover:text-on-surface"
+                ? "hidden text-secondary underline decoration-primary-container decoration-[3px] underline-offset-[6px] sm:block"
+                : "text-on-surface-variant hover:text-secondary"
             }`}
           >
             {option}

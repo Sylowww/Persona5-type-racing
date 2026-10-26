@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
+import { PageBackdrop } from "@/components/layout/page-backdrop";
 import { CharacterPicker } from "@/features/profile/components/character-picker";
 import { ProfileCard } from "@/features/profile/components/profile-card";
 import { ProfileEditor } from "@/features/profile/components/profile-editor";
@@ -52,9 +52,9 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   if (page > pageCount) redirect(`/${locale}/profile?page=${pageCount}#history`);
 
   return (
-    <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
+    <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <div className="relative flex w-full flex-col">
-        <HalftoneBackdrop />
+        <PageBackdrop />
 
         <div className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 py-10 md:px-10">
           <ProfileCard locale={locale} dictionary={profile} user={user} />
