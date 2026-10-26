@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore, useTransition, type ChangeEvent, type MouseEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition, type ChangeEvent, type CSSProperties, type MouseEvent } from "react";
 import { forfeitLobbyRace, sendLobbyCallingCard } from "@/features/lobby/actions";
 import { useGuestRaces } from "@/features/home/use-guest-races";
 import { Icon } from "@/components/ui/icon";
@@ -48,6 +48,17 @@ import { TypingText } from "./typing-text";
 import { WinnerCutIn } from "./winner-cut-in";
 
 const TICK_MS = 100;
+
+// Glass shards thrown out when a countdown number lands: where each one flies (px), its spin and color.
+const countdownShards = [
+  { x: -150, y: -70, r: -200, color: "bg-secondary" },
+  { x: 140, y: -90, r: 160, color: "bg-secondary-fixed" },
+  { x: -170, y: 50, r: 240, color: "bg-primary-container" },
+  { x: 160, y: 70, r: -180, color: "bg-secondary" },
+  { x: -40, y: -120, r: 120, color: "bg-primary-container" },
+  { x: 50, y: 120, r: -260, color: "bg-secondary-fixed" },
+] as const;
+
 /** Without a time limit, the palace still collapses at the pace of a 3-minute race. */
 const UNTIMED_COLLAPSE_PACE_MS = 180_000;
 /** How long the powers slot announces an Ambush or a calling card. */
@@ -477,12 +488,23 @@ export function LiveRace({ dictionary, locale, initialView, recordWpm, isGuest }
                     <span className="font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">
                       {dictionary.arena.countdown}
                     </span>
-                    <span
-                      role="timer"
-                      aria-label={formatMessage(dictionary.arena.countdownValue, { seconds: secondsLeft })}
-                      className="-skew-x-6 bg-primary-container px-7 font-display text-[96px] leading-none text-secondary shadow-hard-xl"
-                    >
-                      {secondsLeft}
+                    {/* Keyed by the number, so each one rushes in and lands with a burst of shards (`.countdown-*`). */}
+                    <span key={secondsLeft} className="relative">
+                      {countdownShards.map(({ x, y, r, color }) => (
+                        <span
+                          key={`${x}-${y}`}
+                          aria-hidden="true"
+                          className={`countdown-shard absolute top-1/2 left-1/2 size-6 [clip-path:polygon(50%_0,100%_100%,0_70%)] ${color}`}
+                          style={{ "--shard-x": `${x}px`, "--shard-y": `${y}px`, "--shard-r": `${r}deg` } as CSSProperties}
+                        />
+                      ))}
+                      <span
+                        role="timer"
+                        aria-label={formatMessage(dictionary.arena.countdownValue, { seconds: secondsLeft })}
+                        className="countdown-strike relative block -skew-x-6 bg-primary-container px-7 font-display text-[96px] leading-none text-secondary shadow-hard-xl"
+                      >
+                        {secondsLeft}
+                      </span>
                     </span>
                   </div>
                 )}
