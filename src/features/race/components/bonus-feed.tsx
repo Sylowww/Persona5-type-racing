@@ -40,7 +40,7 @@ export function BonusFeed({ dictionary, events: received, youId }: BonusFeedProp
         {events.slice(-MAX_LISTED).map((event) => {
           const style = spellStyle[event.element];
           return (
-            <li key={event.id} className="flex items-center gap-1.5 bg-surface-container-highest px-3 py-1 font-hud text-label-hud font-black uppercase text-secondary shadow-hard-xs">
+            <li key={event.id} className="flex items-center gap-1.5 bg-surface-container-highest px-3 py-1 font-hud text-label-hud font-black uppercase text-secondary">
               <Icon name={style.icon} size={16} filled className={style.text} />
               {formatMessage(dictionary.announce[event.spell], {
                 caster: event.receiver,
@@ -52,7 +52,7 @@ export function BonusFeed({ dictionary, events: received, youId }: BonusFeedProp
           );
         })}
         {events.length > MAX_LISTED && (
-          <li className="flex items-center bg-surface-container-highest px-3 py-1 font-hud text-label-hud font-black uppercase text-on-surface-variant shadow-hard-xs">
+          <li className="flex items-center bg-surface-container-highest px-3 py-1 font-hud text-label-hud font-black uppercase text-on-surface-variant">
             {formatMessage(dictionary.more, { count: events.length - MAX_LISTED })}
           </li>
         )}
