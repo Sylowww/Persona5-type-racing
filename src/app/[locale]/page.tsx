@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CallingCardBanner } from "@/features/home/components/calling-card-banner";
+import { HomeHero } from "@/features/home/components/home-hero";
 import { PageBackdrop } from "@/components/layout/page-backdrop";
 import { JoinCodeCard } from "@/features/home/components/join-code-card";
 import { ModeCard } from "@/features/home/components/mode-card";
@@ -27,6 +28,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
   return (
     <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
+      <HomeHero dictionary={home.hero} />
+
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
         <h1 className="sr-only">{dictionary.title}</h1>

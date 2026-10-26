@@ -39,6 +39,15 @@ const en = {
     },
   },
   home: {
+    hero: {
+      label: "Welcome",
+      lines: [
+        ["Every", "word"],
+        ["is", "yours"],
+        ["to", "steal"],
+      ],
+      scroll: "Scroll to enter",
+    },
     callingCard: {
       take: "Take their",
       words: "Words!",
