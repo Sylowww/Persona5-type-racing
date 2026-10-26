@@ -1067,29 +1067,235 @@
   rotate: -14deg;
 }
 
-/* Confidant RANK UP on the results (features/results/components/rank-up.tsx): the tarot card flips in after Mona's
-   verdict (about 5.6 s). Reduced motion: it is simply there. */
+/* Confidant RANK UP on the results (features/results/components/rank-up.tsx): the tarot card arrives face down after
+   Mona's verdict (about 5.6 s), then turns over. No `filter` here: it would flatten the card and show both faces.
+   Reduced motion: it is simply there, face up. */
 @media (prefers-reduced-motion: no-preference) {
   .rank-up {
     animation: palace-fade 400ms ease-out 5.4s both;
   }
 
   .rank-up-card {
-    animation: tarot-flip 900ms cubic-bezier(0.2, 0.9, 0.3, 1.15) 5.4s both;
+    animation: tarot-flip 1500ms cubic-bezier(0.2, 0.9, 0.3, 1.15) 5.4s both;
   }
 }
 
 @keyframes tarot-flip {
   0% {
     transform: perspective(700px) rotateY(180deg) scale(0.6);
-    filter: brightness(3);
   }
-  60% {
+  35% {
+    transform: perspective(700px) rotateY(180deg) scale(1);
+  }
+  80% {
     transform: perspective(700px) rotateY(-12deg) scale(1.08);
-    filter: brightness(1.4);
   }
   100% {
     transform: perspective(700px) rotateY(0deg) scale(1);
-    filter: brightness(1);
+  }
+}
+
+/* A two-sided card: both faces share the box, the back is turned away (tarot card, character file portrait). */
+.flip-card {
+  transform-style: preserve-3d;
+}
+
+.flip-face {
+  backface-visibility: hidden;
+}
+
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+/* Mouse-follow tilt (components/ui/tilt.tsx): the card leans toward the pointer, `.tilt-pop` children float above it
+   and a glare follows the pointer. Without motion the card stays flat. */
+.tilt-3d {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tilt-3d {
+    transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transition: transform 500ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .tilt-3d[data-tilting] {
+    transition-duration: 90ms;
+  }
+
+  .tilt-pop {
+    transform: translateZ(var(--tilt-pop, 40px));
+  }
+
+  .tilt-glare::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateZ(2px);
+    transition: opacity 300ms;
+  }
+
+  .tilt-3d[data-tilting].tilt-glare::after {
+    opacity: 1;
+  }
+
+  .tilt-glare-shine::after {
+    background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgb(255 255 255 / 0.18), transparent 45%);
+  }
+
+  .tilt-glare-holo::after {
+    background: linear-gradient(
+      115deg,
+      transparent 25%,
+      rgb(255 40 90 / 0.4) 38%,
+      rgb(255 230 0 / 0.4) 46%,
+      rgb(0 255 200 / 0.4) 54%,
+      rgb(130 90 255 / 0.4) 62%,
+      transparent 75%
+    );
+    background-size: 300% 300%;
+    background-position: var(--glare-x, 50%) var(--glare-y, 50%);
+    mix-blend-mode: color-dodge;
+  }
+}
+
+/* Page backdrop parallax (components/layout/page-backdrop.tsx): each layer drifts with the mouse by its own depth. */
+.backdrop-layer {
+  translate: calc(var(--parallax-x, 0) * var(--depth)) calc(var(--parallax-y, 0) * var(--depth));
+  transition: translate 600ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* Results podium (features/results/components/results-podium.tsx): 3D steps rise third, second then first once the
+   page opens (`--results-intro`, set by the results page to wait for Mona), then each thief drops onto their step. */
+.podium-stage {
+  perspective: 900px;
+  perspective-origin: 50% -60%;
+}
+
+.podium-block {
+  transform-style: preserve-3d;
+  transform-origin: bottom;
+}
+
+.podium-top {
+  transform-origin: bottom;
+  transform: rotateX(90deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .podium-block {
+    animation: podium-rise 600ms cubic-bezier(0.2, 0.9, 0.3, 1.2) calc(var(--results-intro, 0s) + var(--podium-step) * 350ms) both;
+  }
+
+  .podium-racer {
+    animation: podium-drop 500ms cubic-bezier(0.3, 1.4, 0.5, 1) calc(var(--results-intro, 0s) + var(--podium-step) * 350ms + 450ms) both;
+  }
+}
+
+@keyframes podium-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes podium-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-120px) rotate(-12deg);
+  }
+}
+
+/* Race text (features/race/components/typing-text.tsx): the letter just typed sinks in like a pressed key, a wrong one
+   wobbles on its axis. Both are inline blocks of the same size, so the line never reflows. */
+.key-sink,
+.key-wobble {
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .key-sink {
+    animation: key-sink 180ms ease-out;
+  }
+
+  .key-wobble {
+    animation: key-wobble 380ms ease-out;
+  }
+}
+
+@keyframes key-sink {
+  from {
+    transform: perspective(300px) translateZ(-60px) translateY(3px);
+  }
+}
+
+@keyframes key-wobble {
+  25% {
+    transform: perspective(300px) rotateY(40deg);
+  }
+  55% {
+    transform: perspective(300px) rotateY(-28deg);
+  }
+  80% {
+    transform: perspective(300px) rotateY(12deg);
+  }
+}
+
+/* Race countdown (features/race/components/live-race.tsx): each number rushes at the screen and lands with a burst of
+   glass shards. Without motion the number simply changes and the shards are left out. */
+.countdown-shard {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .countdown-strike {
+    animation: countdown-strike 450ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  }
+
+  .countdown-shard {
+    display: block;
+    animation: countdown-shard 650ms cubic-bezier(0.1, 0.8, 0.3, 1) 220ms both;
+  }
+}
+
+@keyframes countdown-strike {
+  0% {
+    opacity: 0;
+    transform: perspective(600px) translateZ(450px) rotateX(-30deg) skewX(-6deg);
+  }
+  45% {
+    opacity: 1;
+    transform: perspective(600px) translateZ(-40px) rotateX(6deg) skewX(-6deg);
+  }
+  100% {
+    transform: perspective(600px) translateZ(0) skewX(-6deg);
+  }
+}
+
+@keyframes countdown-shard {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--shard-x)), calc(-50% + var(--shard-y))) rotate(var(--shard-r)) scale(0.4);
+  }
+}
+
+/* Character file: a newly picked thief's portrait swings in. */
+@media (prefers-reduced-motion: no-preference) {
+  .character-swap {
+    animation: character-swap 550ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  }
+}
+
+@keyframes character-swap {
+  from {
+    transform: rotateY(-100deg);
   }
 }
