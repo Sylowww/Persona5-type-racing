@@ -42,10 +42,10 @@ test("renders the home page sections", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Lancer une course/i })).toBeVisible();
 });
 
-test("keeps home, characters and leaderboards in the nav and pages the leaderboard", async ({ page }) => {
+test("keeps home, characters, compendium and leaderboards in the nav and pages the leaderboard", async ({ page }) => {
   await page.goto("/en");
   const nav = page.getByRole("navigation", { name: "Main navigation" });
-  await expect(nav.getByRole("link")).toHaveText(["Home // Radar", "Phantom Thieves", "Leaderboards"]);
+  await expect(nav.getByRole("link")).toHaveText(["Home // Radar", "Phantom Thieves", "Compendium", "Leaderboards"]);
 
   await nav.getByRole("link", { name: "Leaderboards" }).click();
   await expect(page).toHaveURL(/\/en\/leaderboard$/);
