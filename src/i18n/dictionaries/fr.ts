@@ -49,6 +49,16 @@ const fr: Dictionary = {
       ],
       scroll: "Défile pour entrer",
     },
+    menu: {
+      label: "Menu principal",
+      brief: "Briefing",
+    },
+    showcase: {
+      tape: "Ton voleur",
+      persona: "Persona // {name}",
+      change: "Changer de voleur",
+    },
+    marquee: ["Voleurs fantômes recherchés", "Vole la première place", "Chaque frappe compte", "Vole leurs mots"],
     callingCard: {
       take: "Vole leurs",
       words: "mots!",
@@ -65,19 +75,16 @@ const fr: Dictionary = {
         badge: "Blitz 30 s",
         title: "Partie rapide // 1v1",
         description: "Lance un duel contre le prochain fantôme qui cherche un combat. Personne ? Un bot prend sa place.",
-        action: "Combattre",
       },
       browse: {
         badge: "Salons publics",
         title: "Chercher un salon",
         description: "Parcours les salons que d'autres fantômes ont ouverts à tous et rejoins-en un.",
-        action: "Parcourir",
       },
       training: {
         badge: "Exercices solo",
         title: "Dojo d'entraînement",
         description: "Cours seul à ton rythme, avec tes résultats et ta heatmap. Rien n'est sauvegardé.",
-        action: "Entrer",
       },
     },
     joinCode: {
@@ -715,7 +722,7 @@ const fr: Dictionary = {
       hint: "Choisis le voleur avec lequel tu cours. Le changement s'applique au prochain lobby que tu rejoins.",
       selected: "Choisi",
       codename: "Nom de code",
-      persona: "Persona",
+      persona: "Persona // {name}",
       personaHint: "Les pouvoirs sont tirés au hasard dans le même pool pour tous les voleurs, façon Mario Kart : plus tu es loin derrière, plus le sort est gros. Ton Persona le lance.",
       names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow", violet: "Violet", blackMask: "Black Mask", sophia: "Sophia" },
     },

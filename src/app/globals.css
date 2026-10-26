@@ -295,6 +295,23 @@
   }
 }
 
+/* Home slogan bands: each strip holds two copies of its phrases and slides by one copy, so the loop is seamless. */
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-strip {
+    animation: marquee 32s linear infinite;
+  }
+
+  .marquee-strip-reverse {
+    animation-direction: reverse;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 /* Versus screen flash: only visible while its animation runs. */
 .versus-flash {
   opacity: 0;

@@ -47,6 +47,16 @@ const en = {
       ],
       scroll: "Scroll to enter",
     },
+    menu: {
+      label: "Main menu",
+      brief: "Briefing",
+    },
+    showcase: {
+      tape: "Your thief",
+      persona: "Persona // {name}",
+      change: "Change thief",
+    },
+    marquee: ["Phantom thieves wanted", "Steal the top spot", "Every keystroke counts", "Take their words"],
     callingCard: {
       take: "Take their",
       words: "Words!",
@@ -63,19 +73,16 @@ const en = {
         badge: "30-sec blitz",
         title: "Quick play // 1v1",
         description: "Drop into a duel against the next phantom looking for a fight. No one around? A bot steps in.",
-        action: "Fight",
       },
       browse: {
         badge: "Public lobbies",
         title: "Find a lobby",
         description: "Browse the lobbies other phantoms opened to everyone and jump into one.",
-        action: "Browse",
       },
       training: {
         badge: "Solo drills",
         title: "Training dojo",
         description: "Race alone at your own pace, with your results and heatmap. Nothing is saved.",
-        action: "Enter",
       },
     },
     joinCode: {
@@ -713,7 +720,7 @@ const en = {
       hint: "Pick the thief you race as. Changes apply from the next lobby you join.",
       selected: "Selected",
       codename: "Codename",
-      persona: "Persona",
+      persona: "Persona // {name}",
       personaHint: "Powers are drawn at random from the same pool for every thief, Mario Kart style: the further behind you are, the bigger the spell. Your Persona casts it.",
       names: { joker: "Joker", mona: "Mona", panther: "Panther", skull: "Skull", fox: "Fox", queen: "Queen", oracle: "Oracle", noir: "Noir", crow: "Crow", violet: "Violet", blackMask: "Black Mask", sophia: "Sophia" },
     },
