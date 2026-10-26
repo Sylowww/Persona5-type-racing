@@ -109,11 +109,24 @@ test("two players race from lobby creation to results", async ({ browser }) => {
   await expect(rows).toHaveCount(3);
   await expect(rows.nth(1)).toContainText(hostName);
   await expect(rows.nth(2)).toContainText("Finished");
+  // Every racer's speed on one chart (RES-03).
+  await expect(host.getByRole("img", { name: /^WPM of every racer during the race/ })).toBeVisible();
 
   // Rematch goes back to the same lobby.
   await guest.getByRole("link", { name: /Rematch/ }).click();
   await expect(guest).toHaveURL(new RegExp(`/en/lobby/${code}$`));
   await expect(guest.getByRole("heading", { name: hostName })).toBeVisible();
+
+  // The race is saved: the host's profile counts the win and reopens its full results (AUTH-06, HIST-02).
+  await expect(async () => {
+    await host.goto("/en/profile");
+    await expect(host.getByRole("link", { name: /^1\/2/ })).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 10_000 });
+  await expect(host.getByText("Wins", { exact: true }).locator("xpath=following-sibling::dd")).toHaveText("1");
+  await host.getByRole("link", { name: /^1\/2/ }).click();
+  await expect(host).toHaveURL(/\/en\/profile\/races\/[0-9a-f-]{36}$/);
+  await expect(host.getByRole("heading", { level: 1 })).toHaveText("Mission accomplished // Victory!");
+  await expect(host.getByRole("table").getByRole("row")).toHaveCount(3);
 
   await hostContext.close();
   await guestContext.close();
