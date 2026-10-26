@@ -7,6 +7,7 @@ import { loadLobby } from "@/features/lobby/load-lobby";
 import { LiveRace } from "@/features/race/components/live-race";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
+import { getPlayerStats } from "@/lib/race-history-db";
 
 type Params = { params: Promise<{ locale: string; code: string }> };
 
@@ -22,10 +23,13 @@ export default async function RacePage({ params }: Params) {
   const { locale, code: rawCode } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [{ code, view }, { race: dictionary }] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
+  const [{ user, code, view }, { race: dictionary }] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
   if (view?.phase === "finished" && view.hasResult) redirect(`/${locale}/lobby/${code}/results`);
   // Racers and spectators (who have no `you`) both watch the race here.
   if (!view || view.phase === "waiting" || !view.race) redirect(`/${locale}/lobby/${code}`);
+  // The Third Eye ghost runs at the player's record; guests keep theirs in the tab (read by the race page).
+  const isGuest = user.kind !== "registered";
+  const recordWpm = isGuest ? null : (await getPlayerStats(user.id)).bestWpm || null;
 
   return (
     <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
@@ -46,7 +50,7 @@ export default async function RacePage({ params }: Params) {
             </Link>
           </section>
           <div className="hidden md:block">
-            <LiveRace dictionary={dictionary} locale={locale} initialView={view} />
+            <LiveRace dictionary={dictionary} locale={locale} initialView={view} recordWpm={recordWpm} isGuest={isGuest} />
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { overtakers } from "@/lib/race-moments";
+import { overtakers, passedRacers } from "@/lib/race-moments";
 import type { RaceRacer } from "@/types/race";
 
 // Presentation-only highlights of the live race. Each hook compares the new values with the ones it saw last
@@ -11,6 +11,9 @@ import type { RaceRacer } from "@/types/race";
 const OVERTAKE_FLASH_MS = 900;
 /** How long the "All-Out Attack" finish frame stays on screen. */
 const FINISH_FRAME_MS = 1500;
+/** How long the "HOLD UP!" cut-in stays on screen, and the quiet time before the next one. */
+export const HOLD_UP_MS = 1_200;
+const HOLD_UP_COOLDOWN_MS = 3_000;
 
 /** Ids of the racers whose lane flashes because they just passed the local player. */
 export function useOvertakeFlash(racers: readonly RaceRacer[], youId: string, now: number): ReadonlySet<string> {
@@ -46,4 +49,29 @@ export function useFirstFinisher(racers: readonly RaceRacer[], youId: string): R
   const first = racers.find((racer) => racer.isFinished);
   if (!seen.done && first) setSeen({ done: true, winner: first.id === youId ? null : first });
   return seen.winner;
+}
+
+/**
+ * The racer the local player just passed, for the "HOLD UP!" cut-in; null when none is showing. Passing several racers
+ * at once names the one who was furthest ahead, and a new one waits for the cooldown so a crowded track does not flicker.
+ */
+export function useHoldUp(racers: readonly RaceRacer[], youId: string, now: number): { racer: RaceRacer; at: number } | null {
+  const signature = racers.map((racer) => `${racer.id}:${racer.progress}`).join("|");
+  const [seen, setSeen] = useState(() => ({
+    signature,
+    progress: new Map(racers.map((racer) => [racer.id, racer.progress])),
+    holdUp: null as { racer: RaceRacer; at: number } | null,
+  }));
+
+  if (signature !== seen.signature) {
+    const passed = passedRacers(seen.progress, racers, youId)
+      .map((id) => racers.find((racer) => racer.id === id))
+      .filter((racer) => racer !== undefined)
+      .sort((a, b) => (seen.progress.get(b.id) ?? 0) - (seen.progress.get(a.id) ?? 0));
+    const isQuiet = !seen.holdUp || now - seen.holdUp.at >= HOLD_UP_MS + HOLD_UP_COOLDOWN_MS;
+    const holdUp = passed[0] && isQuiet ? { racer: passed[0], at: now } : seen.holdUp;
+    setSeen({ signature, progress: new Map(racers.map((racer) => [racer.id, racer.progress])), holdUp });
+  }
+
+  return seen.holdUp && now - seen.holdUp.at < HOLD_UP_MS ? seen.holdUp : null;
 }

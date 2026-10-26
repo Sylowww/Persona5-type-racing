@@ -91,3 +91,34 @@ export function exitGlow(leaderProgress: number): number {
   const progress = Math.min(1, Math.max(0, leaderProgress));
   return progress * progress;
 }
+
+/** Ids of the racers the local player just passed (were strictly ahead, are now behind or level): a "HOLD UP!". */
+export function passedRacers(
+  previous: ReadonlyMap<string, number>,
+  racers: readonly { id: string; progress: number }[],
+  youId: string,
+): string[] {
+  const you = racers.find((racer) => racer.id === youId);
+  const youBefore = previous.get(youId);
+  if (!you || youBefore === undefined || you.progress <= youBefore) return [];
+  return racers
+    .filter((racer) => {
+      const before = previous.get(racer.id);
+      return racer.id !== youId && before !== undefined && before > youBefore && racer.progress <= you.progress;
+    })
+    .map((racer) => racer.id);
+}
+
+/**
+ * Third Eye: share of the text a ghost racing steadily at the player's record speed has typed `elapsedMs` into the race
+ * (standard five characters per word), capped at the finish.
+ */
+export function ghostProgress(recordWpm: number, elapsedMs: number, textLength: number): number {
+  if (recordWpm <= 0 || textLength <= 0 || elapsedMs <= 0) return 0;
+  return Math.min(1, (recordWpm * 5 * elapsedMs) / 60_000 / textLength);
+}
+
+/** Characters the player is ahead of the ghost (negative when behind). */
+export function ghostLead(progress: number, ghost: number, textLength: number): number {
+  return Math.round((progress - ghost) * textLength);
+}

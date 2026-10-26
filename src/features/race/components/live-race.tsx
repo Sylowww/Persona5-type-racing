@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore, useTransition, type ChangeEvent } from "react";
-import { forfeitLobbyRace } from "@/features/lobby/actions";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition, type ChangeEvent, type MouseEvent } from "react";
+import { forfeitLobbyRace, sendLobbyCallingCard } from "@/features/lobby/actions";
+import { useGuestRaces } from "@/features/home/use-guest-races";
 import { Icon } from "@/components/ui/icon";
 import { useLobbyStream } from "@/features/lobby/use-lobby-stream";
 import { formatMessage } from "@/i18n/format";
@@ -21,17 +22,24 @@ import {
   type TypingState,
 } from "@/lib/typing";
 import { FINAL_COLLAPSE_MS, isChaos } from "@/lib/palace-collapse";
-import { exitGlow } from "@/lib/race-moments";
+import { initialFeatTracker, trackFeats, type Feat } from "@/lib/race-feats";
+import { exitGlow, ghostLead, ghostProgress } from "@/lib/race-moments";
+import { summarizeRaces } from "@/lib/race-history";
+import { playFeat } from "@/lib/sound-effects";
 import type { LobbyView } from "@/types/lobby";
 import type { InputEvent, RaceYou } from "@/types/race";
 import { useInputSender } from "../use-input-sender";
-import { useFinishFrame, useFirstFinisher, useOvertakeFlash } from "../use-race-highlights";
+import { useFinishFrame, useFirstFinisher, useHoldUp, useOvertakeFlash } from "../use-race-highlights";
 import { spellStyle } from "../spell-style";
 import { BonusFeed } from "./bonus-feed";
+import { CallingCardFlash, PinnedCard } from "./calling-card-attack";
 import { CountdownCutIn } from "./countdown-cut-in";
+import { FEAT_POPUP_MS, ONE_MORE_MS, OneMoreBurst, type FeatPopupItem } from "./feat-popups";
 import { FinishCutIn } from "./finish-cut-in";
+import { HoldUpCutIn } from "./hold-up-cut-in";
 import { MonaComms } from "./mona-comms";
 import { PalaceCollapse } from "./palace-collapse";
+import { RaceAnnouncement } from "./race-announcement";
 import { RaceHud } from "./race-hud";
 import { RaceStats } from "./race-stats";
 import { RaceTrack } from "./race-track";
@@ -42,6 +50,13 @@ import { WinnerCutIn } from "./winner-cut-in";
 const TICK_MS = 100;
 /** Without a time limit, the palace still collapses at the pace of a 3-minute race. */
 const UNTIMED_COLLAPSE_PACE_MS = 180_000;
+/** How long the powers slot announces an Ambush or a calling card. */
+const ANNOUNCE_MS = 3_000;
+/** When several feats come from one change, the sound of the most notable one plays. */
+const FEAT_SOUND_ORDER: readonly Feat[] = ["oneMore", "critical", "technical", "miss"];
+
+/** A feat earned by one key: where it was typed, and the perfect words in a row at that moment. */
+type EarnedFeat = { feat: Feat; index: number; words: number };
 
 const noSubscription = () => () => {};
 
@@ -65,6 +80,9 @@ type LiveRaceProps = {
   locale: Locale;
   /** Snapshot rendered by the server; live updates arrive through the lobby stream. */
   initialView: LobbyView;
+  /** The registered player's record WPM (null without one); guests use the races saved in this tab instead. */
+  recordWpm: number | null;
+  isGuest: boolean;
 };
 
 /** Restores local typing from the server, e.g. after a reload during the race. */
@@ -81,7 +99,7 @@ function typingFrom(you: RaceYou | null | undefined, startsAt: number): TypingSt
 }
 
 // Typing is shown instantly from local state; the server replays the same keystrokes and owns progress, finish and places.
-export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
+export function LiveRace({ dictionary, locale, initialView, recordWpm, isGuest }: LiveRaceProps) {
   const router = useRouter();
   const [typing, setTyping] = useState(() => typingFrom(initialView.race?.you, initialView.race?.startsAt ?? 0));
   const sender = useInputSender(initialView.code);
@@ -109,6 +127,16 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastKeyAt = useRef<number | null>(null);
+  // Feats are presentation only: popups float above the characters that earned them.
+  const featTracker = useRef(initialFeatTracker);
+  const popupId = useRef(0);
+  const [popups, setPopups] = useState<readonly FeatPopupItem[]>([]);
+  const [oneMore, setOneMore] = useState<{ at: number; words: number } | null>(null);
+  const [isSendingCard, startSendCard] = useTransition();
+  // Third Eye: the ghost of the player's record runs in their lane.
+  const [thirdEye, setThirdEye] = useState(false);
+  const guestRaces = useGuestRaces();
+  const record = isGuest ? summarizeRaces(guestRaces).bestWpm || null : recordWpm;
 
   // Spectators watch the track without a typing area (COURSE-05).
   const isSpectator = !view.race?.you;
@@ -165,6 +193,18 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
     keepCaretAtEnd(input);
   }, [isOpen]);
 
+  function showFeats(feats: readonly EarnedFeat[], at: number) {
+    if (feats.length === 0) return;
+    const added: FeatPopupItem[] = [];
+    for (const { feat, index, words } of feats) {
+      if (feat === "oneMore") setOneMore({ at, words });
+      else added.push({ id: ++popupId.current, feat, index, at });
+    }
+    if (added.length > 0) setPopups((current) => [...current.filter((popup) => at - popup.at < FEAT_POPUP_MS), ...added]);
+    const loudest = FEAT_SOUND_ORDER.find((feat) => feats.some((earned) => earned.feat === feat));
+    if (loudest) playFeat(loudest);
+  }
+
   // Diffing the input value (instead of keydown) also supports IME and mobile keyboards.
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     if (!isOpen) return;
@@ -174,6 +214,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
     setNow(serverTime);
 
     const events: InputEvent[] = [];
+    const feats: EarnedFeat[] = [];
     let next = typing;
     while (next.typed.length > 0 && !value.startsWith(next.typed)) {
       next = deleteChar(next);
@@ -181,12 +222,25 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
     }
     for (const char of value.slice(next.typed.length)) {
       if (isFinished(next) || (isSuddenDeath && next.mistakes > 0)) break;
-      next = typeChar(next, text, normalizeTypedChar(text[next.typed.length], char, caseSensitive), serverTime, mode);
+      const after = typeChar(next, text, normalizeTypedChar(text[next.typed.length], char, caseSensitive), serverTime, mode);
+      const averageWpm = wordsPerMinute(netChars(text, next.typed, mode), serverTime - startsAt);
+      const earned = trackFeats(featTracker.current, next, after, text, serverTime, averageWpm);
+      featTracker.current = earned.tracker;
+      for (const feat of earned.feats) feats.push({ feat, index: next.typed.length, words: earned.tracker.perfectWords });
+      next = after;
       events.push({ type: "char", char, delayMs: lastKeyAt.current === null ? 0 : time - lastKeyAt.current });
       lastKeyAt.current = time;
     }
     setTyping(next);
     sender.push(events);
+    showFeats(feats, serverTime);
+  }
+
+  function sendCard(event: MouseEvent<HTMLButtonElement>) {
+    // The arena focuses the input on click; the card goes out and typing goes on.
+    event.stopPropagation();
+    startSendCard(async () => void (await sendLobbyCallingCard(view.code)));
+    inputRef.current?.focus();
   }
 
   const endTime = typing.finishedAt ?? race?.you?.eliminatedAt ?? forfeitedAt ?? now;
@@ -206,6 +260,14 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
   // Also shown when the last finisher ends the race: the collapse wedges (above it) then close over it.
   const showFinishFrame = useFinishFrame(finished, now);
   const winner = useFirstFinisher(racers, view.youId);
+  const holdUp = useHoldUp(racers, view.youId, now);
+  const card = race?.you?.card && race.you.card.until > now ? race.you.card : null;
+  const ambush = race?.ambush && now - race.ambush.at < ANNOUNCE_MS ? race.ambush : null;
+  const sentCard = race?.callingCards.findLast((sent) => now - sent.at < ANNOUNCE_MS) ?? null;
+  const ownProgress = progress(text, typing.typed, mode);
+  const ghost = thirdEye && record && race ? ghostProgress(record, Math.max(0, now - startsAt), text.length) : null;
+  const lead = ghost === null ? null : ghostLead(ownProgress, ghost, text.length);
+  const visiblePopups = popups.filter((popup) => now - popup.at < FEAT_POPUP_MS);
   const place = view.race?.you?.place ?? racers.length;
   const secondsLeft = Math.max(1, Math.ceil((startsAt - now) / 1000));
 
@@ -232,6 +294,10 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
       )}
       {race && !raceOver && <SpellCutIn dictionary={dictionary.spells} events={race.bonusEvents} youId={view.youId} />}
       {winner && !raceOver && <WinnerCutIn dictionary={dictionary.winner} name={winner.name} character={winner.character} />}
+      {holdUp && !raceOver && !isSpectator && (
+        <HoldUpCutIn key={holdUp.at} dictionary={dictionary.holdUp} name={holdUp.racer.name} character={holdUp.racer.character} />
+      )}
+      {race && !raceOver && <CallingCardFlash dictionary={dictionary.callingCards} cards={race.callingCards} youId={view.youId} now={now} />}
       {showFinishFrame && youRacer && (
         <FinishCutIn dictionary={dictionary.finish} character={youRacer.character} />
       )}
@@ -241,7 +307,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
         active={race !== null && !isCountdown && !raceOver && !isSpectator}
         place={place}
         streak={typing.streak}
-        progress={progress(text, typing.typed, mode)}
+        progress={ownProgress}
         mistakes={typing.mistakes}
         finished={finished}
         chaos={chaos}
@@ -268,6 +334,24 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
           {race?.bonusesOn && (
             <div className="relative h-[92px] overflow-hidden">
               <BonusFeed dictionary={dictionary.spells} events={race.bonusEvents} youId={view.youId} />
+              {sentCard ? (
+                <RaceAnnouncement
+                  key={`card-${sentCard.id}`}
+                  title={dictionary.callingCards.kicker}
+                  line={formatMessage(sentCard.toId === view.youId ? dictionary.callingCards.onYou : dictionary.callingCards.announce, {
+                    from: sentCard.from,
+                    to: sentCard.to,
+                  })}
+                />
+              ) : (
+                ambush && (
+                  <RaceAnnouncement
+                    key="ambush"
+                    title={dictionary.ambush.title}
+                    line={ambush.racerId === view.youId ? dictionary.ambush.you : formatMessage(dictionary.ambush.other, { name: ambush.name })}
+                  />
+                )
+              )}
             </div>
           )}
 
@@ -280,6 +364,7 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
             overtakerIds={overtakerIds}
             exitGlow={exitGlow(leaderProgress)}
             chaos={chaos && !raceOver}
+            ghost={ghost === null || record === null ? null : { progress: ghost, wpm: record }}
           />
 
           {!isSpectator && (
@@ -298,6 +383,42 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
+                  {race?.you?.canSendCard && (
+                    <button
+                      type="button"
+                      disabled={isSendingCard}
+                      title={dictionary.callingCards.sendHint}
+                      onClick={sendCard}
+                      className="flex -skew-x-6 items-center gap-1.5 bg-primary-container px-3 py-0.5 font-hud text-label-hud font-black uppercase text-on-primary-container shadow-hard-sm transition-transform hover:-translate-y-0.5 disabled:opacity-60 motion-safe:animate-pulse"
+                    >
+                      <Icon name="style" size={18} filled />
+                      {dictionary.callingCards.send}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    aria-pressed={thirdEye}
+                    disabled={!record}
+                    title={record ? (thirdEye ? dictionary.thirdEye.hide : dictionary.thirdEye.show) : dictionary.thirdEye.noRecord}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setThirdEye((current) => !current);
+                      inputRef.current?.focus();
+                    }}
+                    className={`flex items-center gap-1.5 border px-2 py-0.5 font-hud text-label-hud font-black uppercase transition-colors disabled:opacity-40 ${
+                      thirdEye ? "border-spell-ice bg-spell-ice/15 text-spell-ice" : "border-surface-container-highest text-on-surface-variant hover:text-spell-ice"
+                    }`}
+                  >
+                    <Icon name={thirdEye ? "visibility" : "visibility_off"} size={18} />
+                    {dictionary.thirdEye.label}
+                  </button>
+                  {lead !== null && (
+                    <span className="font-hud text-label-hud font-black uppercase text-spell-ice">
+                      {lead === 0
+                        ? dictionary.thirdEye.even
+                        : formatMessage(lead > 0 ? dictionary.thirdEye.ahead : dictionary.thirdEye.behind, { count: Math.abs(lead) })}
+                    </span>
+                  )}
                   {isSuddenDeath && (
                     <span className="font-hud text-label-hud font-black uppercase text-error">{dictionary.arena.suddenDeath}</span>
                   )}
@@ -336,7 +457,12 @@ export function LiveRace({ dictionary, locale, initialView }: LiveRaceProps) {
                   typed={typing.typed}
                   blocked={mode === "blocking" && typing.mistakes > 0 && typing.streak === 0}
                   hex={hex}
+                  redacted={card !== null}
+                  popups={visiblePopups}
+                  featsDictionary={dictionary.feats}
                 />
+                {card && <PinnedCard dictionary={dictionary.callingCards} from={card.from} />}
+                {oneMore && now - oneMore.at < ONE_MORE_MS && <OneMoreBurst key={oneMore.at} dictionary={dictionary.feats} words={oneMore.words} />}
                 {hex === "bless" && <div aria-hidden="true" className="spell-flash-bless absolute inset-0" />}
                 {stun && (
                   <div className={`absolute inset-0 flex items-center justify-center spell-stun-${stun}`}>
