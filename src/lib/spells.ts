@@ -82,3 +82,11 @@ export const FALLBACK_SPELL: Spell = spell("mediarama", "heal", "small", { type:
 export function spellById(id: SpellId): Spell | undefined {
   return spellPool.find((candidate) => candidate.id === id);
 }
+
+/** How long a lane shows a malus without a duration of its own (extra words). */
+const LANE_MARK_MS = 2_500;
+
+/** How long a malus marks its target's lane: the stun or hex duration, or a short flash for extra words. */
+export function spellMarkMs(cast: Spell): number {
+  return cast.effect.type === "stun" || cast.effect.type === "hex" ? cast.effect.ms : LANE_MARK_MS;
+}

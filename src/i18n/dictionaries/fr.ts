@@ -503,6 +503,16 @@ const fr: Dictionary = {
       personalBest: "Nouveau record personnel !",
       personalBestDetail: "Ancien record : {wpm} MPM",
     },
+    replay: {
+      title: "Replay",
+      play: "Lancer le replay",
+      pause: "Mettre le replay en pause",
+      restart: "Revoir depuis le début",
+      speed: "Vitesse du replay",
+      timeline: "Temps de course",
+      log: "Journal de course",
+      empty: "Rien ne s'est encore passé.",
+    },
     raceChart: {
       title: "Duel de vitesse",
       racers: "{count} coureurs",

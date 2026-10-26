@@ -170,7 +170,15 @@ export type ResultRacer = {
 export type SpeedSample = {
   atMs: number;
   wpm: number;
+  /** Share of the racer's text done, from 0 to 1, for the replay; missing in races saved before replays existed. */
+  progress?: number;
 };
+
+/** Something that happened during the race, in ms since the start, for the replay. */
+export type ReplayEvent =
+  | { type: "spell"; atMs: number; spell: SpellId; casterId: string; targetId: string }
+  | { type: "card"; atMs: number; fromId: string; toId: string }
+  | { type: "ambush"; atMs: number; racerId: string };
 
 /** Typing stats for one key over the race. */
 export type KeyStat = {
@@ -190,6 +198,8 @@ export type RaceResult = {
   racers: readonly ResultRacer[];
   speedSamples: readonly SpeedSample[];
   keyStats: readonly KeyStat[];
+  /** Spells, calling cards and the Ambush, oldest first; missing in races saved before replays existed. */
+  events?: readonly ReplayEvent[];
 };
 
 /** One finished race in a player's history. */

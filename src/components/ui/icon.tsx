@@ -33,6 +33,7 @@ export const iconNames = [
   "military_tech",
   "model_training",
   "music_note",
+  "pause",
   "person",
   "person_add",
   "pin",

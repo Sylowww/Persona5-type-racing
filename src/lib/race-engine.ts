@@ -22,6 +22,7 @@ import type {
   RacerStatus,
   RaceResult,
   RaceView,
+  ReplayEvent,
   ResultRacer,
   SpeedSample,
   SpellId,
@@ -44,7 +45,7 @@ import { cleanMessage, MAX_LOBBY_MESSAGES, MESSAGE_COOLDOWN_MS } from "./chat";
 import { canStartRace, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "./lobby";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs } from "./race-settings";
 import { rankRacers } from "./results";
-import { characterPersonas, drawSpell, FALLBACK_SPELL, isSelfSpell, spellById, type Spell } from "./spells";
+import { characterPersonas, drawSpell, FALLBACK_SPELL, isSelfSpell, spellById, spellMarkMs, type Spell } from "./spells";
 import { inputBatchSchema, memberRoleSchema, visibilitySchema } from "./schemas";
 import {
   accuracy,
@@ -197,6 +198,7 @@ export type StoredResult = {
   /** Ranked, first place first. */
   racers: ResultRacer[];
   details: Record<string, ResultDetails>;
+  events: ReplayEvent[];
 };
 
 export type LobbyState = {
@@ -764,7 +766,14 @@ function withSample(racer: Racer, race: Race, typing: TypingState, now: number, 
   const last = racer.samples.at(-1);
   const isDue = !last || atMs - last.atMs >= config.sampleIntervalMs || typing.finishedAt !== null;
   if (!isDue || typing === racer.typing) return racer.samples;
-  return [...racer.samples, { atMs, wpm: wordsPerMinute(netChars(racer.text, typing.typed, race.settings.mode), atMs) }];
+  return [
+    ...racer.samples,
+    {
+      atMs,
+      wpm: wordsPerMinute(netChars(racer.text, typing.typed, race.settings.mode), atMs),
+      progress: progress(racer.text, typing.typed, race.settings.mode),
+    },
+  ];
 }
 
 /** How long the track announces a bonus. */
@@ -879,17 +888,13 @@ function slowBot(target: Racer, race: Race, now: number, ms: number, speed: numb
   return { ...target, bot: { ...bot, steps: slowBotSteps(bot.steps, bot.applied, now - race.startsAt, ms, speed) } };
 }
 
-/** How long a lane shows a malus without a duration of its own (extra words). */
-const LANE_MARK_MS = 2_500;
-
 /**
  * The effect of one spell on its target. A malus also marks the target's lane, for everyone, for as long as it lasts.
  * A bot whose text changed plans the rest of its race again.
  */
 function applySpell(target: Racer, spell: Spell, race: Race, eventId: number, now: number): Racer {
   if (isSelfSpell(spell)) return castSpell(target, spell, race, eventId, now);
-  const ms = spell.effect.type === "stun" || spell.effect.type === "hex" ? spell.effect.ms : LANE_MARK_MS;
-  return { ...castSpell(target, spell, race, eventId, now), mark: { element: spell.element, until: now + ms } };
+  return { ...castSpell(target, spell, race, eventId, now), mark: { element: spell.element, until: now + spellMarkMs(spell) } };
 }
 
 function castSpell(target: Racer, spell: Spell, race: Race, eventId: number, now: number): Racer {
@@ -1004,9 +1009,19 @@ function finishRace(state: LobbyState, now: number): LobbyState {
     ...state,
     phase: "finished",
     race: { ...race, endedAt },
-    result: { endedAt, racers: rankRacers(racers), details },
+    result: { endedAt, racers: rankRacers(racers), details, events: replayEvents(race) },
     members: state.members.map((member) => ({ ...member, isReady: member.bot !== null })),
   };
+}
+
+/** The race's spells, calling cards and Ambush on one timeline, for the replay. */
+function replayEvents(race: Race): ReplayEvent[] {
+  const events: ReplayEvent[] = [
+    ...race.bonusEvents.map((event): ReplayEvent => ({ type: "spell", atMs: event.at - race.startsAt, spell: event.spell, casterId: event.receiverId, targetId: event.targetId })),
+    ...race.callingCards.map((card): ReplayEvent => ({ type: "card", atMs: card.at - race.startsAt, fromId: card.fromId, toId: card.toId })),
+    ...(race.ambush ? [{ type: "ambush" as const, atMs: race.ambush.at - race.startsAt, racerId: race.ambush.racerId }] : []),
+  ];
+  return events.sort((a, b) => a.atMs - b.atMs);
 }
 
 function keyStats(keys: Record<string, KeyTotals>): KeyStat[] {
@@ -1163,7 +1178,7 @@ export function viewFor(state: LobbyState, userId: string, now: number): LobbyVi
 export function resultFor(state: LobbyState, userId: string): RaceResult | null {
   const details = state.result?.details[userId];
   if (!state.result || !details) return null;
-  return { youId: userId, endedAt: state.result.endedAt, racers: state.result.racers, ...details };
+  return { youId: userId, endedAt: state.result.endedAt, racers: state.result.racers, ...details, events: state.result.events };
 }
 
 /** Validates an input batch received from a client (`inputBatchSchema`, TECH-07); null when malformed. */
