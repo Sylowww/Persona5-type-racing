@@ -8,9 +8,9 @@ import type { Locale } from "@/i18n/locales";
 type NavItem = keyof Dictionary["header"]["nav"];
 
 // Races, training and lobbies start from the home page buttons, so the nav only links pages without one.
-const routes: Record<NavItem, string> = { home: "", leaderboards: "/leaderboard" };
+const routes: Record<NavItem, string> = { home: "", characters: "/characters", leaderboards: "/leaderboard" };
 
-const navItems: readonly NavItem[] = ["home", "leaderboards"];
+const navItems: readonly NavItem[] = ["home", "characters", "leaderboards"];
 
 type SiteNavProps = {
   locale: Locale;
@@ -24,7 +24,7 @@ export function SiteNav({ locale, dictionary }: SiteNavProps) {
     <nav aria-label={dictionary.navLabel} className="hidden items-center gap-6 lg:flex">
       {navItems.map((item) => {
         const href = `/${locale}${routes[item]}`;
-        const isActive = href === pathname;
+        const isActive = item === "home" ? href === pathname : pathname.startsWith(href);
 
         return (
           <Link
