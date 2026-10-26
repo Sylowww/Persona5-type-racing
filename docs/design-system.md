@@ -57,12 +57,13 @@ Shared utilities live in `globals.css`; prefer them over one-off classes.
 | `btn-ghost` | Secondary action: thin border, yellow text, red border on hover. |
 | `phantom-slash` | The page backdrop: one red diagonal slash in the top-right corner. Render it with `PageBackdrop` (`components/layout/page-backdrop.tsx`). |
 | `halftone` | Comic halftone dots over a colored band. Signature stages only (character file). |
+| `ink-distress` | Masks text with sparse noise holes, like worn poster ink. Home hero slogan only. |
 
 - **Page heading:** `PageHeading` (`components/ui/page-heading.tsx`): eyebrow, display `h1`, short red underline bar, optional intro.
 - **Lists and tables:** rows inside one `panel`, separated with `divide-y divide-surface-container-high`, not separate cards.
 - **Results sections:** `SectionTag` is a header line with a bottom border, not a tilted tape.
 - **Headlines:** `font-display uppercase italic tracking-wider`.
-- **Hard shadows and tilts are reserved** for signature elements: the race track, the home hero word and "Start a race" block, the lobby "Start the race" and results "Rematch" buttons, the results banner, the profile roster, the character file and the full-screen cut-ins. Everything else is flat. Keep rotations small (±0.5° to ±6°).
+- **Hard shadows and tilts are reserved** for signature elements: the race track, the home hero word and "Start a race" block, the lobby "Start the race" and results "Rematch" buttons, the results banner, the profile roster, the character file, the home hero and the full-screen cut-ins. Everything else is flat. Keep rotations small (±0.5° to ±6°).
 
 ## Icons
 
@@ -85,6 +86,7 @@ Each racer on the race track is an animated character running along their lane (
 - The local player gets a yellow glow and the `YOU` badge; others get a thin light outline so the dark sprite stays visible on the lane.
 - With reduced motion, runners show the first frame of their animation and move without transitions.
 - `components/ui/sprite-frames.tsx` plays one animation of a sheet at any size; the race runner and the profile roster both use it.
+- **Home hero** (`features/home/components/home-hero.tsx`): a full-screen red poster above the home page, modeled on the Persona 5 the Animation key visual. On the left, the thieves' all-out portraits behind glass shattered by one shot (12 shards fanning out from a black bullet hole, white crack lines and a broken ring drawn in SVG); on the right, the slogan in black worn ink, a small italic word before each big one. While the player scrolls, the poster stays still and its bottom edge rises like a scroll being rolled up: a shaded red cylinder rides that edge and thickens as more is wound, and the home page follows right below it (it is not an overlay, so nothing is hidden or blocked). Driven by two CSS variables set on scroll (`--hero-scroll`, `--hero-roll`); with reduced motion it simply scrolls away.
 - **Character file** (`features/characters/components/character-file.tsx`, `/characters/[id]`): modeled on the Persona 5 Royal character screens. A red comic stage (diagonal `halftone` bands and a yellow line), a tilted "Phantom Thieves" title, the codename on a black plate with a yellow border and the real name on a yellow tape, a "Profile" tab over the bio box (yellow offset shadow), the Persona on a plate, the all-out portrait in a tilted white frame with the idle sprite in front, yellow previous/next arrows and a roster of portrait links below. Signed-in players can choose the thief there (same `chooseCharacter` action as the profile).
 - **Profile roster** (`features/profile/components/character-picker.tsx`): a large animated showcase of the chosen character on a red panel with dark diagonal stripes, next to a 3-column grid of tilted cards. Cards play their idle animation on hover or focus; the chosen one is red with a yellow name tag.
 
