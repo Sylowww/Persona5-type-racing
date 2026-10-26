@@ -53,7 +53,7 @@ export function WpmRaceChart({ dictionary, locale, racers, youId }: WpmRaceChart
         title={dictionary.title}
         badge={formatMessage(dictionary.racers, { count: racers.length })}
       />
-      <div className="bg-surface-container p-4 shadow-hard-lg">
+      <div className="panel p-5">
         {!fastest || durationMs <= 0 ? (
           <p className="text-body-md text-on-surface-variant">{dictionary.empty}</p>
         ) : (

@@ -21,8 +21,8 @@ export function ResultsTable({ dictionary, locale, racers, youId }: ResultsTable
 
   return (
     <section aria-labelledby="results-table" className="flex flex-col gap-4">
-      <SectionTag id="results-table" icon="analytics" title={dictionary.title} badge={formatMessage(dictionary.racers, { count: racers.length })} tilt="right" />
-      <div className="overflow-x-auto bg-surface-container shadow-hard-lg">
+      <SectionTag id="results-table" icon="analytics" title={dictionary.title} badge={formatMessage(dictionary.racers, { count: racers.length })} />
+      <div className="panel overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
             <tr className="font-hud text-label-hud font-black uppercase tracking-wider text-on-surface-variant">

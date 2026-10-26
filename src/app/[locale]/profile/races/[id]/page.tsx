@@ -46,14 +46,14 @@ export default async function SavedRacePage({ params }: Params) {
     <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
-        <div className="relative z-10 mx-auto w-full max-w-7xl space-y-6 px-4 py-4 md:px-10">
+        <div className="relative z-10 mx-auto w-full max-w-7xl space-y-10 px-4 py-10 md:px-10">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">
               {formatMessage(dictionary.archive.eyebrow, { date: date.format(result.endedAt) })}
             </p>
             <Link
               href={`/${locale}/profile`}
-              className="inline-flex -skew-x-6 items-center gap-1 bg-surface-container-high px-4 py-2 font-hud text-label-hud font-black uppercase italic text-secondary shadow-hard-sm hover:bg-primary-container hover:text-on-primary-container"
+              className="btn-ghost px-4 py-2"
             >
               <Icon name="chevron_left" size={18} />
               {dictionary.archive.back}
