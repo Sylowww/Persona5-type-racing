@@ -42,9 +42,8 @@ const en = {
     hero: {
       label: "Welcome",
       lines: [
-        ["Every", "word"],
-        ["is", "yours"],
-        ["to", "steal"],
+        ["Type", "faster"],
+        ["than your", "shadow"],
       ],
       scroll: "Scroll to enter",
     },

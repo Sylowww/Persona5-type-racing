@@ -108,7 +108,7 @@ export function HomeHero({ dictionary }: HomeHeroProps) {
 /** Portraits of the thieves behind a pane of glass shattered by a single shot. */
 function Collage() {
   return (
-    <div aria-hidden="true" className="relative mx-auto aspect-[3/4] h-full max-h-[78vh] min-h-0 lg:max-w-full lg:justify-self-end">
+    <div aria-hidden="true" className="relative mx-auto aspect-[3/4] w-[min(100%,calc((100svh-20rem)*0.75))] lg:h-full lg:max-h-[78vh] lg:w-auto lg:max-w-full lg:justify-self-end">
       {shards.map(({ character, clipPath, box }) => (
         <div key={character} className="absolute inset-0" style={{ clipPath }}>
           <Image
