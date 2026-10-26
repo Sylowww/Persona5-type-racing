@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { type MouseEvent, useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { SpriteFrames } from "@/components/ui/sprite-frames";
+import { Tilt } from "@/components/ui/tilt";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { formatMessage } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
@@ -14,7 +15,7 @@ import { characterPersonas } from "@/lib/spells";
 import type { CharacterId } from "@/types/character";
 import { chooseCharacter } from "@/features/profile/actions";
 import { RankPips, TarotCard, rankLines } from "@/features/characters/components/tarot-card";
-import { characterArcana, confidantRank } from "@/lib/confidants";
+import { arcanaNumerals, characterArcana, confidantRank } from "@/lib/confidants";
 
 type CharacterFileProps = {
   dictionary: Dictionary["characters"];
@@ -39,6 +40,8 @@ export function CharacterFile({ dictionary, names, locale, initialId, titleSuffi
   const segment = usePathname().split("/").pop();
   const pathId = isCharacterId(segment) ? segment : initialId;
   const [picked, setPicked] = useState<{ id: CharacterId; from: CharacterId } | null>(null);
+  // The thief whose portrait is turned over; picking another thief shows the next one face up.
+  const [flipped, setFlipped] = useState<CharacterId | null>(null);
   // A click picks a thief until the path changes (to it, or back/forward to another one).
   const id = picked && picked.from === pathId ? picked.id : pathId;
   const index = characterIds.indexOf(id);
@@ -98,11 +101,15 @@ export function CharacterFile({ dictionary, names, locale, initialId, titleSuffi
           </div>
 
           <div className="relative flex flex-col items-center gap-8 pb-20 lg:min-h-[560px] lg:justify-center lg:pb-0">
-            <div className="relative size-[260px] rotate-6 bg-secondary p-2 shadow-[10px_10px_0_var(--color-surface-container-lowest)] md:size-[340px]">
-              <div className="relative size-full overflow-hidden [clip-path:polygon(6%_0,100%_0,94%_100%,0_100%)]">
-                <Image src={characterAllOutPortrait(id)} alt="" fill sizes="340px" className="object-cover" priority />
-              </div>
-            </div>
+            <PortraitCard
+              key={id}
+              id={id}
+              label={dictionary.flip}
+              persona={dictionary.persona}
+              arcana={confidants.arcana[characterArcana[id]]}
+              flipped={flipped === id}
+              onFlip={() => setFlipped(flipped === id ? null : id)}
+            />
 
             <div className="absolute bottom-0 left-0 md:left-4">
               <SpriteFrames character={characters[id]} animation="idle" size={224} className="drop-shadow-[4px_4px_0_var(--color-surface-container-lowest)]" />
@@ -155,6 +162,59 @@ export function CharacterFile({ dictionary, names, locale, initialId, titleSuffi
         </ul>
       </nav>
     </div>
+  );
+}
+
+type PortraitCardProps = {
+  id: CharacterId;
+  label: string;
+  persona: string;
+  arcana: string;
+  flipped: boolean;
+  onFlip: () => void;
+};
+
+/**
+ * The all-out portrait in its tilted white frame, as a card: a click turns it over to the Persona and arcana on the
+ * back. Remounted per thief, so a newly picked one swings in (`.character-swap`, `.flip-*` in globals.css).
+ */
+function PortraitCard({ id, label, persona, arcana, flipped, onFlip }: PortraitCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={onFlip}
+      aria-label={label}
+      aria-pressed={flipped}
+      className="group relative size-[260px] rotate-6 cursor-pointer [perspective:1200px] md:size-[340px]"
+    >
+      <span
+        className={`character-swap flip-card relative block size-full transition-transform duration-700 ease-[cubic-bezier(0.2,0.9,0.3,1.15)] motion-reduce:transition-none ${
+          flipped ? "[transform:rotateY(180deg)]" : ""
+        }`}
+      >
+        <span className="flip-face absolute inset-0 bg-secondary p-2 shadow-[10px_10px_0_var(--color-surface-container-lowest)]">
+          <span className="relative block size-full overflow-hidden [clip-path:polygon(6%_0,100%_0,94%_100%,0_100%)]">
+            <Image src={characterAllOutPortrait(id)} alt="" fill sizes="340px" className="object-cover" priority />
+          </span>
+        </span>
+        <span className="flip-face flip-back halftone absolute inset-0 flex flex-col items-center justify-center gap-4 border-8 border-secondary bg-primary-container p-6 shadow-[-10px_10px_0_var(--color-surface-container-lowest)]">
+          <span className="font-display text-[56px] leading-none text-secondary-fixed [text-shadow:4px_4px_0_var(--color-surface-container-lowest)]">
+            {arcanaNumerals[characterArcana[id]]}
+          </span>
+          <span className="-rotate-3 bg-surface-container-lowest px-4 py-1 font-display text-headline-md uppercase italic tracking-wider text-secondary-fixed">
+            {characterPersonas[id]}
+          </span>
+          <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-primary-container">{persona}</span>
+          <span className="font-display text-headline-sm uppercase tracking-wider text-secondary">{arcana}</span>
+        </span>
+      </span>
+      <span
+        aria-hidden="true"
+        className="absolute -top-3 -left-3 flex size-10 items-center justify-center border-2 border-secondary-fixed bg-surface-container-lowest text-secondary-fixed shadow-hard-sm transition-colors group-hover:bg-secondary-fixed group-hover:text-on-secondary-fixed"
+      >
+        <Icon name="refresh" size={22} />
+      </span>
+    </button>
   );
 }
 
@@ -227,7 +287,9 @@ function ConfidantBond({ dictionary, id, name, races }: { dictionary: Dictionary
   const lines = rankLines(dictionary, races);
   return (
     <section aria-labelledby="confidant-title" className="flex items-center gap-5">
-      <TarotCard dictionary={dictionary} character={id} rank={rank} className={`-rotate-3 ${rank === 0 ? "opacity-50 grayscale" : ""}`} />
+      <Tilt glare={rank === 0 ? "none" : "holo"} max={14} className="-rotate-3">
+        <TarotCard dictionary={dictionary} character={id} rank={rank} className={rank === 0 ? "opacity-50 grayscale" : ""} />
+      </Tilt>
       <div className="flex flex-col items-start gap-2">
         <h2 id="confidant-title" className="eyebrow">
           {`${dictionary.label} // ${formatMessage(dictionary.arcanaLabel, { arcana: dictionary.arcana[characterArcana[id]] })}`}

@@ -708,6 +708,7 @@ const fr: Dictionary = {
     profile: "Profil",
     persona: "Persona initiale",
     personaHint: "Lance tes sorts pendant la course. Chaque voleur pige dans la même réserve.",
+    flip: "Retourner la carte",
     previous: "Voleur précédent",
     next: "Voleur suivant",
     roster: "Tous les voleurs",
