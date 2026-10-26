@@ -56,7 +56,7 @@ export function AuthShell({ tape, title, subtitle, note, switchPrompt, switchLab
             <p className="font-body text-typing-stream leading-relaxed">
               <span className="text-secondary">{preview.slice(0, TYPED)}</span>
               <span className="border-l-2 border-secondary-fixed motion-safe:animate-pulse" />
-              <span className="text-surface-variant">{preview.slice(TYPED)}</span>
+              <span className="text-on-surface-variant/60">{preview.slice(TYPED)}</span>
             </p>
             <div className="h-1 w-2/3 -skew-x-12 bg-surface-container">
               <div className="h-full bg-primary-container" style={{ width: `${Math.round((TYPED / preview.length) * 100)}%` }} />

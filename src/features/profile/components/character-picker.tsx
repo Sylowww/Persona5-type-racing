@@ -126,7 +126,11 @@ function RosterCard({ id, name, isSelected }: { id: CharacterId; name: string; i
       >
         {name}
       </span>
-      <span className="relative mb-2 font-hud text-[11px] font-black uppercase tracking-wider text-on-surface-variant">{characterPersonas[id]}</span>
+      <span
+        className={`relative mb-2 font-hud text-[11px] font-black uppercase tracking-wider ${isSelected ? "text-on-primary-container" : "text-on-surface-variant"}`}
+      >
+        {characterPersonas[id]}
+      </span>
     </button>
   );
 }
