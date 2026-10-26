@@ -44,9 +44,8 @@ const fr: Dictionary = {
     hero: {
       label: "Accueil",
       lines: [
-        ["Chaque", "mot"],
-        ["est", "à toi"],
-        ["de le", "voler"],
+        ["Tape", "plus vite"],
+        ["que ton", "ombre"],
       ],
       scroll: "Défile pour entrer",
     },
