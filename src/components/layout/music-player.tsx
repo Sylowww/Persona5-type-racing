@@ -35,6 +35,9 @@ function getMusic(): HTMLAudioElement {
   const musicWindow = window as MusicWindow;
   if (!musicWindow.__typeStrikeMusic) {
     const audio = new Audio();
+    // Download the track only once it plays: browsers block autoplay until the first interaction, and fetching
+    // several megabytes up front would slow down the first load of every page (PERF-01).
+    audio.preload = "none";
     audio.loop = true;
     audio.volume = volume;
     musicWindow.__typeStrikeMusic = audio;
