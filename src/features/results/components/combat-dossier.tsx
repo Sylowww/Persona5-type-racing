@@ -2,7 +2,7 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import { chartPoints, peakSample, slowestKeys } from "@/lib/results";
+import { chartCeiling, chartPoints, peakSample, slowestKeys } from "@/lib/results";
 import { accuracy } from "@/lib/typing";
 import type { RaceResult } from "@/types/race";
 import { SectionTag } from "./section-tag";
@@ -23,8 +23,7 @@ export function CombatDossier({ dictionary, locale, result, wpm }: CombatDossier
   const seconds = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const peak = peakSample(result.speedSamples);
-  // Round the chart ceiling up to the next 20 WPM so the peak never touches the top.
-  const maxWpm = Math.ceil(((peak?.wpm ?? 0) + 1) / 20) * 20;
+  const maxWpm = chartCeiling(peak?.wpm ?? 0);
   const points = chartPoints(result.speedSamples, result.durationMs, maxWpm, chartWidth, chartHeight);
   const peakPoint = peak ? chartPoints([peak], result.durationMs, maxWpm, chartWidth, chartHeight).split(",") : null;
   const slowKeys = slowestKeys(result.keyStats, 3);

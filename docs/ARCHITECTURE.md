@@ -65,7 +65,7 @@ tests/
 - Leaderboard: `lib/leaderboard-db.ts` (server-only) ranks registered players with at least one saved race by record WPM, then average WPM, then name, and reads one page of 10 at a time (`LIMIT`/`OFFSET`, top 100 only). Page math and `?page=` parsing are pure, in `lib/leaderboard.ts`.
 - `lib/users.ts` is the server-only data access for accounts and sessions. Pure auth helpers (scrypt password hashing, session tokens, input validation) live in `lib/auth/` and are unit tested.
 - Profile edits (`features/profile/actions.ts`): `changeUsername` validates like sign-up and relies on the unique index for taken names (`renameUser`); the new name shows at once in the player's current lobby (`store.setName`). `uploadAvatar` checks the size, then the real type from the file's first bytes (`lib/avatar.ts`: JPEG, PNG or WebP, 2 MB max; the browser's type and file name are ignored), stores the bytes in `user_avatars` (the server disk is not persistent) and sets `users.avatar_url` to `/api/avatars/{userId}/{version}`. That route serves the bytes with `nosniff` and an immutable cache (the version changes on every upload). `PlayerAvatar` displays it with `next/image`, which resizes it. Server Action bodies are capped at 3 MB in `next.config.ts`.
-- Lobbies and races are in memory only (see Multiplayer). When a race ends, the store calls `onRaceFinished` and `lib/race-history-db.ts` saves one `race_results` row per registered player (in the background; a database error is only logged). Pure helpers (`recordFromResult`, `summarizeRaces`, guest list parsing) are in `lib/race-history.ts`.
+- Lobbies and races are in memory only (see Multiplayer). When a race ends, the store calls `onRaceFinished` and `lib/race-history-db.ts` saves one `race_results` row per registered player (in the background; a database error is only logged), with the full results the player saw (every racer and their WPM series) in the `result` jsonb column, so the history can show them again. Pure helpers (`recordFromResult`, `summarizeRaces`, `isPersonalBest`, guest list parsing) are in `lib/race-history.ts`.
 - Guests' races are not stored on the server: the results page saves them in `sessionStorage` (`lib/guest-races.ts`, key `guest-races`, last 50 races), read on the home page with `features/home/use-guest-races.ts`. They are lost when the tab is closed.
 
 ## Input validation
@@ -210,6 +210,7 @@ erDiagram
     int duration_ms
     int keystrokes
     int mistakes
+    jsonb result "full results, null before 008"
     timestamptz created_at
   }
 ```

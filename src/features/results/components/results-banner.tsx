@@ -8,9 +8,12 @@ type ResultsBannerProps = {
   place: number;
   finished: boolean;
   wpm: number;
+  /** The record this race beat (RES-04); null when it is not a new personal best. */
+  beatenRecord: number | null;
 };
 
-export function ResultsBanner({ dictionary, locale, place, finished, wpm }: ResultsBannerProps) {
+export function ResultsBanner({ dictionary, locale, place, finished, wpm, beatenRecord }: ResultsBannerProps) {
+  const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const headline = !finished
     ? dictionary.unfinished
     : place === 1
@@ -32,13 +35,21 @@ export function ResultsBanner({ dictionary, locale, place, finished, wpm }: Resu
             <h1 className="mt-2 font-display text-headline-md uppercase italic tracking-wider text-on-primary-container drop-shadow-[3px_3px_0_var(--color-surface-container-lowest)] md:text-headline-lg">
               {headline}
             </h1>
+            {beatenRecord !== null && (
+              <p className="mt-3 inline-flex -rotate-1 flex-wrap items-baseline gap-x-3 bg-secondary-fixed px-3 py-1 shadow-hard-sm">
+                <span className="font-hud text-headline-sm font-black uppercase italic text-on-secondary-fixed">{dictionary.personalBest}</span>
+                <span className="font-hud text-label-hud font-black uppercase text-on-secondary-fixed">
+                  {formatMessage(dictionary.personalBestDetail, { wpm: number.format(beatenRecord) })}
+                </span>
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
             <div className="rotate-2 bg-surface-container-lowest px-4 py-2 text-right shadow-hard-md">
               <span className="block font-hud text-label-hud font-black uppercase text-secondary-fixed">{dictionary.speed}</span>
               <span className="font-display text-headline-md text-secondary tabular-nums">
-                {new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(wpm)}{" "}
+                {number.format(wpm)}{" "}
                 <span className="font-body text-body-md text-tertiary">{dictionary.wpm}</span>
               </span>
             </div>
