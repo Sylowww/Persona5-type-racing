@@ -706,6 +706,7 @@ const en = {
     profile: "Profile",
     persona: "Initial Persona",
     personaHint: "Casts your spells in a race. Every thief draws from the same pool.",
+    flip: "Turn the card over",
     previous: "Previous thief",
     next: "Next thief",
     roster: "All thieves",

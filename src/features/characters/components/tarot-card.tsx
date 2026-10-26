@@ -26,6 +26,20 @@ export function TarotCard({ dictionary, character, rank, className = "" }: { dic
   );
 }
 
+/** The face-down side of a tarot card: a red diamond lattice with the arcana numeral in the middle. Fills its box. */
+export function TarotBack({ numeral, className = "" }: { numeral: string; className?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`flex items-center justify-center border-2 border-secondary-fixed bg-surface-container-lowest bg-[repeating-linear-gradient(45deg,var(--color-primary-container)_0_2px,transparent_2px_14px),repeating-linear-gradient(-45deg,var(--color-primary-container)_0_2px,transparent_2px_14px)] p-2 ${className}`}
+    >
+      <span className="flex size-16 rotate-45 items-center justify-center border-2 border-secondary-fixed bg-surface-container-lowest">
+        <span className="-rotate-45 font-display text-[22px] text-secondary-fixed">{numeral}</span>
+      </span>
+    </div>
+  );
+}
+
 /** One gold diamond per rank reached, out of the max. */
 export function RankPips({ rank }: { rank: number }) {
   return (
