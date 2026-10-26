@@ -75,6 +75,17 @@ Shared utilities live in `globals.css`; prefer them over one-off classes.
 - Decorative graphics are `aria-hidden`; icons are always decorative (label the control).
 - The text players type must stay calm and readable: no rotation or decoration on the typing text itself during a race.
 
+## 3D effects
+
+CSS 3D only (`perspective`, `preserve-3d`, `backface-visibility`), no 3D library; all of them stay flat or still with reduced motion.
+
+- **Tilt** (`components/ui/tilt.tsx`, `.tilt-3d`): a card leans toward the mouse with a glare under the pointer (white `shine` or rainbow `holo` foil); children marked `.tilt-pop` float above it. Home showcase, join code card and dossier, tarot cards. Mouse only.
+- **Backdrop parallax** (`PageBackdrop`): the red slash and a few faint stars drift with the mouse, each at its own depth.
+- **Home menu**: the selected entry swings toward the screen.
+- **Two-sided cards** (`.flip-card`, `.flip-face`, `.flip-back`): the RANK UP tarot card arrives face down and turns over; the character file portrait turns over on click to show the Persona and arcana.
+- **Results podium**: the top three stand on 3D steps that rise one by one after Mona's verdict (`--results-intro` on the results page).
+- **Race**: the letter just typed sinks in, a wrong one wobbles once (the line never reflows); lanes flip like a split-flap board when the order changes; each countdown number rushes at the screen and lands with a burst of shards.
+
 ## Race runners
 
 Each racer on the race track is an animated character running along their lane (`features/race/components/race-runner.tsx`).
