@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageBackdrop } from "@/components/layout/page-backdrop";
 import { Compendium } from "@/features/compendium/components/compendium";
+import { loadCompendium } from "@/features/compendium/load-compendium";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getStatsByCharacter } from "@/lib/race-history-db";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -22,7 +22,7 @@ export default async function CompendiumPage({ params }: { params: Promise<{ loc
   const [dictionary, user] = await Promise.all([getDictionary(locale), getCurrentUser()]);
   // Cards turn over with saved races, so only registered players have a collection.
   const registered = user?.kind === "registered" ? user : null;
-  const stats = registered ? await getStatsByCharacter(registered.id) : null;
+  const compendium = registered ? await loadCompendium(registered.id) : null;
 
   return (
     <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
@@ -35,8 +35,10 @@ export default async function CompendiumPage({ params }: { params: Promise<{ loc
             confidants={dictionary.confidants}
             names={dictionary.profile.character.names}
             locale={locale}
-            stats={stats}
+            stats={compendium?.stats ?? null}
             chosen={registered?.character ?? null}
+            achievements={compendium?.achievements ?? null}
+            owner={null}
           />
         </div>
       </div>

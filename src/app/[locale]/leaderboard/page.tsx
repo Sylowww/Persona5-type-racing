@@ -44,7 +44,7 @@ export default async function LeaderboardPage({ params, searchParams }: Leaderbo
           </PageHeading>
 
           <section className="flex flex-col gap-5">
-            <LeaderboardTable dictionary={leaderboard} rows={rows} youId={user?.kind === "registered" ? user.id : null} />
+            <LeaderboardTable dictionary={leaderboard} locale={locale} rows={rows} youId={user?.kind === "registered" ? user.id : null} />
             {rows.length > 0 && <LeaderboardPagination dictionary={leaderboard} locale={locale} page={page} pageCount={pageCount} />}
           </section>
         </div>
