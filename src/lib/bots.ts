@@ -110,6 +110,21 @@ export function replanBotRun(
 }
 
 /**
+ * A spell on a bot: from `fromMs` (after the race start), the bot types at `speed` (0 to 1) of its pace for `durationMs`,
+ * then at its own pace again. Speed 0 freezes it (a stun); a hex only slows it, like a player squinting at blurred
+ * words. Keys already typed (`applied`) keep their time.
+ */
+export function slowBotSteps(steps: readonly BotStep[], applied: number, fromMs: number, durationMs: number, speed: number): BotStep[] {
+  const slowWork = durationMs * speed;
+  return steps.map((step, index) => {
+    if (index < applied) return step;
+    const work = Math.max(0, step.atMs - fromMs);
+    const elapsed = work < slowWork ? work / speed : work + durationMs - slowWork;
+    return { ...step, atMs: Math.round(fromMs + elapsed) };
+  });
+}
+
+/**
  * Plans a bot's race over `text`. The pace is scaled so the bot finishes at about its target speed
  * (varied per race), while typos and pauses still slow it down where they happen.
  */

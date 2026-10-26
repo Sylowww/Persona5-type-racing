@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isBotDifficulty, planBotRun, wrongKeyFor } from "../../src/lib/bots";
+import { isBotDifficulty, planBotRun, slowBotSteps, wrongKeyFor, type BotStep } from "../../src/lib/bots";
 import { botTargetWpm } from "../../src/lib/lobby";
 import { raceTexts } from "../../src/lib/race-texts";
 import { correctPrefixLength, deleteChar, initialTypingState, typeChar, wordsPerMinute } from "../../src/lib/typing";
@@ -112,5 +112,22 @@ describe("isBotDifficulty", () => {
     expect(isBotDifficulty("master")).toBe(true);
     expect(isBotDifficulty("expert")).toBe(false);
     expect(isBotDifficulty(3)).toBe(false);
+  });
+});
+
+describe("slowBotSteps", () => {
+  // One key every 100 ms from the race start; the first two are already typed.
+  const steps: BotStep[] = Array.from({ length: 10 }, (_, index) => ({ atMs: index * 100, event: { type: "char", char: "a", delayMs: 100 } }));
+
+  it("freezes a stunned bot for the whole duration", () => {
+    const frozen = slowBotSteps(steps, 2, 150, 1_000, 0);
+    expect(frozen.slice(0, 2)).toEqual(steps.slice(0, 2));
+    expect(frozen.slice(2).map((step) => step.atMs)).toEqual([1_200, 1_300, 1_400, 1_500, 1_600, 1_700, 1_800, 1_900]);
+  });
+
+  it("slows a hexed bot to the given pace during the hex, then lets it type at its pace again", () => {
+    const slowed = slowBotSteps(steps, 2, 150, 1_000, 0.5).map((step) => step.atMs);
+    // Within the hex the gaps double (50 ms of work → 100 ms), after it they are 100 ms again, 500 ms behind in all.
+    expect(slowed.slice(2)).toEqual([250, 450, 650, 850, 1_050, 1_200, 1_300, 1_400]);
   });
 });
