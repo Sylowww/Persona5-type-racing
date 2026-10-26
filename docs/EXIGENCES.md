@@ -1,6 +1,6 @@
 # Exigences — matrice de traçabilité
 
-Dernière mise à jour : 2026-10-19.
+Dernière mise à jour : 2026-10-26.
 
 Statuts : **complet**, **partiel** ou **non fait**. Une exigence est « complète » seulement si elle respecte tout l'énoncé ; sinon, la colonne Notes explique ce qui manque. Les chemins sont relatifs à `src/` sauf indication contraire.
 
@@ -99,7 +99,7 @@ Les exigences ambiguës ou incomplètes et les choix retenus (section 2.2 de l'�
 | ID | Statut | Fichiers principaux | Tests associés | Notes et choix |
 | --- | --- | --- | --- | --- |
 | COURSE-01 | complet | `lib/race-engine.ts`, [ARCHITECTURE.md](ARCHITECTURE.md#race-state-machine) | `race-engine.test.ts` | Correspondance des noms d'états documentée. |
-| COURSE-02 | complet | `lib/lobby.ts` (`canStartRace`), `lib/race-engine.ts` (`isRaceOver`) | `lobby.test.ts`, `race-engine.test.ts` | Au moins 2 participants ; les bots comptent dans le minimum, les spectateurs non. Une course entre bots seulement est permise (l'hôte peut la regarder en spectateur) ; elle s'arrête quand plus aucun humain ne la regarde. Tous les humains participants doivent aussi être prêts. |
+| COURSE-02 | partiel | `lib/lobby.ts` (`canStartRace`), `lib/race-engine.ts` (`isRaceOver`) | `lobby.test.ts`, `race-engine.test.ts` | Au moins 2 participants ; les bots comptent dans le minimum, les spectateurs non. Tous les humains participants doivent aussi être prêts. Écart volontaire avec l'énoncé : la règle « au moins 1 humain » n'est pas appliquée. Une course entre bots seulement peut être lancée, par exemple par un hôte spectateur qui veut la regarder ; elle s'arrête quand plus aucun humain n'est dans la salle. |
 | COURSE-03 | complet | `lib/race-engine.ts` (`startRace`) | `race-engine.test.ts` | Décompte de 3 s synchronisé avec `serverNow`. Le texte est choisi au lancement. |
 | COURSE-04 | complet | `features/race/components/live-race.tsx`, `features/race/components/typing-text.tsx` | `typing.test.ts` | Retour visuel immédiat (correct, incorrect, curseur), MPM et précision en direct. Coller et glisser-déposer sont bloqués dans la zone de frappe ; côté serveur, plus de 30 touches par seconde sont refusées. |
 | COURSE-05 | complet | `features/race/components/live-race.tsx` | `tests/e2e/multiplayer.spec.ts` | Environ 10 mises à jour par seconde ; le joueur local est mis en évidence. Les spectateurs voient la piste sans zone de frappe. |
