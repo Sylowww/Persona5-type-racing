@@ -10,11 +10,11 @@ const charClass: Record<CharStatus, string> = {
 };
 
 /**
- * Letters still to type in the current word, cut from different "magazines" like a calling card. Only colors and a
- * tilt change (no font, size or padding), so the line never reflows as the cursor moves.
+ * The current word's letters still to type, as cut-out tiles: one quiet outlined tile per letter and a white tile on the
+ * letter to type next, so the word reads "done (plain) / here (white) / to do (outlined)", and red stays for mistakes.
+ * Only colors and a slight tilt change (no font, size or padding), so the line never reflows as the cursor moves.
  */
-const ransomClasses = ["ransom-a", "ransom-b", "ransom-c", "ransom-d"] as const;
-const ransomTilts = [-4, 3, -2, 5, -3, 2] as const;
+const ransomTilts = [-2, 1.5, -1, 2, -1.5, 1] as const;
 
 type TypingTextProps = {
   text: string;
@@ -49,7 +49,7 @@ export function TypingText({ text, typed, blocked = false, hex = null, redacted 
               return (
                 <span
                   key={index}
-                  className={`relative ${isRansom ? `ransom-letter ${ransomClasses[index % ransomClasses.length]}` : charClass[status]}`}
+                  className={`relative ${isRansom ? `ransom-letter ${index === typed.length ? "ransom-next" : "ransom-pending"}` : charClass[status]}`}
                   style={isRansom ? { rotate: `${ransomTilts[index % ransomTilts.length]}deg` } : undefined}
                 >
                   {index === typed.length && (
