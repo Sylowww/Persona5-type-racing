@@ -49,6 +49,23 @@ export type ConfidantRank = {
   racesToNext: number | null;
 };
 
+/**
+ * What a bond unlocks on the way, all applied by themselves (nothing to equip): a halftone tarot card, then a gold
+ * frame, then a title, then a foil card at MAX. The rewards and their ranks are first guesses.
+ */
+export const confidantRewards = [
+  { rank: 3, reward: "halftone" },
+  { rank: 6, reward: "gold" },
+  { rank: 8, reward: "title" },
+  { rank: CONFIDANT_MAX_RANK, reward: "foil" },
+] as const;
+export type ConfidantReward = (typeof confidantRewards)[number]["reward"];
+
+/** Whether a bond at `rank` has unlocked `reward`. */
+export function hasReward(rank: number, reward: ConfidantReward): boolean {
+  return confidantRewards.some((step) => step.reward === reward && rank >= step.rank);
+}
+
 /** The confidant rank reached after `races` saved races with one thief. */
 export function confidantRank(races: number): ConfidantRank {
   const rank = CONFIDANT_RANK_RACES.filter((needed) => races >= needed).length;
