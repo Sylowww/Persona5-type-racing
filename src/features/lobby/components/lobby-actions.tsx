@@ -40,19 +40,21 @@ export function LobbyActions({
   close,
 }: LobbyActionsProps) {
   return (
-    <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
-      <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+    <div className="flex flex-col-reverse items-stretch justify-between gap-6 border-y border-surface-container-high py-6 lg:flex-row lg:items-center">
+      <div className="flex flex-wrap items-center gap-2">
         {!isSpectator && (
           <button
             type="button"
             aria-pressed={isReady}
             onClick={onToggleReady}
             disabled={isPending}
-            className={`flex -skew-x-6 items-center gap-2 px-4 py-2 font-hud text-headline-sm font-black uppercase italic shadow-hard-sm transition-transform hover:-translate-y-0.5 ${
-              isReady ? "bg-surface-container text-secondary hover:bg-surface-container-high" : "bg-secondary-fixed text-on-secondary-fixed"
+            className={`flex items-center gap-2 border px-4 py-2 font-hud text-label-hud font-black uppercase tracking-wider transition-colors ${
+              isReady
+                ? "border-surface-container-highest text-secondary hover:border-secondary-fixed"
+                : "border-secondary-fixed bg-secondary-fixed text-on-secondary-fixed hover:bg-secondary hover:text-surface-container-lowest"
             }`}
           >
-            <Icon name={isReady ? "close" : "check"} size={20} />
+            <Icon name={isReady ? "close" : "check"} size={18} />
             <span>{isReady ? dictionary.unready : dictionary.ready}</span>
           </button>
         )}
@@ -65,34 +67,20 @@ export function LobbyActions({
         {close && <CloseLobbyButton code={close.code} locale={close.locale} label={dictionary.close} confirmMessage={dictionary.closeConfirm} />}
       </div>
 
-      <div className="relative flex w-full justify-end lg:w-auto">
-        {canStart && (
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-5 -left-4 z-20 -rotate-12 bg-secondary-fixed px-3 py-0.5 font-display text-[22px] uppercase italic text-on-secondary-fixed shadow-hard-sm"
-          >
-            {dictionary.badge}
+      <button
+        type="button"
+        disabled={!canStart || isPending}
+        onClick={onStart}
+        className="group flex shrink-0 items-center justify-center gap-4 bg-primary-container px-10 py-4 text-on-primary-container shadow-hard-xl transition-[transform,background-color] enabled:hover:-translate-y-1 disabled:bg-surface-container-high disabled:text-on-surface-variant disabled:shadow-none"
+      >
+        <Icon name="play_arrow" size={32} filled />
+        <span className="flex flex-col text-left">
+          <span className="font-hud text-[11px] font-black uppercase leading-none tracking-widest">
+            {canStart ? dictionary.eyebrow : isHost ? dictionary.waiting : dictionary.hostOnly}
           </span>
-        )}
-        <button
-          type="button"
-          disabled={!canStart || isPending}
-          onClick={onStart}
-          className="group relative w-full -skew-x-12 overflow-hidden bg-primary-container px-12 py-4 text-on-primary-container shadow-[8px_8px_0_var(--color-secondary-fixed)] transition-transform duration-200 enabled:hover:-translate-y-1 disabled:bg-surface-container-high disabled:shadow-hard-xl lg:w-auto"
-        >
-          <span className="relative z-10 flex skew-x-12 items-center justify-center gap-4">
-            <Icon name="play_arrow" size={32} className="group-enabled:group-hover:motion-safe:animate-bounce" />
-            <span className="flex flex-col text-left">
-              <span className="font-hud text-[11px] font-black uppercase leading-none tracking-widest text-secondary-fixed">
-                {canStart ? dictionary.eyebrow : isHost ? dictionary.waiting : dictionary.hostOnly}
-              </span>
-              <span className="mt-1 font-display text-headline-md uppercase italic leading-none tracking-wider text-secondary md:text-headline-lg">
-                {dictionary.start}
-              </span>
-            </span>
-          </span>
-        </button>
-      </div>
+          <span className="mt-1 font-display text-headline-md uppercase italic leading-none tracking-wider">{dictionary.start}</span>
+        </span>
+      </button>
     </div>
   );
 }
@@ -104,11 +92,9 @@ function DockButton({ icon, label, danger = false, onClick }: DockButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex -skew-x-6 items-center gap-2 bg-surface-container px-4 py-2 font-hud text-headline-sm font-black uppercase italic shadow-hard-sm transition-transform hover:-translate-y-0.5 ${
-        danger ? "text-error hover:bg-error-container hover:text-on-error-container" : "text-secondary hover:bg-surface-container-high"
-      }`}
+      className={`btn-ghost px-3 py-2 ${danger ? "text-error hover:bg-error-container hover:text-on-error-container" : ""}`}
     >
-      <Icon name={icon} size={20} />
+      <Icon name={icon} size={18} />
       <span>{label}</span>
     </button>
   );
