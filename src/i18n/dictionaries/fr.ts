@@ -83,7 +83,7 @@ const fr: Dictionary = {
       },
       training: {
         badge: "Exercices solo",
-        title: "Dojo d'entraînement",
+        title: "Chambre de velours",
         description: "Cours seul à ton rythme, avec tes résultats et ta heatmap. Rien n'est sauvegardé.",
       },
     },

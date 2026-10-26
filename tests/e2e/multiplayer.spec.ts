@@ -177,7 +177,7 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
 
 test("the training dojo starts a solo race", async ({ page }) => {
   await signUp(page, "dojo");
-  await page.getByRole("button", { name: /Training dojo/ }).click();
+  await page.getByRole("button", { name: /Velvet Room/ }).click();
   await expect(page).toHaveURL(/\/en\/lobby\/[A-Z2-9]{6}\/race$/);
   await expect(page.getByRole("timer", { name: /Race starts in/ })).toBeVisible();
   await expect(page.getByLabel("Type the text")).toBeEditable({ timeout: 10_000 });
