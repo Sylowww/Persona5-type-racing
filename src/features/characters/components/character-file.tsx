@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { type MouseEvent, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { type MouseEvent, useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { SpriteFrames } from "@/components/ui/sprite-frames";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -33,9 +33,14 @@ type CharacterFileProps = {
 
 /** One thief's calling-card file: name plate, profile, Persona and art on a red comic stage, then the roster. */
 export function CharacterFile({ dictionary, names, locale, initialId, titleSuffix, chosen, confidants, bonds }: CharacterFileProps) {
-  // Switching thieves only rewrites the URL (see `select`), so the shown thief follows the path, back button included.
+  // The shown thief follows the path (back button included), and switches at once on a click, before the router
+  // catches up (see `select`).
+  const router = useRouter();
   const segment = usePathname().split("/").pop();
-  const id = isCharacterId(segment) ? segment : initialId;
+  const pathId = isCharacterId(segment) ? segment : initialId;
+  const [picked, setPicked] = useState<{ id: CharacterId; from: CharacterId } | null>(null);
+  // A click picks a thief until the path changes (to it, or back/forward to another one).
+  const id = picked && picked.from === pathId ? picked.id : pathId;
   const index = characterIds.indexOf(id);
   const previous = characterIds[(index - 1 + characterIds.length) % characterIds.length];
   const next = characterIds[(index + 1) % characterIds.length];
@@ -45,11 +50,14 @@ export function CharacterFile({ dictionary, names, locale, initialId, titleSuffi
     document.title = `${names[id]}${titleSuffix}`;
   }, [id, names, titleSuffix]);
 
-  // Every thief's data is already here: swap in place instead of loading the page again. The links still work without JavaScript.
+  // Every thief's data is already here: swap in place right away, then let the router follow without scrolling to the
+  // top (a plain history.pushState would make Next.js navigate and jump up). The links still work without JavaScript.
   function select(event: MouseEvent<HTMLAnchorElement>, characterId: CharacterId) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    if (characterId !== id) window.history.pushState(null, "", href(characterId));
+    if (characterId === id) return;
+    setPicked({ id: characterId, from: pathId });
+    router.push(href(characterId), { scroll: false });
   }
 
   return (
