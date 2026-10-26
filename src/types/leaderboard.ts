@@ -4,6 +4,8 @@ export type LeaderboardRow = {
   rank: number;
   userId: string;
   username: string;
+  /** Uploaded or provider picture, or null for the placeholder. */
+  avatarUrl: string | null;
   bestWpm: number;
   averageWpm: number;
   /** Average accuracy, from 0 to 1. */

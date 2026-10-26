@@ -1,4 +1,5 @@
 import { Icon } from "@/components/ui/icon";
+import { PlayerAvatar } from "@/components/ui/player-avatar";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { LeaderboardRow } from "@/types/leaderboard";
@@ -45,7 +46,8 @@ export function LeaderboardTable({ dictionary, rows, youId }: LeaderboardTablePr
                 #{row.rank}
               </td>
               <td className="max-w-0 px-4 py-3 sm:max-w-none">
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-3">
+                  <PlayerAvatar avatarUrl={row.avatarUrl} alt="" size={36} className="border-2 border-secondary" />
                   <span className="truncate font-hud text-[15px] font-black uppercase">{row.username}</span>
                   {isYou && (
                     <span className="shrink-0 bg-secondary-fixed px-1.5 font-hud text-[10px] font-black uppercase text-on-secondary-fixed">
