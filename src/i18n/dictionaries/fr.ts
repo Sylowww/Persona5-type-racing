@@ -41,6 +41,15 @@ const fr: Dictionary = {
     },
   },
   home: {
+    hero: {
+      label: "Accueil",
+      lines: [
+        ["Chaque", "mot"],
+        ["est", "à toi"],
+        ["de le", "voler"],
+      ],
+      scroll: "Défile pour entrer",
+    },
     callingCard: {
       take: "Vole leurs",
       words: "mots!",

@@ -24,6 +24,7 @@ export const iconNames = [
   "home",
   "key",
   "keyboard",
+  "keyboard_double_arrow_down",
   "link",
   "lock",
   "login",
