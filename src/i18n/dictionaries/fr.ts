@@ -475,6 +475,13 @@ const fr: Dictionary = {
       even: "À égalité avec ton record",
       ghost: "Ton record ({wpm} MPM)",
     },
+    velvetRoom: {
+      kicker: "La chambre de velours",
+      lavenza: "Lavenza",
+      igor: "Igor",
+      welcome: "Bienvenue, Joker. Cette chambre se trouve entre le rêve et la réalité : entraîne-toi librement, rien de ce que tu tapes ici n'est enregistré.",
+      farewell: "Splendide. Tes doigts s'aiguisent à chaque visite... La porte reste ouverte quand tu voudras revenir.",
+    },
   },
   results: {
     title: "Résultats de la course",

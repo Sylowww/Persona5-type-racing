@@ -8,6 +8,7 @@ import { ResultsActions } from "@/features/results/components/results-actions";
 import { ResultsCutIn } from "@/features/results/components/results-cut-in";
 import { ResultsReport } from "@/features/results/components/results-report";
 import { SaveGuestRace } from "@/features/results/components/save-guest-race";
+import { VelvetRoomDecor, VelvetRoomLine } from "@/features/race/components/velvet-room";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
 import { resultsVerdict } from "@/lib/cut-in";
@@ -29,7 +30,7 @@ export default async function RaceResultsPage({ params }: Params) {
   const { locale, code: rawCode } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [{ user, code, store, view }, { results: dictionary, lobby: lobbyDictionary }] = await Promise.all([
+  const [{ user, code, store, view }, { results: dictionary, lobby: lobbyDictionary, race: raceDictionary }] = await Promise.all([
     loadLobby(locale, rawCode),
     getDictionary(locale),
   ]);
@@ -45,14 +46,18 @@ export default async function RaceResultsPage({ params }: Params) {
   const guestRecord = user.kind === "guest" && view?.kind !== "training" ? recordFromResult(result) : null;
   // Only saved races count toward a personal best (RES-04): guests have no saved history and training is never saved.
   const previousBest = user.kind === "registered" && view?.kind !== "training" ? await getBestWpmBefore(user.id, result.endedAt) : null;
+  // Training ends in the Velvet Room too, with Igor's word.
+  const isTraining = view?.kind === "training";
 
   return (
-    <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
+    <main className={`min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16 ${isTraining ? "velvet-room" : ""}`}>
       <CollapseReveal />
       <ResultsCutIn dictionary={dictionary.cutIn} verdict={resultsVerdict(you.finishMs !== null, place, ranked.length)} />
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
+        {isTraining && <VelvetRoomDecor />}
         <div className="relative z-10 mx-auto w-full max-w-7xl space-y-10 px-4 py-10 md:px-10">
+          {isTraining && <VelvetRoomLine dictionary={raceDictionary.velvetRoom} speaker={raceDictionary.velvetRoom.igor} line={raceDictionary.velvetRoom.farewell} />}
           <ResultsReport
             dictionary={dictionary}
             locale={locale}
