@@ -37,6 +37,33 @@ export function chartPoints(
     .join(" ");
 }
 
+/** Chart ceiling: the next multiple of 20 WPM above the fastest value, so the peak never touches the top. */
+export function chartCeiling(wpm: number): number {
+  return Math.ceil((Math.max(0, wpm) + 1) / 20) * 20;
+}
+
+/** Line color of a racer on the shared WPM chart: the player stands out, then the podium, then everyone else. */
+export type ChartTone = "you" | "first" | "second" | "third" | "other";
+
+/**
+ * Scale and line order of the shared WPM chart (RES-03). `racers` are ranked, first place first; lines are returned
+ * back to front so the podium and then the player are drawn on top.
+ */
+export function raceChart(racers: readonly ResultRacer[], youId: string) {
+  const podium: ChartTone[] = ["first", "second", "third"];
+  const lines = racers.map((racer, index) => ({
+    racer,
+    tone: racer.id === youId ? ("you" as const) : (podium[index] ?? "other"),
+  }));
+  const order: Record<ChartTone, number> = { other: 0, third: 1, second: 2, first: 3, you: 4 };
+  const samples = racers.flatMap((racer) => racer.samples);
+  return {
+    durationMs: Math.max(0, ...racers.map((racer) => racer.timeMs), ...samples.map((sample) => sample.atMs)),
+    maxWpm: chartCeiling(Math.max(0, ...samples.map((sample) => sample.wpm))),
+    lines: [...lines].sort((a, b) => order[a.tone] - order[b.tone]),
+  };
+}
+
 function round(value: number): number {
   return Math.round(value * 10) / 10;
 }

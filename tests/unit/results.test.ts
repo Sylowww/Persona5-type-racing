@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chartPoints, keyHeat, peakSample, rankRacers, slowestKeys } from "../../src/lib/results";
+import { chartCeiling, chartPoints, keyHeat, peakSample, raceChart, rankRacers, slowestKeys } from "../../src/lib/results";
 import type { ResultRacer } from "../../src/types/race";
 
 const racer = (id: string, status: ResultRacer["status"], { finishMs = null, progress = 0, timeMs = 60_000 }: Partial<ResultRacer> = {}): ResultRacer => ({
@@ -16,6 +16,7 @@ const racer = (id: string, status: ResultRacer["status"], { finishMs = null, pro
   finishMs,
   timeMs,
   status,
+  samples: [],
 });
 
 describe("rankRacers (COURSE-10)", () => {
@@ -74,5 +75,36 @@ describe("slowestKeys", () => {
       { key: ";", avgDelayMs: 340, mistakes: 0 },
     ];
     expect(slowestKeys(stats, 2).map((s) => s.key)).toEqual([";", "q"]);
+  });
+});
+
+describe("raceChart", () => {
+  const withSamples = (id: string, timeMs: number, wpms: number[]) => ({
+    ...racer(id, "finished", { timeMs }),
+    samples: wpms.map((wpm, index) => ({ atMs: (index + 1) * 1_000, wpm })),
+  });
+
+  it("scales to the longest race and the fastest sample", () => {
+    const chart = raceChart([withSamples("a", 3_000, [40, 70]), withSamples("b", 5_000, [30, 50, 61])], "b");
+    expect(chart.durationMs).toBe(5_000);
+    expect(chart.maxWpm).toBe(80);
+  });
+
+  it("draws the player and the podium on top of everyone else", () => {
+    const racers = ["a", "b", "c", "d", "e"].map((id) => withSamples(id, 1_000, [10]));
+    const chart = raceChart(racers, "b");
+    expect(chart.lines.map((line) => [line.racer.id, line.tone])).toEqual([
+      ["d", "other"],
+      ["e", "other"],
+      ["c", "third"],
+      ["a", "first"],
+      ["b", "you"],
+    ]);
+  });
+
+  it("rounds the ceiling up to the next 20 WPM", () => {
+    expect(chartCeiling(0)).toBe(20);
+    expect(chartCeiling(59)).toBe(60);
+    expect(chartCeiling(60)).toBe(80);
   });
 });

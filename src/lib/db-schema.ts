@@ -5,6 +5,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -15,6 +16,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { Locale } from "@/i18n/locales";
 import type { AvatarType } from "@/lib/avatar";
+import type { RaceResult } from "@/types/race";
 import type { OAuthProvider, User } from "@/types/user";
 
 /*
@@ -99,6 +101,8 @@ export const raceResults = pgTable(
     durationMs: integer("duration_ms").notNull(),
     keystrokes: integer("keystrokes").notNull(),
     mistakes: integer("mistakes").notNull(),
+    // Full results as the player saw them (RES-05, HIST-02); null for races saved before migration 008.
+    result: jsonb("result").$type<RaceResult>(),
     createdAt: createdAt(),
   },
   (table) => [

@@ -138,9 +138,11 @@ export type ResultRacer = {
   /** Time the racer spent in the race, in ms (until they finished, stopped or the race ended). */
   timeMs: number;
   status: RacerStatus;
+  /** Net WPM over the race, for the shared chart (RES-03). */
+  samples: readonly SpeedSample[];
 };
 
-/** Speed of the local player at one moment of the race. */
+/** Speed of a racer at one moment of the race, in ms since the start. */
 export type SpeedSample = {
   atMs: number;
   wpm: number;
@@ -180,8 +182,13 @@ export type RaceRecord = {
   finishMs: number | null;
 };
 
+/** A saved race in a registered player's history; `id` opens its full results (HIST-02), null for older races. */
+export type SavedRaceRecord = RaceRecord & { id: string | null };
+
 export type PlayerStats = {
   races: number;
+  /** Races finished in first place. */
+  wins: number;
   bestWpm: number;
   averageWpm: number;
   /** Average accuracy over the races, from 0 to 1. */

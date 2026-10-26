@@ -1,9 +1,9 @@
 import "server-only";
-import { and, avg, count, desc, eq, inArray, max } from "drizzle-orm";
+import { and, avg, count, desc, eq, inArray, lt, max, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { raceResults, users } from "@/lib/db-schema";
 import { recordFromResult } from "@/lib/race-history";
-import type { PlayerStats, RaceRecord, RaceResult } from "@/types/race";
+import type { PlayerStats, RaceRecord, RaceResult, SavedRaceRecord } from "@/types/race";
 
 /**
  * Saves each racer's result. Only registered players are stored: guests are skipped.
@@ -26,6 +26,7 @@ export async function saveRaceResults(lobbyCode: string, results: readonly RaceR
         durationMs: Math.round(result.durationMs),
         keystrokes: result.keystrokes,
         mistakes: result.mistakes,
+        result,
       },
     ];
   });
@@ -48,6 +49,7 @@ export async function getPlayerStats(userId: string): Promise<PlayerStats> {
   const [row] = await getDb()
     .select({
       races: count(),
+      wins: sql<number>`count(*) filter (where ${raceResults.place} = 1)`.mapWith(Number),
       bestWpm: max(raceResults.wpm),
       averageWpm: avg(raceResults.wpm).mapWith(Number),
       accuracy: avg(raceResults.accuracy).mapWith(Number),
@@ -56,6 +58,7 @@ export async function getPlayerStats(userId: string): Promise<PlayerStats> {
     .where(eq(raceResults.userId, userId));
   return {
     races: row?.races ?? 0,
+    wins: row?.wins ?? 0,
     bestWpm: row?.bestWpm ?? 0,
     averageWpm: row?.averageWpm ?? 0,
     accuracy: row?.accuracy ?? 0,
@@ -78,4 +81,61 @@ export async function getRecentRaces(userId: string, limit: number): Promise<Rac
     .orderBy(desc(raceResults.endedAt))
     .limit(limit);
   return rows.map((row) => ({ ...row, endedAt: row.endedAt.getTime() }));
+}
+
+/** One page of the player's history, newest first (HIST-01), with the total number of saved races. */
+export async function getRacePage(userId: string, page: number, pageSize: number): Promise<{ races: SavedRaceRecord[]; total: number }> {
+  const db = getDb();
+  const [rows, [totals]] = await Promise.all([
+    db
+      .select({
+        id: raceResults.id,
+        hasResult: sql<boolean>`${raceResults.result} is not null`,
+        endedAt: raceResults.endedAt,
+        place: raceResults.place,
+        racerCount: raceResults.racerCount,
+        wpm: raceResults.wpm,
+        accuracy: raceResults.accuracy,
+        finishMs: raceResults.finishMs,
+      })
+      .from(raceResults)
+      .where(eq(raceResults.userId, userId))
+      .orderBy(desc(raceResults.endedAt))
+      .limit(pageSize)
+      .offset((page - 1) * pageSize),
+    db.select({ total: count() }).from(raceResults).where(eq(raceResults.userId, userId)),
+  ]);
+  return {
+    races: rows.map(({ id, hasResult, endedAt, ...row }) => ({ ...row, id: hasResult ? id : null, endedAt: endedAt.getTime() })),
+    total: totals?.total ?? 0,
+  };
+}
+
+/** WPM of the player's last `limit` races, oldest first, for the progress chart (AUTH-06). */
+export async function getWpmProgress(userId: string, limit: number): Promise<{ endedAt: number; wpm: number }[]> {
+  const rows = await getDb()
+    .select({ endedAt: raceResults.endedAt, wpm: raceResults.wpm })
+    .from(raceResults)
+    .where(eq(raceResults.userId, userId))
+    .orderBy(desc(raceResults.endedAt))
+    .limit(limit);
+  return rows.map((row) => ({ endedAt: row.endedAt.getTime(), wpm: row.wpm })).reverse();
+}
+
+/** The full results of one of the player's saved races; null if it is not theirs or has no saved details. */
+export async function getSavedResult(userId: string, raceId: string): Promise<RaceResult | null> {
+  const [row] = await getDb()
+    .select({ result: raceResults.result })
+    .from(raceResults)
+    .where(and(eq(raceResults.id, raceId), eq(raceResults.userId, userId)));
+  return row?.result ?? null;
+}
+
+/** The player's best WPM over the races that ended before `endedAt`; null if they had none (RES-04). */
+export async function getBestWpmBefore(userId: string, endedAt: number): Promise<number | null> {
+  const [row] = await getDb()
+    .select({ best: max(raceResults.wpm) })
+    .from(raceResults)
+    .where(and(eq(raceResults.userId, userId), lt(raceResults.endedAt, new Date(endedAt))));
+  return row?.best ?? null;
 }
