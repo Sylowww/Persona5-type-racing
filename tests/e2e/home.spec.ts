@@ -33,7 +33,7 @@ test("renders the home page sections", async ({ page }) => {
   const menu = page.getByRole("navigation", { name: "Main menu" });
   await expect(menu.getByRole("button", { name: /Start a race/i })).toBeVisible();
   await expect(menu.getByRole("link", { name: /Quick play \/\/ 1v1/ })).toBeVisible();
-  await expect(menu.getByRole("button", { name: /Training dojo/ })).toBeVisible();
+  await expect(menu.getByRole("button", { name: /Velvet Room/ })).toBeVisible();
   await expect(menu.getByRole("link", { name: /Find a lobby/ })).toBeVisible();
   await expect(page.getByLabel("Lobby code")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Unknown phantom" })).toBeVisible();

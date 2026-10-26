@@ -40,7 +40,7 @@ test("signed-in pages pass the automated accessibility checks", async ({ page })
 test("the race and results pages pass the automated accessibility checks", async ({ page }) => {
   test.setTimeout(90_000);
   await signUp(page, "a11y-race");
-  await page.getByRole("button", { name: /Training dojo/ }).click();
+  await page.getByRole("button", { name: /Velvet Room/ }).click();
   const input = page.getByLabel("Type the text");
   await expect(input).toBeEditable({ timeout: 15_000 });
   expect(await violations(page), "race").toEqual([]);

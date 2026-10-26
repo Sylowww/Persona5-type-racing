@@ -81,7 +81,7 @@ const en = {
       },
       training: {
         badge: "Solo drills",
-        title: "Training dojo",
+        title: "Velvet Room",
         description: "Race alone at your own pace, with your results and heatmap. Nothing is saved.",
       },
     },
