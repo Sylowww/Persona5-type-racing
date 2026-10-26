@@ -52,7 +52,7 @@ export default async function RaceResultsPage({ params }: Params) {
       <ResultsCutIn dictionary={dictionary.cutIn} verdict={resultsVerdict(you.finishMs !== null, place, ranked.length)} />
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
-        <div className="relative z-10 mx-auto w-full max-w-7xl space-y-6 px-4 py-4 md:px-10">
+        <div className="relative z-10 mx-auto w-full max-w-7xl space-y-10 px-4 py-10 md:px-10">
           <ResultsReport
             dictionary={dictionary}
             locale={locale}

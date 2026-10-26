@@ -36,11 +36,11 @@ export function ResultsPodium({ dictionary, locale, racers, youId }: ResultsPodi
         badge={formatMessage(dictionary.racers, { count: racers.length })}
       />
 
-      <ol className="flex flex-col gap-4">
+      <ol className="flex flex-col gap-2">
         {winner && (
-          <li aria-label={label(winner, 1)} className="relative rotate-[1.5deg] bg-surface-container p-5 shadow-hard-lg">
+          <li aria-label={label(winner, 1)} className="panel border-t-4 border-t-secondary-fixed p-5">
             <div className="flex items-start gap-4">
-              <div className="relative size-24 shrink-0 overflow-hidden bg-surface-container-lowest shadow-hard-sm">
+              <div className="relative size-24 shrink-0 overflow-hidden bg-surface-container-lowest">
                 <Image src={characterAllOutPortrait(winner.character)} alt="" fill sizes="96px" className="object-cover" />
                 <span className="absolute inset-x-0 bottom-0 bg-primary-container/90 py-0.5 text-center font-hud text-label-hud font-black uppercase text-on-primary-container">
                   {dictionary.winner}
@@ -67,15 +67,13 @@ export function ResultsPodium({ dictionary, locale, racers, youId }: ResultsPodi
           <li
             key={racer.id}
             aria-label={label(racer, index + 2)}
-            className={`flex items-center justify-between gap-3 bg-surface-container-low p-4 shadow-hard-md ${
-              index % 2 === 0 ? "-rotate-1" : "rotate-1"
-            }`}
+            className="flex items-center justify-between gap-3 border-b border-surface-container-high px-1 py-3"
           >
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-8 shrink-0 items-center justify-center bg-surface-container-high font-hud text-headline-sm font-black text-outline">
+              <span className="flex size-8 shrink-0 items-center justify-center font-display text-headline-sm italic text-on-surface-variant">
                 {index + 2}
               </span>
-              <div className="relative size-10 shrink-0 overflow-hidden shadow-hard-xs">
+              <div className="relative size-10 shrink-0 overflow-hidden">
                 <Image src={characterAllOutPortrait(racer.character)} alt="" fill sizes="40px" className="object-cover" />
               </div>
               <div className="min-w-0">
@@ -104,7 +102,7 @@ function RacerName({ name, isYou, you }: { name: string; isYou: boolean; you: st
     <div className="flex min-w-0 items-center gap-1.5">
       <span className="truncate font-hud text-headline-sm font-black uppercase text-secondary">{name}</span>
       {isYou && (
-        <span className="shrink-0 -rotate-3 bg-primary-container px-1.5 font-hud text-label-hud font-black uppercase text-on-primary-container">
+        <span className="shrink-0 bg-primary-container px-1.5 font-hud text-label-hud font-black uppercase text-on-primary-container">
           {you}
         </span>
       )}

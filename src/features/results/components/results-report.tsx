@@ -32,7 +32,7 @@ export function ResultsReport({ dictionary, locale, result, ranked, you, place, 
         wpm={you.wpm}
         beatenRecord={beatenRecord}
       />
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
         <ResultsPodium dictionary={dictionary.podium} locale={locale} racers={ranked} youId={result.youId} />
         <CombatDossier dictionary={dictionary.dossier} locale={locale} result={result} wpm={you.wpm} />
         <KeyboardHeatmap dictionary={dictionary.heatmap} keyStats={result.keyStats} />

@@ -29,7 +29,7 @@ export function KeyboardHeatmap({ dictionary, keyStats }: KeyboardHeatmapProps) 
     <section aria-labelledby="results-heatmap" className="flex flex-col gap-4">
       <SectionTag id="results-heatmap" icon="keyboard" title={dictionary.title} badge={dictionary.layout} />
 
-      <div className="bg-surface-container p-4 shadow-hard-lg">
+      <div className="panel p-5">
         <ul aria-label={dictionary.legend} className="mb-3 flex flex-wrap justify-end gap-3 font-hud text-label-hud font-black uppercase text-on-surface-variant">
           {legend.map((heat) => (
             <li key={heat} className="flex items-center gap-1">
