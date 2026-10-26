@@ -204,6 +204,8 @@ describe("finishing a race", () => {
     expect(result).toMatchObject({ youId: "ann", durationMs: 3_000, keystrokes: 7, mistakes: 1 });
     expect(result?.keyStats.find((stat) => stat.key === "o")).toMatchObject({ mistakes: 1 });
     expect(viewFor(state, "ann", START + 3_000)?.hasResult).toBe(true);
+    // Every racer's WPM series is in the results, for the shared chart (RES-03).
+    expect(result?.racers.map((racer) => racer.samples.at(-1)?.atMs)).toEqual([2_000, 3_000]);
   });
 
   it("ends at the time limit and ranks unfinished racers as not finished", () => {

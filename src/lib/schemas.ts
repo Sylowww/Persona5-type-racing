@@ -32,6 +32,8 @@ export const memberIdSchema = z.string().min(1).max(64);
 /** Invite link tokens: 128 random bits in base64url (22 characters), with some room. */
 export const inviteTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{16,64}$/);
 export const uuidSchema = z.uuid();
+/** A 1-based page number from the query string; anything invalid falls back to the first page. */
+export const pageSchema = z.coerce.number().int().min(1).max(100_000).catch(1);
 export const oauthProviderSchema = z.enum(oauthProviders);
 
 /** The OAuth flow kept in a cookie between the redirect to the provider and its callback. */

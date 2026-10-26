@@ -899,6 +899,7 @@ function finishRace(state: LobbyState, now: number): LobbyState {
       finishMs: typing.finishedAt === null ? null : timeMs,
       timeMs,
       status,
+      samples: racer.samples,
     };
   });
 
