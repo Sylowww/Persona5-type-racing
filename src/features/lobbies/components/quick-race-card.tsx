@@ -14,11 +14,11 @@ export function QuickRaceCard({ dictionary, errors, locale }: QuickRaceCardProps
   const [isPending, startTransition] = useTransition();
 
   return (
-    <section className="flex flex-col gap-3 bg-primary-container p-4 text-on-primary-container shadow-hard-xl shadow-secondary-fixed sm:p-6">
+    <section className="flex flex-col gap-4 border-l-4 border-primary-container bg-surface-container-low p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-col">
-          <h2 className="font-display text-headline-md uppercase italic">{dictionary.title}</h2>
-          <p className="text-[14px]">{dictionary.text}</p>
+        <div className="flex flex-col gap-1">
+          <h2 className="font-display text-headline-md uppercase italic tracking-wide text-secondary">{dictionary.title}</h2>
+          <p className="text-on-surface-variant">{dictionary.text}</p>
         </div>
         <button
           type="button"
@@ -31,21 +31,21 @@ export function QuickRaceCard({ dictionary, errors, locale }: QuickRaceCardProps
               setResult(isBusy && window.confirm(errors.alreadyInLobby) ? await quickRace(locale, true) : first);
             })
           }
-          className="flex -skew-x-6 items-center gap-2 bg-secondary-fixed px-5 py-2 font-hud text-headline-sm font-black uppercase italic text-on-secondary-fixed shadow-hard-sm transition-transform enabled:hover:-translate-y-0.5 disabled:opacity-70"
+          className="btn-primary"
         >
-          <Icon name="bolt" size={22} filled className="skew-x-6" />
-          <span className="skew-x-6">{dictionary.button}</span>
+          <Icon name="bolt" size={20} filled />
+          {dictionary.button}
         </button>
       </div>
       {result && (
-        <div role="status" className="flex flex-wrap items-center justify-between gap-3 bg-surface-container-lowest px-4 py-3 text-on-surface">
+        <div role="status" className="flex flex-wrap items-center justify-between gap-3 border-t border-surface-container-high pt-4 text-on-surface">
           <p>{result.state === "none" ? dictionary.none : errors[result.error]}</p>
           {result.state === "none" && result.canCreate && (
             <button
               type="button"
               disabled={isPending}
               onClick={() => startTransition(() => createPublicLobby(locale))}
-              className="bg-primary-container px-3 py-1 font-hud text-label-hud font-black uppercase text-on-primary-container shadow-hard-xs"
+              className="btn-ghost"
             >
               {dictionary.create}
             </button>

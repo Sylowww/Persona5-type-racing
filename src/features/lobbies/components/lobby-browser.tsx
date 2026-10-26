@@ -58,9 +58,9 @@ export function LobbyBrowser({ dictionary, modeNames, complexityNames, locale, l
   }
 
   return (
-    <section className="flex flex-col gap-4 bg-surface-container p-4 shadow-hard-xl shadow-primary-container sm:p-6">
+    <section className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <FilterGroup
             label={dictionary.filters.language}
             options={languageFilters.map((option) => ({ value: option, label: dictionary.filters.languages[option] }))}
@@ -77,7 +77,7 @@ export function LobbyBrowser({ dictionary, modeNames, complexityNames, locale, l
         <button
           type="button"
           onClick={() => router.refresh()}
-          className="flex -skew-x-6 items-center gap-1 bg-surface-container-high px-3 py-1 font-hud text-label-hud font-black uppercase text-secondary shadow-hard-xs hover:-translate-y-0.5"
+          className="btn-ghost px-3 py-1.5"
         >
           <Icon name="refresh" size={16} />
           {dictionary.refresh}
@@ -85,21 +85,21 @@ export function LobbyBrowser({ dictionary, modeNames, complexityNames, locale, l
       </div>
 
       {shown.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 bg-surface-container-lowest px-4 py-10 text-center">
+        <div className="panel flex flex-col items-center gap-3 px-4 py-14 text-center">
           <Icon name="theater_comedy" size={40} className="text-primary-container" />
           <p className="text-on-surface-variant">{lobbies.length === 0 ? dictionary.empty : dictionary.emptyFiltered}</p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="panel flex flex-col divide-y divide-surface-container-high">
           {shown.map((lobby) => {
             const isFull = lobby.playerCount >= lobby.capacity;
             const isRacing = lobby.phase === "countdown" || lobby.phase === "racing";
             const status = isRacing ? dictionary.racing : isFull ? dictionary.full : dictionary.waiting;
             return (
-              <li key={lobby.code} className="flex flex-col gap-1 bg-surface-container-lowest px-3 py-2">
+              <li key={lobby.code} className="flex flex-col gap-1 px-4 py-4 transition-colors hover:bg-surface-container">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate font-hud text-[15px] font-black uppercase text-secondary">
+                    <span className="truncate font-hud text-[15px] font-black uppercase tracking-wide text-secondary">
                       {formatMessage(dictionary.host, { name: lobby.hostName })}
                     </span>
                     <span className="font-hud text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
@@ -123,7 +123,7 @@ export function LobbyBrowser({ dictionary, modeNames, complexityNames, locale, l
                     disabled={isPending || isFull || isRacing}
                     onClick={() => join(lobby.code)}
                     aria-label={`${dictionary.join} - ${formatMessage(dictionary.host, { name: lobby.hostName })}`}
-                    className="-skew-x-6 bg-primary-container px-4 py-1 font-hud text-label-hud font-black uppercase italic text-on-primary-container shadow-hard-sm shadow-secondary enabled:hover:-translate-y-0.5 disabled:bg-surface-container-high disabled:text-outline disabled:shadow-none"
+                    className="btn-primary px-4 py-1.5"
                   >
                     {dictionary.join}
                   </button>
@@ -156,8 +156,8 @@ function FilterGroup<T extends string>({ label, options, value, onPick }: Filter
             type="button"
             aria-pressed={isActive}
             onClick={() => onPick(option.value)}
-            className={`px-3 py-1 font-hud text-label-hud font-black uppercase ${
-              isActive ? "bg-primary-container text-on-primary-container shadow-hard-xs" : "bg-surface-container-high text-on-surface-variant hover:text-secondary"
+            className={`border px-3 py-1 font-hud text-label-hud font-black uppercase transition-colors ${
+              isActive ? "border-primary-container bg-primary-container text-on-primary-container" : "border-surface-container-highest text-on-surface-variant hover:text-secondary"
             }`}
           >
             {option.label}

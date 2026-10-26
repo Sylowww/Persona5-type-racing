@@ -26,10 +26,10 @@ export function LeaderboardPagination({ dictionary, locale, page, pageCount }: L
 }
 
 function ArrowLink({ icon, label, href }: { icon: IconName; label: string; href: string | null }) {
-  const className = "flex size-10 -skew-x-6 items-center justify-center shadow-hard-sm";
+  const className = "flex size-10 items-center justify-center border";
   if (!href) {
     return (
-      <span role="link" aria-disabled="true" aria-label={label} className={`${className} bg-surface-container text-outline opacity-50`}>
+      <span role="link" aria-disabled="true" aria-label={label} className={`${className} border-surface-container-high text-on-surface-variant opacity-50`}>
         <Icon name={icon} size={24} />
       </span>
     );
@@ -38,7 +38,7 @@ function ArrowLink({ icon, label, href }: { icon: IconName; label: string; href:
     <Link
       href={href}
       aria-label={label}
-      className={`${className} bg-primary-container text-on-primary-container transition-transform hover:-translate-y-0.5`}
+      className={`${className} border-surface-container-highest text-secondary transition-colors hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container`}
     >
       <Icon name={icon} size={24} />
     </Link>

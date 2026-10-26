@@ -28,7 +28,7 @@ export default async function QuickPlayPage({ params }: { params: Promise<{ loca
     <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
-        <div className="relative z-10 mx-auto flex w-full max-w-[640px] flex-col gap-6 px-4 py-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-[640px] flex-col gap-10 px-4 py-10 md:py-14">
           <PageHeading eyebrow={quick.tape} title={quick.title}>
             {quick.hint}
           </PageHeading>

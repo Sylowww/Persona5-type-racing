@@ -30,7 +30,7 @@ export default async function LobbiesPage({ params }: { params: Promise<{ locale
     <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
-        <div className="relative z-10 mx-auto flex w-full max-w-[900px] flex-col gap-6 px-4 py-10 md:px-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-[960px] flex-col gap-10 px-4 py-10 md:px-10 md:py-14">
           <PageHeading eyebrow={lobbies.tape} title={lobbies.title}>
             {lobbies.subtitle}
           </PageHeading>

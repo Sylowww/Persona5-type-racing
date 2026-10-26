@@ -38,12 +38,12 @@ export default async function LeaderboardPage({ params, searchParams }: Leaderbo
       <div className="relative flex w-full flex-col">
         <PageBackdrop />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-[900px] flex-col gap-6 px-4 py-10 md:px-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-[960px] flex-col gap-10 px-4 py-10 md:px-10 md:py-14">
           <PageHeading eyebrow={formatMessage(leaderboard.tape, { count: LEADERBOARD_SIZE })} title={leaderboard.title}>
             {leaderboard.subtitle}
           </PageHeading>
 
-          <section className="flex flex-col gap-4 bg-surface-container p-4 shadow-hard-xl shadow-primary-container sm:p-6">
+          <section className="flex flex-col gap-5">
             <LeaderboardTable dictionary={leaderboard} rows={rows} youId={user?.kind === "registered" ? user.id : null} />
             {rows.length > 0 && <LeaderboardPagination dictionary={leaderboard} locale={locale} page={page} pageCount={pageCount} />}
           </section>
