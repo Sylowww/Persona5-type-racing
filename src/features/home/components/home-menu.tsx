@@ -27,14 +27,15 @@ const layout: Record<ItemId, string> = {
   browse: "rotate-2 ml-10 md:ml-24",
 };
 
-// The selection shard: a jagged red slash that snaps open behind the entry under the pointer or focus.
+// The selection shard: a jagged red slash that snaps open behind the entry under the pointer or focus, while the entry
+// swings toward the screen.
 const itemClass =
   "group relative isolate flex w-fit cursor-pointer flex-wrap items-baseline gap-x-4 gap-y-1 text-left font-display uppercase italic leading-none text-secondary transition-transform duration-150 " +
   "before:absolute before:-inset-x-5 before:-inset-y-2 before:-z-10 before:origin-left before:scale-x-0 before:bg-primary-container before:transition-transform before:duration-150 " +
   "before:[clip-path:polygon(0_18%,6%_0,58%_10%,100%_0,95%_52%,100%_100%,40%_88%,3%_100%)] " +
   "after:absolute after:-inset-x-3 after:-inset-y-0.5 after:-z-20 after:origin-left after:scale-x-0 after:bg-secondary after:transition-transform after:delay-75 after:duration-150 " +
   "after:[clip-path:polygon(0_30%,10%_8%,70%_20%,100%_6%,92%_60%,98%_96%,30%_80%,0_92%)] " +
-  "data-[active=true]:translate-x-2 data-[active=true]:before:scale-x-100 data-[active=true]:after:scale-x-100 motion-reduce:transition-none motion-reduce:before:transition-none motion-reduce:after:transition-none";
+  "data-[active=true]:translate-x-2 motion-safe:data-[active=true]:[transform:perspective(700px)_rotateY(-14deg)] data-[active=true]:before:scale-x-100 data-[active=true]:after:scale-x-100 motion-reduce:transition-none motion-reduce:before:transition-none motion-reduce:after:transition-none";
 
 const badgeClass = "not-italic font-hud text-label-hud font-black tracking-widest text-on-surface-variant group-data-[active=true]:text-on-primary-container";
 

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { CallingCardBanner } from "@/features/home/components/calling-card-banner";
 import { HomeHero } from "@/features/home/components/home-hero";
 import { PageBackdrop } from "@/components/layout/page-backdrop";
+import { Tilt } from "@/components/ui/tilt";
 import { HomeMenu } from "@/features/home/components/home-menu";
 import { JoinCodeCard } from "@/features/home/components/join-code-card";
 import { PhantomMarquee } from "@/features/home/components/phantom-marquee";
@@ -50,12 +51,16 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
         <div className="relative z-10 mx-auto grid w-full max-w-[1600px] grid-cols-1 items-start gap-12 px-4 pt-12 pb-16 md:px-10 xl:grid-cols-12 xl:gap-14">
           <div className="flex flex-col gap-14 xl:col-span-7">
-            <JoinCodeCard dictionary={home.joinCode} locale={locale} />
+            <Tilt max={4}>
+              <JoinCodeCard dictionary={home.joinCode} locale={locale} />
+            </Tilt>
             <TypingPreview dictionary={home.typingPreview} />
           </div>
 
           <div className="xl:col-span-5">
-            <PlayerDossier locale={locale} dictionary={home.dossier} user={user} stats={stats} radar={skillRadar(recentRaces)} />
+            <Tilt max={3}>
+              <PlayerDossier locale={locale} dictionary={home.dossier} user={user} stats={stats} radar={skillRadar(recentRaces)} />
+            </Tilt>
           </div>
         </div>
       </div>
