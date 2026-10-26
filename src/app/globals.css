@@ -122,6 +122,63 @@
   }
 }
 
+/* Buttons: one loud red action per area (btn-primary), everything else quiet (btn-ghost). */
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  font-family: var(--font-hud);
+  font-size: var(--text-label-hud);
+  line-height: var(--text-label-hud--line-height);
+  letter-spacing: 0.12em;
+  font-weight: 900;
+  text-transform: uppercase;
+  transition: background-color 150ms, color 150ms;
+
+  &:enabled:hover,
+  &:is(a):hover {
+    background-color: var(--color-secondary-fixed);
+    color: var(--color-on-secondary-fixed);
+  }
+
+  &:disabled {
+    background-color: var(--color-surface-container-high);
+    color: var(--color-on-surface-variant);
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--color-surface-container-highest);
+  color: var(--color-secondary);
+  font-family: var(--font-hud);
+  font-size: var(--text-label-hud);
+  line-height: var(--text-label-hud--line-height);
+  letter-spacing: 0.12em;
+  font-weight: 900;
+  text-transform: uppercase;
+  transition: border-color 150ms, color 150ms;
+
+  &:enabled:hover,
+  &:is(a):hover {
+    border-color: var(--color-primary-container);
+  }
+
+  &:disabled {
+    color: var(--color-on-surface-variant);
+    cursor: not-allowed;
+  }
+}
+
 /* Page backdrop: a single red slash cutting across the top corner, the way the official sites frame a page. */
 @utility phantom-slash {
   position: absolute;

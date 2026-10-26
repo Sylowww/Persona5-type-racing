@@ -25,28 +25,25 @@ export function AuthShell({ tape, title, subtitle, note, switchPrompt, switchLab
         <PageBackdrop />
 
         <div className="relative z-10 mx-auto grid w-full max-w-[1200px] grid-cols-1 items-center gap-12 px-4 py-10 md:px-10 lg:grid-cols-2 lg:py-16">
-          <section className="relative mx-auto w-full max-w-[480px]">
-            <div className="absolute -inset-1 translate-x-2 translate-y-2 rotate-[1.5deg] bg-primary-container" />
-            <div className="relative rotate-[-0.5deg] bg-surface-container-high p-6 shadow-hard-lg md:p-8">
-              <span className="absolute -top-4 left-6 rotate-[-3deg] bg-secondary-fixed px-3 py-1 font-hud text-label-hud font-black uppercase tracking-widest text-on-secondary-fixed shadow-hard-xs">
-                {tape}
-              </span>
-              <h1 className="mt-2 font-display text-headline-md uppercase italic tracking-wider text-secondary md:text-headline-lg">
+          <section className="mx-auto w-full max-w-[480px]">
+            <div className="panel border-t-4 border-t-primary-container p-6 md:p-8">
+              <span className="eyebrow">{tape}</span>
+              <h1 className="mt-3 font-display text-headline-md uppercase italic tracking-wider text-secondary md:text-headline-lg">
                 {title}
               </h1>
               <p className="mt-1 text-on-surface-variant">{subtitle}</p>
               {note && (
-                <p className="mt-3 flex items-center gap-2 bg-surface-container-lowest px-3 py-2 font-hud text-label-hud font-black uppercase text-secondary-fixed">
+                <p className="mt-4 flex items-center gap-2 font-hud text-label-hud font-black uppercase tracking-wider text-secondary-fixed">
                   <Icon name="star" size={16} filled />
                   {note}
                 </p>
               )}
-              <div className="mt-6">{children}</div>
-              <p className="mt-6 flex flex-wrap items-center gap-2 text-on-surface-variant">
+              <div className="mt-8">{children}</div>
+              <p className="mt-8 flex flex-wrap border-t border-surface-container-high pt-6 items-center gap-2 text-on-surface-variant">
                 {switchPrompt}
                 <Link
                   href={switchHref}
-                  className="font-hud font-black uppercase italic text-secondary-fixed underline decoration-2 underline-offset-4 hover:text-secondary"
+                  className="font-hud font-black uppercase tracking-wider text-secondary-fixed underline decoration-2 underline-offset-4 hover:text-secondary"
                 >
                   {switchLabel}
                 </Link>
@@ -55,7 +52,7 @@ export function AuthShell({ tape, title, subtitle, note, switchPrompt, switchLab
           </section>
 
           <div aria-hidden="true" className="hidden flex-col gap-6 lg:flex">
-            <Icon name="keyboard" size={72} className="rotate-[-6deg] text-primary-container" />
+            <Icon name="keyboard" size={64} className="text-primary-container" />
             <p className="font-body text-typing-stream leading-relaxed">
               <span className="text-secondary">{preview.slice(0, TYPED)}</span>
               <span className="border-l-2 border-secondary-fixed motion-safe:animate-pulse" />

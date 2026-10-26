@@ -33,7 +33,7 @@ export function OAuthButtons({ locale, providers, dictionary }: OAuthButtonsProp
           <a
             key={provider}
             href={`/api/auth/${provider}?locale=${locale}`}
-            className="flex items-center justify-center gap-3 bg-surface-container-lowest px-4 py-2.5 font-hud text-label-hud font-black uppercase tracking-widest text-secondary shadow-hard-sm transition-colors hover:bg-secondary hover:text-surface-container-lowest"
+            className="btn-ghost gap-3"
           >
             <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5 fill-current">
               <path d={providerPaths[provider]} />
@@ -43,9 +43,9 @@ export function OAuthButtons({ locale, providers, dictionary }: OAuthButtonsProp
         ))}
       </div>
       <div className="flex items-center gap-3" aria-hidden="true">
-        <span className="h-0.5 flex-1 -skew-x-12 bg-surface-container-highest" />
-        <span className="font-hud text-label-hud font-black uppercase italic text-on-surface-variant">{dictionary.divider}</span>
-        <span className="h-0.5 flex-1 -skew-x-12 bg-surface-container-highest" />
+        <span className="h-px flex-1 bg-surface-container-highest" />
+        <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">{dictionary.divider}</span>
+        <span className="h-px flex-1 bg-surface-container-highest" />
       </div>
     </div>
   );
