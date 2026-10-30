@@ -114,9 +114,9 @@ export function Compendium({ dictionary, confidants, names, locale, stats, chose
                   type="button"
                   onClick={() => inspect(id)}
                   disabled={stats === null}
-                  aria-label={formatMessage(dictionary.inspect, { name: names[id] })}
                   className="block cursor-pointer [transform-style:preserve-3d] disabled:cursor-default"
                 >
+                  <span className="sr-only">{formatMessage(dictionary.inspect, { name: names[id] })}</span>
                   <CardFaces confidants={confidants} id={id} rank={rank} faceDown={rank === 0} back={<TarotBack numeral={arcanaNumerals[characterArcana[id]]} className="size-full" />} />
                 </button>
                 {chosen === id && (
@@ -192,10 +192,14 @@ type CardFacesProps = {
   back: ReactNode;
 };
 
-/** A two-sided tarot card (`.flip-*` in globals.css): the confidant card in front, `back` behind. */
+/**
+ * A two-sided tarot card (`.flip-*` in globals.css): the confidant card in front, `back` behind. Hidden from assistive
+ * tech: the button around it carries a visually hidden label instead.
+ */
 function CardFaces({ confidants, id, rank, width, faceDown, back }: CardFacesProps) {
   return (
     <span
+      aria-hidden="true"
       className={`flip-card relative block transition-transform duration-700 ease-[cubic-bezier(0.2,0.9,0.3,1.15)] motion-reduce:transition-none ${
         faceDown ? "[transform:rotateY(180deg)]" : ""
       }`}
@@ -240,7 +244,8 @@ function Inspected({ dictionary, confidants, locale, id, name, stats, isChosen, 
   return (
     <div className="flex w-full flex-col items-center gap-8 sm:flex-row sm:items-center sm:gap-12">
       <Tilt glare={rank > 0 ? "holo" : "none"} max={10} className="card-swing shrink-0 -rotate-2">
-        <button type="button" onClick={onFlip} aria-label={dictionary.flip} aria-pressed={flipped} className="block cursor-pointer [transform-style:preserve-3d]">
+        <button type="button" onClick={onFlip} aria-pressed={flipped} className="block cursor-pointer [transform-style:preserve-3d]">
+          <span className="sr-only">{dictionary.flip}</span>
           <CardFaces
             confidants={confidants}
             id={id}
