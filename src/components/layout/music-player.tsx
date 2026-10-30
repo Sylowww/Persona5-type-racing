@@ -35,6 +35,9 @@ function getMusic(): HTMLAudioElement {
   const musicWindow = window as MusicWindow;
   if (!musicWindow.__typeStrikeMusic) {
     const audio = new Audio();
+    // Download the track only once it plays: browsers block autoplay until the first interaction, and fetching
+    // several megabytes up front would slow down the first load of every page (PERF-01).
+    audio.preload = "none";
     audio.loop = true;
     audio.volume = volume;
     musicWindow.__typeStrikeMusic = audio;
@@ -117,10 +120,10 @@ export function MusicPlayer({ dictionary }: { dictionary: Dictionary["header"]["
   }
 
   const buttonClass =
-    "flex size-9 items-center justify-center bg-surface-container text-on-surface-variant transition-colors hover:text-on-surface";
+    "flex size-9 items-center justify-center text-on-surface-variant transition-colors hover:bg-surface-container hover:text-secondary";
 
   return (
-    <div ref={menuRef} className="relative flex items-center gap-1">
+    <div ref={menuRef} className="relative flex items-center">
       <button
         type="button"
         aria-haspopup="menu"
@@ -148,7 +151,7 @@ export function MusicPlayer({ dictionary }: { dictionary: Dictionary["header"]["
         <div
           role="menu"
           aria-label={dictionary.theme}
-          className="absolute right-0 top-full mt-2 flex w-48 flex-col bg-surface-container-high p-1 shadow-hard-sm shadow-secondary"
+          className="absolute right-0 top-full mt-2 flex w-48 flex-col border border-surface-container-highest bg-surface-container-low p-1"
         >
           <span className="px-2 py-1 font-hud text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
             {dictionary.theme}

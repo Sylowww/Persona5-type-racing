@@ -30,9 +30,11 @@ test("sends the root URL to the browser language", async ({ browser }) => {
 
 test("renders the home page sections", async ({ page }) => {
   await page.goto("/en");
-  await expect(page.getByRole("button", { name: /Start a race/i })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Quick play // 1v1" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Training dojo" })).toBeVisible();
+  const menu = page.getByRole("navigation", { name: "Main menu" });
+  await expect(menu.getByRole("button", { name: /Start a race/i })).toBeVisible();
+  await expect(menu.getByRole("link", { name: /Quick play \/\/ 1v1/ })).toBeVisible();
+  await expect(menu.getByRole("button", { name: /Velvet Room/ })).toBeVisible();
+  await expect(menu.getByRole("link", { name: /Find a lobby/ })).toBeVisible();
   await expect(page.getByLabel("Lobby code")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Unknown phantom" })).toBeVisible();
 
@@ -40,10 +42,10 @@ test("renders the home page sections", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Lancer une course/i })).toBeVisible();
 });
 
-test("keeps only home and leaderboards in the nav and pages the leaderboard", async ({ page }) => {
+test("keeps home, characters, compendium and leaderboards in the nav and pages the leaderboard", async ({ page }) => {
   await page.goto("/en");
   const nav = page.getByRole("navigation", { name: "Main navigation" });
-  await expect(nav.getByRole("link")).toHaveText(["Home // Radar", "Leaderboards"]);
+  await expect(nav.getByRole("link")).toHaveText(["Home // Radar", "Phantom Thieves", "Compendium", "Leaderboards"]);
 
   await nav.getByRole("link", { name: "Leaderboards" }).click();
   await expect(page).toHaveURL(/\/en\/leaderboard$/);

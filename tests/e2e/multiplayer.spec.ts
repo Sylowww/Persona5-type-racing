@@ -104,11 +104,29 @@ test("two players race from lobby creation to results", async ({ browser }) => {
     await expect(page.getByRole("listitem", { name: new RegExp(`^Place 1: ${hostName}, \\d+ WPM$`) })).toBeVisible();
     await expect(page.getByRole("listitem", { name: new RegExp(`^Place 2: ${guestName}, \\d+ WPM$`) })).toBeVisible();
   }
+  // Full results table (RES-02): both racers finished.
+  const rows = host.getByRole("table").getByRole("row");
+  await expect(rows).toHaveCount(3);
+  await expect(rows.nth(1)).toContainText(hostName);
+  await expect(rows.nth(2)).toContainText("Finished");
+  // Every racer's speed on one chart (RES-03).
+  await expect(host.getByRole("img", { name: /^WPM of every racer during the race/ })).toBeVisible();
 
   // Rematch goes back to the same lobby.
   await guest.getByRole("link", { name: /Rematch/ }).click();
   await expect(guest).toHaveURL(new RegExp(`/en/lobby/${code}$`));
   await expect(guest.getByRole("heading", { name: hostName })).toBeVisible();
+
+  // The race is saved: the host's profile counts the win and reopens its full results (AUTH-06, HIST-02).
+  await expect(async () => {
+    await host.goto("/en/profile");
+    await expect(host.getByRole("link", { name: /^1\/2/ })).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 10_000 });
+  await expect(host.getByText("Wins", { exact: true }).locator("xpath=following-sibling::dd")).toHaveText("1");
+  await host.getByRole("link", { name: /^1\/2/ }).click();
+  await expect(host).toHaveURL(/\/en\/profile\/races\/[0-9a-f-]{36}$/);
+  await expect(host.getByRole("heading", { level: 1 })).toHaveText("Mission accomplished // Victory!");
+  await expect(host.getByRole("table").getByRole("row")).toHaveCount(3);
 
   await hostContext.close();
   await guestContext.close();
@@ -159,7 +177,7 @@ test("the host sets the race rules and players chat in the lobby", async ({ brow
 
 test("the training dojo starts a solo race", async ({ page }) => {
   await signUp(page, "dojo");
-  await page.getByRole("button", { name: /Training dojo/ }).click();
+  await page.getByRole("button", { name: /Velvet Room/ }).click();
   await expect(page).toHaveURL(/\/en\/lobby\/[A-Z2-9]{6}\/race$/);
   await expect(page.getByRole("timer", { name: /Race starts in/ })).toBeVisible();
   await expect(page.getByLabel("Type the text")).toBeEditable({ timeout: 10_000 });
@@ -214,4 +232,31 @@ test("a public lobby shows in the lobby browser and can be joined from it", asyn
   await expect(host.getByRole("heading", { name: guestName })).toBeVisible();
   await hostContext.close();
   await guestContext.close();
+});
+
+test("the lagging racer casts a Persona spell, announced on the track", async ({ page }) => {
+  test.setTimeout(90_000);
+  await signUp(page, "bonus");
+  const code = await createLobby(page);
+  await page.request.get(`/en/lobby/${code}/race`, { maxRedirects: 0 });
+
+  await page.getByRole("button", { name: "Lobby settings" }).click();
+  await page.getByRole("switch", { name: "Powers" }).click();
+  await expect(page.getByRole("switch", { name: "Powers" })).toHaveAttribute("aria-checked", "true");
+  await page.keyboard.press("Escape");
+  // The host picks who the bot races as.
+  await page.getByLabel("Races as").selectOption("crow");
+  await page.getByRole("button", { name: /Novice \/\/ Intern/ }).click();
+  await expect(page.locator('img[src*="crow"]').first()).toBeVisible();
+  await page.getByRole("button", { name: "Ready up" }).click();
+  await page.getByRole("button", { name: /Start the race/i }).click();
+
+  await expect(page).toHaveURL(new RegExp(`/en/lobby/${code}/race$`));
+  const input = page.getByLabel("Type the text");
+  await expect(input).toBeEditable({ timeout: 10_000 });
+  const text = await raceText(page);
+  // Pass the first checkpoint (25%) well ahead of a 30 WPM bot.
+  await input.pressSequentially(text.slice(0, Math.ceil(text.length * 0.3)), { delay: KEY_DELAY_MS });
+  // The bot races as a random character, so any Persona spell may come; it is announced on the track.
+  await expect(page.getByRole("status").getByRole("listitem").first()).toContainText(/bot|with|casts|uses|heals/i, { timeout: 5_000 });
 });

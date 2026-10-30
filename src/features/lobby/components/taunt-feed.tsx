@@ -42,10 +42,9 @@ export function TauntFeed({ dictionary, messages, youId, onSend }: TauntFeedProp
   }
 
   return (
-    <section className="flex flex-col gap-3 bg-surface-container p-4 shadow-hard-xl shadow-primary-container">
+    <section className="panel flex flex-col gap-3 p-5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="flex min-w-0 items-center gap-2 truncate font-hud text-[18px] font-black uppercase italic tracking-wider text-secondary">
-          <Icon name="chat" size={20} className="text-primary-container" />
+        <h2 className="eyebrow min-w-0 truncate">
           {dictionary.title}
         </h2>
         <span className="flex items-center gap-1.5 font-hud text-label-hud font-black uppercase text-secondary-fixed">
@@ -57,9 +56,9 @@ export function TauntFeed({ dictionary, messages, youId, onSend }: TauntFeedProp
       <ul
         ref={listRef}
         aria-live="polite"
-        className="flex h-64 flex-col gap-1.5 overflow-y-auto bg-surface-container-lowest p-3 text-[14px]"
+        className="flex h-64 flex-col gap-1.5 overflow-y-auto border border-surface-container-high bg-surface-container-lowest p-3 text-[14px]"
       >
-        {messages.length === 0 && <li className="italic text-outline">{dictionary.empty}</li>}
+        {messages.length === 0 && <li className="text-on-surface-variant">{dictionary.empty}</li>}
         {messages.map((message) => (
           <li key={message.id} className="break-words">
             <span className={`font-bold ${message.authorId === youId ? "text-secondary-fixed" : "text-primary"}`}>{message.author}:</span>{" "}
@@ -75,7 +74,7 @@ export function TauntFeed({ dictionary, messages, youId, onSend }: TauntFeedProp
             type="button"
             disabled={isPending}
             onClick={() => send(taunt, false)}
-            className="-skew-x-6 bg-surface-container px-2 py-0.5 font-hud text-[11px] font-black uppercase text-secondary transition-transform enabled:hover:-translate-y-0.5 enabled:hover:bg-primary-container"
+            className="border border-surface-container-highest px-2 py-0.5 font-hud text-[11px] font-black uppercase text-secondary transition-colors enabled:hover:border-primary-container"
           >
             {taunt}
           </button>
@@ -91,13 +90,13 @@ export function TauntFeed({ dictionary, messages, youId, onSend }: TauntFeedProp
           maxLength={MAX_MESSAGE_LENGTH}
           placeholder={dictionary.placeholder}
           autoComplete="off"
-          className="min-w-0 flex-1 bg-surface-container-lowest px-2 py-1 text-[13px] text-on-surface outline-none placeholder:text-outline focus:outline-2 focus:outline-secondary-fixed"
+          className="min-w-0 flex-1 border border-surface-container-highest bg-surface-container-lowest px-2 py-1.5 text-[13px] text-on-surface outline-none placeholder:text-outline focus:border-secondary-fixed focus:outline-2 focus:outline-secondary-fixed"
         />
         <button
           type="submit"
           disabled={isPending || draft.trim().length === 0}
           aria-label={dictionary.send}
-          className="flex items-center bg-primary-container px-2 text-on-primary-container disabled:opacity-50"
+          className="flex items-center bg-primary-container px-3 text-on-primary-container disabled:opacity-50"
         >
           <Icon name="send" size={18} />
         </button>

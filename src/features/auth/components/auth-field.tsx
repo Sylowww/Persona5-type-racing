@@ -22,8 +22,8 @@ export function AuthField({ name, label, icon, type = "text", autoComplete, defa
         {label}
       </label>
       <div
-        className={`flex items-center gap-2 bg-surface-container-lowest px-3 shadow-inner transition-shadow focus-within:shadow-hard-sm ${
-          error ? "shadow-hard-xs shadow-primary-container focus-within:shadow-primary-container" : "focus-within:shadow-secondary-fixed"
+        className={`flex items-center gap-2 border bg-surface-container-lowest px-3 transition-colors ${
+          error ? "border-primary-container" : "border-surface-container-highest focus-within:border-secondary-fixed"
         }`}
       >
         <Icon name={icon} size={20} className={error ? "text-primary-container" : "text-on-surface-variant"} />
@@ -41,7 +41,7 @@ export function AuthField({ name, label, icon, type = "text", autoComplete, defa
         />
       </div>
       {error ? (
-        <p id={`${id}-error`} className="flex items-center gap-1 font-hud text-label-hud font-black text-primary-container">
+        <p id={`${id}-error`} className="flex items-center gap-1 font-hud text-label-hud font-black text-error">
           <Icon name="warning" size={16} />
           {error}
         </p>

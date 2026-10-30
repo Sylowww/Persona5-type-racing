@@ -1,7 +1,8 @@
 // Human-like bot typists. A bot's whole race is planned when the race starts, as timed keystrokes that the
 // engine replays with the same typing rules as players: uneven rhythm, pauses between words, and typos
 // that the bot sometimes notices a few keys late before deleting them and typing the right character.
-import type { BotDifficulty } from "@/types/lobby";
+// Typos follow the race's error mode (BOT-03): fixed after a reaction in blocking mode, left behind in free mode.
+import type { BotDifficulty, RaceMode } from "@/types/lobby";
 import type { InputEvent } from "@/types/race";
 import { botTargetWpm } from "./lobby";
 
@@ -21,13 +22,15 @@ type BotProfile = {
   reactionMs: readonly [number, number];
 };
 
-export const botDifficulties: readonly BotDifficulty[] = ["novice", "rookie", "master", "godspeed"];
+export const botDifficulties: readonly BotDifficulty[] = ["noob", "novice", "rookie", "master", "godspeed"];
 
+// Typo rates follow the assignment's table (about 12%, 8%, 5%, 2% and 0.5%).
 const botProfiles: Record<BotDifficulty, BotProfile> = {
+  noob: { mistakeRate: 0.12, lateNoticeRate: 0.6, rhythmSpread: 0.7, hesitationRate: 0.2, reactionMs: [500, 1100] },
   novice: { mistakeRate: 0.08, lateNoticeRate: 0.55, rhythmSpread: 0.6, hesitationRate: 0.15, reactionMs: [400, 900] },
   rookie: { mistakeRate: 0.05, lateNoticeRate: 0.45, rhythmSpread: 0.5, hesitationRate: 0.08, reactionMs: [300, 700] },
-  master: { mistakeRate: 0.025, lateNoticeRate: 0.3, rhythmSpread: 0.35, hesitationRate: 0.04, reactionMs: [200, 450] },
-  godspeed: { mistakeRate: 0.012, lateNoticeRate: 0.2, rhythmSpread: 0.25, hesitationRate: 0.02, reactionMs: [150, 350] },
+  master: { mistakeRate: 0.02, lateNoticeRate: 0.3, rhythmSpread: 0.35, hesitationRate: 0.04, reactionMs: [200, 450] },
+  godspeed: { mistakeRate: 0.005, lateNoticeRate: 0.2, rhythmSpread: 0.25, hesitationRate: 0.02, reactionMs: [150, 350] },
 };
 
 /** A bot's speed varies from race to race by up to this share of its target. */
@@ -75,11 +78,57 @@ function keyEffort(char: string, profile: BotProfile, random: () => number): num
   return Math.max(0.3, (1 + noise) * (isSlowKey ? 1.5 : 1));
 }
 
+/** Small seeded generator (mulberry32), so bot plans made during a race stay reproducible (BOT-05). */
+export function seededRandom(seed: number): () => number {
+  let value = seed | 0;
+  return () => {
+    value = (value + 0x6d2b79f5) | 0;
+    let t = Math.imul(value ^ (value >>> 15), 1 | value);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
+  };
+}
+
+/**
+ * Plans the rest of a bot's race after its text changed (a bonus added or removed words): first erases what it got
+ * wrong (except in free mode, where mistakes stay), then types the rest of the new text. Times start at `fromMs`.
+ */
+export function replanBotRun(
+  text: string,
+  typed: string,
+  difficulty: BotDifficulty,
+  random: () => number,
+  mode: RaceMode,
+  fromMs: number,
+): BotStep[] {
+  let kept = typed.length;
+  if (mode !== "free") while (kept > 0 && typed.slice(0, kept) !== text.slice(0, kept)) kept--;
+  const deletes: BotStep[] = Array.from({ length: typed.length - kept }, (_, index) => ({ atMs: fromMs + (index + 1) * 120, event: { type: "delete" } }));
+  const start = (deletes.at(-1)?.atMs ?? fromMs);
+  const rest = planBotRun(text.slice(kept), difficulty, random, mode).map((step) => ({ ...step, atMs: start + step.atMs }));
+  return [...deletes, ...rest];
+}
+
+/**
+ * A spell on a bot: from `fromMs` (after the race start), the bot types at `speed` (0 to 1) of its pace for `durationMs`,
+ * then at its own pace again. Speed 0 freezes it (a stun); a hex only slows it, like a player squinting at blurred
+ * words. Keys already typed (`applied`) keep their time.
+ */
+export function slowBotSteps(steps: readonly BotStep[], applied: number, fromMs: number, durationMs: number, speed: number): BotStep[] {
+  const slowWork = durationMs * speed;
+  return steps.map((step, index) => {
+    if (index < applied) return step;
+    const work = Math.max(0, step.atMs - fromMs);
+    const elapsed = work < slowWork ? work / speed : work + durationMs - slowWork;
+    return { ...step, atMs: Math.round(fromMs + elapsed) };
+  });
+}
+
 /**
  * Plans a bot's race over `text`. The pace is scaled so the bot finishes at about its target speed
  * (varied per race), while typos and pauses still slow it down where they happen.
  */
-export function planBotRun(text: string, difficulty: BotDifficulty, random: () => number): BotStep[] {
+export function planBotRun(text: string, difficulty: BotDifficulty, random: () => number, mode: RaceMode = "normal"): BotStep[] {
   if (text.length === 0) return [];
   const profile = botProfiles[difficulty];
   const wpm = botTargetWpm[difficulty] * between(random, [1 - FORM_VARIATION, 1 + FORM_VARIATION]);
@@ -100,6 +149,14 @@ export function planBotRun(text: string, difficulty: BotDifficulty, random: () =
 
     if (random() < profile.mistakeRate) {
       press(wrongKeyFor(text[index], random), efforts[index]);
+      // Free mode: the typo stays and the bot moves on.
+      if (mode === "free") continue;
+      // Blocking mode: the cursor did not move, so the bot just reacts and types the right key.
+      if (mode === "blocking") {
+        time += pause(profile.reactionMs);
+        press(text[index], efforts[index]);
+        continue;
+      }
       let extra = 0;
       while (extra < 3 && index + 1 + extra < text.length && random() < profile.lateNoticeRate) {
         press(text[index + 1 + extra], efforts[index + 1 + extra]);

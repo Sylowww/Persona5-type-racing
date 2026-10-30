@@ -2,6 +2,7 @@ import { Icon } from "@/components/ui/icon";
 import { SpriteFrames } from "@/components/ui/sprite-frames";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { characterIds, characters } from "@/lib/characters";
+import { characterPersonas } from "@/lib/spells";
 import type { CharacterId } from "@/types/character";
 import { chooseCharacter } from "../actions";
 
@@ -13,9 +14,9 @@ type CharacterPickerProps = {
 // Plain form buttons: picking works without client JavaScript.
 export function CharacterPicker({ dictionary, selected }: CharacterPickerProps) {
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <h2 className="-skew-x-6 bg-secondary px-3 py-1 font-display text-headline-sm uppercase italic tracking-wider text-surface-container-lowest shadow-hard-md shadow-primary-container md:text-headline-md">
+        <h2 className="font-display text-headline-sm uppercase italic tracking-wider text-secondary md:text-headline-md">
           {dictionary.title}
         </h2>
         <p className="max-w-md text-[13px] text-on-surface-variant">{dictionary.hint}</p>
@@ -38,8 +39,7 @@ export function CharacterPicker({ dictionary, selected }: CharacterPickerProps) 
 function Showcase({ dictionary, selected }: CharacterPickerProps) {
   return (
     <div className="relative min-h-[300px]">
-      <div className="absolute -inset-1 translate-x-2 translate-y-2 rotate-[1.5deg] bg-surface-container-lowest" />
-      <div className="relative flex h-full min-h-[300px] -rotate-1 flex-col justify-end overflow-hidden bg-primary-container shadow-hard-xl">
+      <div className="relative flex h-full min-h-[300px] flex-col justify-end overflow-hidden bg-primary-container shadow-hard-xl">
         {/* Speed lines behind the character. */}
         <div aria-hidden="true" className="absolute inset-0 opacity-25">
           <div className="absolute -inset-x-10 top-[18%] h-6 -rotate-12 bg-surface-container-lowest" />
@@ -59,14 +59,29 @@ function Showcase({ dictionary, selected }: CharacterPickerProps) {
         />
 
         <div className="relative -mt-6 px-4 pb-4">
-          <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-primary-container">
+          <span className="bg-surface-container-lowest px-2 py-0.5 font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed">
             {dictionary.codename}
           </span>
           <p className="-skew-x-6 font-display text-headline-lg uppercase italic leading-none tracking-wider text-secondary [text-shadow:4px_4px_0_var(--color-surface-container-lowest)]">
             {dictionary.names[selected]}
           </p>
+          <PersonaPanel dictionary={dictionary} id={selected} />
         </div>
       </div>
+    </div>
+  );
+}
+
+/** The selected thief's Persona, which casts the spells they draw in a race (the same pool for every thief). */
+function PersonaPanel({ dictionary, id }: { dictionary: CharacterPickerProps["dictionary"]; id: CharacterId }) {
+  return (
+    <div className="mt-3 flex flex-col gap-1 bg-surface-container-lowest/90 p-3 shadow-hard-sm">
+      <span className="font-hud text-label-hud font-black uppercase tracking-widest text-on-surface-variant">{dictionary.persona}</span>
+      <span className="flex items-center gap-2 font-display text-headline-sm uppercase italic text-secondary-fixed">
+        <Icon name="star" size={22} filled />
+        {characterPersonas[id]}
+      </span>
+      <p className="text-[12px] italic text-on-surface-variant">{dictionary.personaHint}</p>
     </div>
   );
 }
@@ -110,6 +125,11 @@ function RosterCard({ id, name, isSelected }: { id: CharacterId; name: string; i
         }`}
       >
         {name}
+      </span>
+      <span
+        className={`relative mb-2 font-hud text-[11px] font-black uppercase tracking-wider ${isSelected ? "text-on-primary-container" : "text-on-surface-variant"}`}
+      >
+        {characterPersonas[id]}
       </span>
     </button>
   );

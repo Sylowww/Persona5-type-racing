@@ -73,7 +73,8 @@ describe("lobby store", () => {
     expect(store.updateSettings(code, "ann", { language: "fr" })).toBeNull();
     store.setReady(code, "bob", true);
     expect(store.start(code, "ann")).toBeNull();
-    expect(raceTexts.fr).toContain(bobStream.last()?.race?.text);
+    const text = bobStream.last()?.race?.text ?? "";
+    expect(raceTexts.fr.some((passage) => text.startsWith(passage.split(" ").slice(0, 4).join(" ")))).toBe(true);
   });
 
   it("runs the countdown and race on server time, then shares results", () => {
@@ -84,7 +85,7 @@ describe("lobby store", () => {
 
     const race = bobStream.last()?.race;
     const text = race?.text ?? "";
-    expect(raceTexts.en).toContain(text);
+    expect(raceTexts.en.some((passage) => text.startsWith(passage.split(" ").slice(0, 4).join(" ")))).toBe(true);
     const startsAt = race?.startsAt ?? 0;
     clock = startsAt;
     store.tick();
@@ -194,7 +195,7 @@ describe("training dojo", () => {
     // Typed within the 30 keys/s limit.
     clock += 3_000 + 20_000;
     store.tick();
-    const text = raceTexts.en[0];
+    const text = stream.last()?.race?.text ?? "";
     store.input(code, "ann", { clientId: "tab", seq: 1, events: chars(text.slice(0, 100)) });
     store.input(code, "ann", { clientId: "tab", seq: 2, events: chars(text.slice(100)) });
     expect(stream.last()?.phase).toBe("finished");
@@ -305,5 +306,71 @@ describe("name change", () => {
 
   it("does nothing for a player outside any lobby", () => {
     expect(() => store.setName("nobody", "ghost")).not.toThrow();
+  });
+});
+
+describe("invite links and lobby control", () => {
+  it("makes 128-bit tokens, finds the lobby of a link and forgets links once the lobby closes", () => {
+    const code = store.create(ann, "en");
+    expect(store.createInvite(code, "ann")).toBeNull();
+    const token = store.view(code, "ann")?.invites?.[0].token ?? "";
+    expect(token).toMatch(/^[A-Za-z0-9_-]{22}$/);
+    expect(store.inviteTarget(token)).toEqual({ code, hostName: "ann" });
+
+    expect(store.joinWithInvite(token, bob, "1.1.1.1")).toEqual({ code });
+    expect(store.lobbyOf("bob")).toBe(code);
+    expect(store.joinWithInvite(token, { id: "cid", name: "cid" }, "9.9.9.9")).toEqual({ error: "inviteUsed" });
+
+    expect(store.close(code, "bob")).toBe("notHost");
+    expect(store.close(code, "ann")).toBeNull();
+    expect(store.exists(code)).toBe(false);
+    expect(store.lobbyOf("bob")).toBeNull();
+    expect(store.inviteTarget(token)).toBeNull();
+    expect(store.joinWithInvite(token, bob, "1.1.1.1")).toEqual({ error: "invalidInvite" });
+  });
+
+  it("tells a kicked player their lobby is gone", () => {
+    const { code, bobStream } = readyLobby();
+    expect(store.kick(code, "ann", "bob")).toBeNull();
+    expect(bobStream.last()).toBeNull();
+    expect(store.join(code, bob)).toBe("kicked");
+  });
+});
+
+describe("quick race (JOIN-03)", () => {
+  it("picks the public lobby closest to full, the oldest on a tie, and skips full or private ones", () => {
+    expect(store.quickRaceLobby()).toBeNull();
+    const roomy = store.create(ann, "en");
+    store.setVisibility(roomy, "ann", "public");
+    clock += 1_000;
+    const nearlyFull = store.create(bob, "en");
+    store.setVisibility(nearlyFull, "bob", "public");
+    store.setCapacity(nearlyFull, "bob", 2);
+    clock += 1_000;
+    const hidden = store.create({ id: "cid", name: "cid" }, "en");
+    store.setCapacity(hidden, "cid", 2);
+    expect(store.quickRaceLobby()).toBe(nearlyFull);
+
+    // Full: the next best, the oldest of equals.
+    store.join(nearlyFull, { id: "dan", name: "dan" });
+    expect(store.quickRaceLobby()).toBe(roomy);
+  });
+});
+
+describe("one lobby per person (SALLE-06)", () => {
+  it("reports every lobby a person enters and leaves", () => {
+    const events: string[] = [];
+    let draws = 0;
+    store = createLobbyStore({
+      now: () => clock,
+      randomInt: (max) => draws++ % max,
+      tickMs: null,
+      onMembership: (userId, code, previous) => events.push(`${userId}:${previous ?? "-"}>${code ?? "-"}`),
+    });
+    const first = store.create(ann, "en");
+    store.join(first, bob);
+    const second = store.create(bob, "en");
+    store.close(first, "ann");
+    expect(events).toEqual([`ann:->${first}`, `bob:->${first}`, `bob:${first}>-`, `bob:->${second}`, `ann:${first}>-`]);
   });
 });

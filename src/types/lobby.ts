@@ -9,8 +9,11 @@ export type PlayerEmblem = "domino" | "cat" | "skull" | "mask";
  */
 export type LobbyKind = "custom" | "quick" | "training";
 
-/** Private custom lobbies are joined with their code or link; public ones are also listed in the lobby browser. */
-export type LobbyVisibility = "private" | "public";
+/**
+ * Who can join a custom lobby (SALLE-03). `public`: listed in the lobby browser and joined directly or with the code.
+ * `code`: not listed, joined with the code or an invite link. `private`: invite link only.
+ */
+export type LobbyVisibility = "public" | "code" | "private";
 
 /** A public lobby as the lobby browser lists it. */
 export type PublicLobby = {
@@ -38,6 +41,17 @@ export type LobbyMember = {
   isConnected: boolean;
   /** Difficulty of a bot; null for human players. */
   bot: BotDifficulty | null;
+  /** Follows the race without typing and takes no seat. */
+  isSpectator: boolean;
+};
+
+/** An invite link as its lobby's host sees it (SALLE-04). */
+export type LobbyInvite = {
+  token: string;
+  /** Who used the link first; null while unused. */
+  usedBy: string | null;
+  /** Revoked when its player was kicked. */
+  isRevoked: boolean;
 };
 
 /** Snapshot of a lobby for one viewer, sent by the server on every change. */
@@ -58,27 +72,52 @@ export type LobbyView = {
   settings: RaceSettings;
   /** Latest chat messages, oldest first. */
   messages: readonly LobbyMessage[];
+  /** Invite links of a custom lobby, for its host only; null for everyone else. */
+  invites: readonly LobbyInvite[] | null;
 };
 
-/** `suddenDeath`: the first mistake eliminates the racer. */
-export type RaceMode = "normal" | "suddenDeath";
+/**
+ * How mistakes work (CONF-08). `normal`: a wrong character stays and must be erased before finishing. `blocking`
+ * (correction obligatoire): a wrong key is counted but the cursor does not move until the right one is typed.
+ * `free` (libre): a wrong character is counted and the racer just keeps going. `suddenDeath`: the first mistake
+ * eliminates the racer.
+ */
+export type RaceMode = "normal" | "blocking" | "free" | "suddenDeath";
 
-export type BotDifficulty = "novice" | "rookie" | "master" | "godspeed";
+/** Five bot levels (BOT-01), slowest first. */
+export type BotDifficulty = "noob" | "novice" | "rookie" | "master" | "godspeed";
 
 export type KeySound = "clicky" | "tactile" | "silent";
 
+/** `coherent`: real passages from the corpus. `random`: words drawn from a word list (CONF-03). */
+export type TextType = "coherent" | "random";
+
+/** Measurable difficulty of a text (CONF-05); criteria in `lib/text-builder.ts`. */
+export type TextComplexity = "easy" | "medium" | "hard";
+
 export type RaceSettings = {
   mode: RaceMode;
-  /** Saved for when bonuses exist; no effect on races yet. */
+  /** Catch-up bonuses on (CONF-09). */
   powers: boolean;
   /** Race time limit in seconds; null for no limit. */
   timeLimitSec: number | null;
-  /** Texts with digits. */
+  /** Digits in the text. */
   numbers: boolean;
   /** When false, a letter typed in the wrong case counts as correct. */
   caseSensitive: boolean;
   /** Language of the race text, independent of the interface language. */
   language: "fr" | "en";
+  textType: TextType;
+  /** Length of the text in words (CONF-04). */
+  wordCount: number;
+  complexity: TextComplexity;
+  /** Punctuation, capitals and (French) accents kept in the text (CONF-06). */
+  punctuation: boolean;
+  capitals: boolean;
+  accents: boolean;
+  /** Random texts only (CONF-07): words must contain one of these letters / none of those. Empty when unused. */
+  includeChars: string;
+  excludeChars: string;
 };
 
 export type LobbyMessage = {

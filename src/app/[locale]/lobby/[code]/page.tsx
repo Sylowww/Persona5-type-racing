@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
+import { PageBackdrop } from "@/components/layout/page-backdrop";
 import { JoinCodeCard } from "@/features/home/components/join-code-card";
 import { LobbyRoom } from "@/features/lobby/components/lobby-room";
 import { loadLobby } from "@/features/lobby/load-lobby";
@@ -21,23 +21,36 @@ export default async function LobbyPage({ params }: Params) {
   const { locale, code: rawCode } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [{ code, view }, dictionary] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
+  const [{ code, view, joinError }, dictionary] = await Promise.all([loadLobby(locale, rawCode), getDictionary(locale)]);
   if (view && (view.phase === "countdown" || view.phase === "racing") && view.race?.you) {
     redirect(`/${locale}/lobby/${code}/race`);
   }
 
   return (
-    <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
+    <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <div className="relative flex w-full flex-col">
-        <HalftoneBackdrop />
+        <PageBackdrop />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-[1720px] flex-col gap-7 px-4 py-4 md:px-10">
+        <div className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-4 py-10 md:px-10">
           {view ? (
-            <LobbyRoom dictionary={dictionary.lobby} locale={locale} initialView={view} />
+            <LobbyRoom dictionary={dictionary.lobby} characterNames={dictionary.profile.character.names} locale={locale} initialView={view} />
           ) : (
-            // Opened from an invite link: join first.
+            // Opened from a lobby link: join first (or see why the code is not enough).
             <div className="mx-auto w-full max-w-md py-10">
-              <JoinCodeCard dictionary={dictionary.home.joinCode} locale={locale} defaultCode={code} />
+              <JoinCodeCard
+                dictionary={dictionary.home.joinCode}
+                locale={locale}
+                defaultCode={code}
+                initialError={
+                  joinError === "lobbyFull" ||
+                  joinError === "privateLobby" ||
+                  joinError === "raceInProgress" ||
+                  joinError === "kicked" ||
+                  joinError === "tooManyAttempts"
+                    ? joinError
+                    : null
+                }
+              />
             </div>
           )}
         </div>

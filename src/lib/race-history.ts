@@ -21,10 +21,11 @@ export function recordFromResult(result: RaceResult): RaceRecord | null {
 }
 
 export function summarizeRaces(records: readonly RaceRecord[]): PlayerStats {
-  if (records.length === 0) return { races: 0, bestWpm: 0, averageWpm: 0, accuracy: 0 };
+  if (records.length === 0) return { races: 0, wins: 0, bestWpm: 0, averageWpm: 0, accuracy: 0 };
   const total = (pick: (record: RaceRecord) => number) => records.reduce((sum, record) => sum + pick(record), 0);
   return {
     races: records.length,
+    wins: records.filter((record) => record.place === 1).length,
     bestWpm: Math.max(...records.map((record) => record.wpm)),
     averageWpm: total((record) => record.wpm) / records.length,
     accuracy: total((record) => record.accuracy) / records.length,
@@ -57,4 +58,25 @@ function isRaceRecord(value: unknown): value is RaceRecord {
     ["endedAt", "place", "racerCount", "wpm", "accuracy"].every(isNumber) &&
     (record.finishMs === null || isNumber("finishMs"))
   );
+}
+
+/**
+ * SVG polyline points for the WPM of successive races (AUTH-06), spread evenly across `width`; 0 WPM is at the bottom.
+ * A single race is drawn as a flat line.
+ */
+export function progressPoints(wpms: readonly number[], maxWpm: number, width: number, height: number): string {
+  if (wpms.length === 0 || maxWpm <= 0) return "";
+  const values = wpms.length === 1 ? [wpms[0] ?? 0, wpms[0] ?? 0] : wpms;
+  return values
+    .map((wpm, index) => {
+      const x = (index / (values.length - 1)) * width;
+      const y = height - (Math.min(wpm, maxWpm) / maxWpm) * height;
+      return `${Math.round(x * 10) / 10},${Math.round(y * 10) / 10}`;
+    })
+    .join(" ");
+}
+
+/** A new personal best (RES-04): faster than every earlier saved race. The first race sets no record to beat. */
+export function isPersonalBest(wpm: number, previousBest: number | null): boolean {
+  return previousBest !== null && wpm > previousBest;
 }

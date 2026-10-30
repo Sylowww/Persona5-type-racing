@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { HalftoneBackdrop } from "@/features/home/components/halftone-backdrop";
+import { PageBackdrop } from "@/components/layout/page-backdrop";
+import { PageHeading } from "@/components/ui/page-heading";
 import { LobbyBrowser } from "@/features/lobbies/components/lobby-browser";
+import { QuickRaceCard } from "@/features/lobbies/components/quick-race-card";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isLocale } from "@/i18n/locales";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -19,24 +21,21 @@ export default async function LobbiesPage({ params }: { params: Promise<{ locale
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  // Joining needs an account until guest sessions exist (same as creating a lobby).
+  // Visitors pick a guest nickname first: guests can join lobbies, not open them.
   const user = await getCurrentUser();
-  if (!user) redirect(`/${locale}/sign-in`);
+  if (!user) redirect(`/${locale}/guest?next=${encodeURIComponent(`/${locale}/lobbies`)}`);
   const { lobbies, lobby } = await getDictionary(locale);
 
   return (
-    <main className="min-h-[calc(100vh-140px)] w-full bg-surface-container-lowest pt-20">
+    <main className="min-h-[calc(100vh-130px)] w-full bg-surface-container-lowest pt-16">
       <div className="relative flex w-full flex-col">
-        <HalftoneBackdrop />
-        <div className="relative z-10 mx-auto flex w-full max-w-[900px] flex-col gap-6 px-4 py-10 md:px-10">
-          <header className="flex flex-col gap-2">
-            <span className="w-fit -rotate-2 bg-secondary-fixed px-3 py-0.5 font-hud text-label-hud font-black uppercase text-on-secondary-fixed shadow-hard-xs">
-              {lobbies.tape}
-            </span>
-            <h1 className="font-display text-headline-lg uppercase italic tracking-wider text-secondary">{lobbies.title}</h1>
-            <p className="text-on-surface-variant">{lobbies.subtitle}</p>
-          </header>
-          <LobbyBrowser dictionary={lobbies} modeNames={lobby.rules.mode} locale={locale} lobbies={getLobbyStore().listPublic()} />
+        <PageBackdrop />
+        <div className="relative z-10 mx-auto flex w-full max-w-[960px] flex-col gap-10 px-4 py-10 md:px-10 md:py-14">
+          <PageHeading eyebrow={lobbies.tape} title={lobbies.title}>
+            {lobbies.subtitle}
+          </PageHeading>
+          <QuickRaceCard dictionary={lobbies.quickRace} errors={lobbies.errors} locale={locale} />
+          <LobbyBrowser dictionary={lobbies} modeNames={lobby.rules.mode} complexityNames={lobby.rules.text.complexities} locale={locale} lobbies={getLobbyStore().listPublic()} />
         </div>
       </div>
     </main>

@@ -2,7 +2,7 @@ import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import { chartPoints, peakSample, slowestKeys } from "@/lib/results";
+import { chartCeiling, chartPoints, peakSample, slowestKeys } from "@/lib/results";
 import { accuracy } from "@/lib/typing";
 import type { RaceResult } from "@/types/race";
 import { SectionTag } from "./section-tag";
@@ -23,8 +23,7 @@ export function CombatDossier({ dictionary, locale, result, wpm }: CombatDossier
   const seconds = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const peak = peakSample(result.speedSamples);
-  // Round the chart ceiling up to the next 20 WPM so the peak never touches the top.
-  const maxWpm = Math.ceil(((peak?.wpm ?? 0) + 1) / 20) * 20;
+  const maxWpm = chartCeiling(peak?.wpm ?? 0);
   const points = chartPoints(result.speedSamples, result.durationMs, maxWpm, chartWidth, chartHeight);
   const peakPoint = peak ? chartPoints([peak], result.durationMs, maxWpm, chartWidth, chartHeight).split(",") : null;
   const slowKeys = slowestKeys(result.keyStats, 3);
@@ -36,10 +35,9 @@ export function CombatDossier({ dictionary, locale, result, wpm }: CombatDossier
         icon="analytics"
         title={dictionary.title}
         badge={formatMessage(dictionary.duration, { seconds: number.format(result.durationMs / 1000) })}
-        tilt="right"
       />
 
-      <div className="bg-surface-container p-4 shadow-hard-lg">
+      <div className="panel p-5">
         <div className="mb-2 flex items-start justify-between gap-2">
           <div>
             <span className="block font-hud text-label-hud font-black uppercase text-outline">{dictionary.average}</span>
@@ -85,7 +83,7 @@ export function CombatDossier({ dictionary, locale, result, wpm }: CombatDossier
         </div>
       </div>
 
-      <div className="bg-surface-container p-4 shadow-hard-lg">
+      <div className="panel p-5">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h3 className="font-hud text-headline-sm font-black uppercase text-secondary">{dictionary.precision}</h3>
           <span className="bg-surface-container-high px-2 py-0.5 font-hud text-label-hud font-black uppercase text-secondary-fixed">
@@ -104,7 +102,7 @@ export function CombatDossier({ dictionary, locale, result, wpm }: CombatDossier
         </dl>
       </div>
 
-      <div className="-rotate-[0.5deg] bg-surface-container p-4 shadow-hard-lg">
+      <div className="panel p-5">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="flex items-center gap-1 font-hud text-label-hud font-black uppercase text-error">
             <Icon name="warning" size={16} />

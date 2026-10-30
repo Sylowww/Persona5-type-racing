@@ -1,22 +1,18 @@
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
+/** A sample of the race text, shown as a Persona 5 dialogue box with the word being typed highlighted. */
 export function TypingPreview({ dictionary }: { dictionary: Dictionary["home"]["typingPreview"] }) {
   return (
-    <section className="relative flex flex-col gap-2 bg-surface-container-lowest p-4 shadow-hard-md shadow-surface-container-high">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1">
-          <span className="size-2.5 rounded-full bg-primary-container motion-safe:animate-pulse" />
-          <h2 className="font-hud text-label-hud font-black uppercase tracking-widest text-primary-container">{dictionary.title}</h2>
-        </div>
-        <span className="font-hud text-label-hud font-black uppercase text-on-surface-variant">{dictionary.subtitle}</span>
-      </div>
-      <p className="flex items-center gap-2 overflow-hidden whitespace-nowrap bg-surface-container-high p-4 font-body text-typing-stream font-bold">
-        <span className="text-on-surface-variant line-through opacity-70">{dictionary.typed}</span>
-        <span className="rotate-[-2deg] bg-secondary px-2 py-0.5 text-surface-container-lowest shadow-hard-xs shadow-primary-container">
-          {dictionary.current}
-        </span>
+    <section className="relative rotate-1 border-2 border-secondary bg-surface-container-lowest px-5 pt-8 pb-5 shadow-[8px_8px_0_var(--color-primary-container)]">
+      <h2 className="absolute -top-4 left-4 -skew-x-12 bg-secondary px-3 py-1 font-hud text-label-hud font-black uppercase tracking-widest text-surface-container-lowest shadow-hard-sm">
+        {dictionary.title}
+      </h2>
+      <p className="mb-2 font-hud text-label-hud font-bold uppercase tracking-widest text-secondary-fixed">{dictionary.subtitle}</p>
+      <p className="flex items-center gap-2 overflow-hidden whitespace-nowrap font-body text-typing-stream font-bold">
+        <span className="text-on-surface-variant opacity-70">{dictionary.typed}</span>
+        <span className="-skew-x-6 bg-primary-container px-1.5 text-on-primary-container">{dictionary.current}</span>
         <span className="tracking-wide text-secondary">{dictionary.upcoming}</span>
-        <span aria-hidden="true" className="inline-block h-8 w-3 shrink-0 bg-primary-container motion-safe:animate-ping" />
+        <span aria-hidden="true" className="inline-block h-8 w-1 shrink-0 bg-secondary-fixed motion-safe:animate-pulse" />
       </p>
     </section>
   );

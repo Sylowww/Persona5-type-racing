@@ -1,19 +1,24 @@
 import type { Locale } from "@/i18n/locales";
-import type { RandomInt } from "./lobby-code";
+import type { CorpusText } from "./text-builder";
 
-// Built-in texts until custom texts exist. Picked in the lobby's language.
+// Built-in passages: the seed copies them into the `race_texts` table, and races fall back on them when the database
+// corpus is not loaded (tests, or a database error).
 export const raceTexts: Record<Locale, readonly string[]> = {
   en: [
     "The world is full of corrupt adults with distorted desires who claim they own our future. We steal their twisted hearts, shatter their false reality, and rewrite destiny with absolute precision. Show no mercy!",
     "Every calling card starts with a single keystroke. Keep your eyes on the text, trust your fingers, and never look back at the mistakes you already made.",
     "The city sleeps while the phantom thieves plan their next heist. A quiet room, a fast keyboard and a steady rhythm are all you need to take the lead.",
     "Speed means nothing without accuracy. Breathe, find your pace, and let each word flow into the next until the finish line appears.",
+    "Extraordinary concentration, meticulous preparation; uncompromising determination: professional typists understand that consistency outperforms occasional brilliance.",
+    "Go on, type it now. One key, then the next. Do not stop and do not look back. You are fast and you are free.",
   ],
   fr: [
     "Le monde est rempli d'adultes corrompus aux désirs déformés qui prétendent posséder notre avenir. Nous volons leurs coeurs tordus et réécrivons le destin avec une précision absolue.",
     "Chaque carte de visite commence par une seule touche. Garde les yeux sur le texte, fais confiance à tes doigts et ne regarde jamais tes erreurs passées.",
     "La ville dort pendant que les voleurs fantômes préparent leur prochain coup. Un clavier rapide et un rythme régulier suffisent pour prendre la tête.",
     "La vitesse ne vaut rien sans précision. Respire, trouve ton rythme et laisse chaque mot glisser vers le suivant jusqu'à la ligne d'arrivée.",
+    "Tape vite et tape bien. Une main, puis l'autre. Ne lâche rien, ne regarde pas en arrière : la fin est là.",
+    "Extraordinairement concentrés, méthodiques, infatigables : nos dactylographes professionnels considèrent l'exactitude, l'endurance et la régularité comme indispensables.",
   ],
 };
 
@@ -31,7 +36,8 @@ export const numberRaceTexts: Record<Locale, readonly string[]> = {
   ],
 };
 
-export function pickRaceText(locale: Locale, randomInt: RandomInt, numbers = false): string {
-  const texts = (numbers ? numberRaceTexts : raceTexts)[locale];
-  return texts[randomInt(texts.length)];
-}
+/** The built-in passages as a corpus. */
+export const builtInCorpus: readonly CorpusText[] = (Object.keys(raceTexts) as Locale[]).flatMap((language) => [
+  ...raceTexts[language].map((body) => ({ language, body, hasNumbers: false })),
+  ...numberRaceTexts[language].map((body) => ({ language, body, hasNumbers: true })),
+]);

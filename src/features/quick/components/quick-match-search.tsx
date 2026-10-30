@@ -66,7 +66,7 @@ export function QuickMatchSearch({ dictionary, characterNames, botNames, locale 
       {status.state === "matched" && (
         <VersusScreen dictionary={dictionary.versus} characterNames={characterNames} botNames={botNames} racers={status.racers} />
       )}
-      <section className="flex flex-col items-center gap-6 bg-surface-container p-7 text-center shadow-hard-xl shadow-primary-container">
+      <section className="panel flex flex-col items-center gap-6 px-6 py-12 text-center">
         <Icon name="swords" size={56} className="text-primary-container motion-safe:animate-pulse" />
         <p role="status" className="font-display text-headline-md uppercase italic tracking-wider text-secondary">
           {status.state === "matched" ? dictionary.found : formatMessage(dictionary.waited, { seconds })}
@@ -85,7 +85,7 @@ export function QuickMatchSearch({ dictionary, characterNames, botNames, locale 
               router.push(`/${locale}`);
             })
           }
-          className="-skew-x-6 bg-surface-container-high px-6 py-2 font-hud text-headline-sm font-black uppercase italic text-error shadow-hard-sm hover:bg-error-container hover:text-on-error-container disabled:opacity-50"
+          className="btn-ghost text-error"
         >
           {dictionary.cancel}
         </button>

@@ -29,3 +29,17 @@ export function validateAvatar(bytes: Uint8Array): { ok: true; type: AvatarType 
 export function avatarPath(userId: string, version: number): string {
   return `/api/avatars/${userId}/${version}`;
 }
+
+export const GENERATED_AVATAR_TONES = 4;
+
+/**
+ * Avatar drawn for players without a picture, such as guests (AUTH-03): up to two initials and one of a few theme
+ * tones, both derived from the name so the same player always looks the same.
+ */
+export function generatedAvatar(name: string): { initials: string; tone: number } {
+  const words = name.split(/[\s_-]+/).filter((word) => /[\p{L}\p{N}]/u.test(word));
+  const letters = words.length > 1 ? [words[0][0], words[1][0]] : [...(words[0] ?? "?")].slice(0, 2);
+  let hash = 0;
+  for (const char of name) hash = (hash * 31 + (char.codePointAt(0) ?? 0)) >>> 0;
+  return { initials: letters.join("").toUpperCase(), tone: hash % GENERATED_AVATAR_TONES };
+}

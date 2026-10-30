@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { avatarPath, detectAvatarType, MAX_AVATAR_BYTES, validateAvatar } from "../../src/lib/avatar";
+import { avatarPath, detectAvatarType, GENERATED_AVATAR_TONES, generatedAvatar, MAX_AVATAR_BYTES, validateAvatar } from "../../src/lib/avatar";
 
 const bytes = (...values: number[]) => new Uint8Array(values);
 const JPEG = bytes(0xff, 0xd8, 0xff, 0xe0, 0, 0x10);
@@ -40,5 +40,22 @@ describe("avatar validation", () => {
 
   it("versions the avatar URL", () => {
     expect(avatarPath("abc", 42)).toBe("/api/avatars/abc/42");
+  });
+});
+
+describe("generatedAvatar", () => {
+  it("uses the first letters of the name", () => {
+    expect(generatedAvatar("kitty").initials).toBe("KI");
+    expect(generatedAvatar("dark_knight").initials).toBe("DK");
+    expect(generatedAvatar("Guest-4821").initials).toBe("G4");
+    expect(generatedAvatar("x").initials).toBe("X");
+  });
+
+  it("always gives the same tone to the same name", () => {
+    expect(generatedAvatar("kitty").tone).toBe(generatedAvatar("kitty").tone);
+    for (const name of ["a", "kitty", "Guest-4821", "zz_top"]) {
+      expect(generatedAvatar(name).tone).toBeGreaterThanOrEqual(0);
+      expect(generatedAvatar(name).tone).toBeLessThan(GENERATED_AVATAR_TONES);
+    }
   });
 });

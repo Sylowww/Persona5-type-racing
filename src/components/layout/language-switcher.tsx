@@ -20,7 +20,7 @@ export function LanguageSwitcher({ locale, dictionary }: LanguageSwitcherProps) 
   const pathname = usePathname();
 
   return (
-    <nav aria-label={dictionary.label} className="flex items-center bg-surface-container p-0.5">
+    <nav aria-label={dictionary.label} className="flex items-center gap-0.5">
       {locales.map((option) => {
         const isCurrent = option === locale;
 
@@ -31,16 +31,17 @@ export function LanguageSwitcher({ locale, dictionary }: LanguageSwitcherProps) 
             hrefLang={option}
             lang={option}
             aria-current={isCurrent ? "true" : undefined}
-            aria-label={dictionary.names[option]}
             onClick={() => saveLocale(option)}
             // On narrow screens only the other language shows, to keep the header on one line.
             className={`px-2 py-1.5 font-hud text-label-hud font-black uppercase transition-colors ${
               isCurrent
-                ? "hidden bg-primary-container text-on-primary-container sm:block"
-                : "text-on-surface-variant hover:text-on-surface"
+                ? "hidden text-secondary underline decoration-primary-container decoration-[3px] underline-offset-[6px] sm:block"
+                : "text-on-surface-variant hover:text-secondary"
             }`}
           >
             {option}
+            {/* Read after the visible code, so the accessible name still starts with what is on screen. */}
+            <span className="sr-only"> ({dictionary.names[option]})</span>
           </Link>
         );
       })}

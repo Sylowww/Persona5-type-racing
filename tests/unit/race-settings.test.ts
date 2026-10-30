@@ -2,8 +2,18 @@ import { describe, expect, it } from "vitest";
 import { cleanMessage, MAX_MESSAGE_LENGTH } from "../../src/lib/chat";
 import { botForSpeed } from "../../src/lib/matchmaking";
 import { defaultRaceSettings, parseRaceSettings, raceDurationMs, UNTIMED_RACE_CAP_MS } from "../../src/lib/race-settings";
-import { numberRaceTexts, pickRaceText, raceTexts } from "../../src/lib/race-texts";
+import { numberRaceTexts, raceTexts } from "../../src/lib/race-texts";
 import { normalizeTypedChar } from "../../src/lib/typing";
+
+describe("settings change validation (TECH-07)", () => {
+  it("keeps current values for undefined fields and refuses unknown ones", () => {
+    expect(parseRaceSettings(defaultRaceSettings, { mode: undefined })).toEqual(defaultRaceSettings);
+    expect(parseRaceSettings(defaultRaceSettings, { wordCount: 50, includeChars: "QZ" })).toMatchObject({ wordCount: 50, includeChars: "qz" });
+    expect(parseRaceSettings(defaultRaceSettings, { wordCount: 42 })).toBeNull();
+    expect(parseRaceSettings(defaultRaceSettings, { secret: true })).toBeNull();
+    expect(parseRaceSettings(defaultRaceSettings, { includeChars: "a1" })).toBeNull();
+  });
+});
 
 describe("race settings", () => {
   it("applies a valid partial change", () => {
@@ -34,8 +44,7 @@ describe("race settings", () => {
     expect(raceDurationMs({ ...defaultRaceSettings, timeLimitSec: null })).toBe(UNTIMED_RACE_CAP_MS);
   });
 
-  it("picks texts with digits only when numbers are on", () => {
-    expect(pickRaceText("fr", () => 0, true)).toBe(numberRaceTexts.fr[0]);
+  it("keeps digits in the built-in texts made for the numbers option only", () => {
     expect(Object.values(numberRaceTexts).flat().every((text) => /\d/.test(text))).toBe(true);
     expect(Object.values(raceTexts).flat().some((text) => /\d/.test(text))).toBe(false);
   });
@@ -66,9 +75,10 @@ describe("chat messages", () => {
 describe("matchmaking bot level", () => {
   it("picks the bot closest to the player's average speed", () => {
     expect(botForSpeed(null)).toBe("rookie");
+    expect(botForSpeed(10)).toBe("noob");
     expect(botForSpeed(25)).toBe("novice");
-    expect(botForSpeed(70)).toBe("rookie");
-    expect(botForSpeed(110)).toBe("master");
+    expect(botForSpeed(50)).toBe("rookie");
+    expect(botForSpeed(90)).toBe("master");
     expect(botForSpeed(200)).toBe("godspeed");
   });
 });

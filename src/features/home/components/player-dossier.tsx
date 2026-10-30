@@ -27,83 +27,68 @@ export function PlayerDossier({ locale, dictionary, user, stats, radar }: Player
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
 
   return (
-    <section className="relative">
-      <div className="absolute -inset-1 translate-x-3 translate-y-3 rotate-[1.5deg] bg-surface-container-lowest" />
-      <div className="absolute -top-3 left-6 z-20 rotate-[-4deg] bg-secondary-fixed/90 px-4 py-0.5 font-hud text-label-hud font-black uppercase text-on-secondary-fixed shadow-hard-xs">
+    // A confidential file: taped label, mugshot in a tilted frame, stats on stuck-on plates and a red radar backdrop.
+    <section className="relative flex flex-col gap-7 border-4 border-secondary bg-surface-container-lowest px-6 pt-10 pb-6 shadow-[10px_10px_0_var(--color-primary-container)] sm:px-8">
+      <div aria-hidden="true" className="halftone pointer-events-none absolute top-0 right-0 h-24 w-1/2 bg-primary-container [clip-path:polygon(30%_0,100%_0,100%_100%)]" />
+      <span className="absolute -top-4 left-5 -rotate-2 bg-secondary-fixed px-3 py-1 font-hud text-label-hud font-black uppercase tracking-widest text-on-secondary-fixed shadow-hard-sm">
         {user ? formatMessage(dictionary.tape, { id: dossierId(user.id) }) : dictionary.guest.tape}
-      </div>
-      <div className="absolute -top-2 -right-2 z-20 flex size-8 rotate-12 items-center justify-center bg-primary-container text-secondary shadow-hard-xs">
-        <Icon name="push_pin" size={18} />
-      </div>
+      </span>
 
-      <div className="relative flex flex-col gap-4 bg-surface-container p-4 shadow-hard-xl shadow-primary-container sm:p-7">
-        <div className="flex rotate-[-1deg] items-center gap-4 bg-surface-container-lowest p-4 shadow-hard-md shadow-secondary">
-          <PlayerAvatar
-            avatarUrl={user?.avatarUrl ?? null}
-            alt={dictionary.avatarAlt}
-            size={96}
-            className="shadow-hard-sm shadow-secondary-fixed"
-          />
-          {user ? (
-            <div className="flex min-w-0 flex-col justify-center">
-              <div className="flex flex-wrap items-center gap-1">
-                <span className="bg-primary-container px-2 py-0.5 font-hud text-[11px] font-black uppercase text-on-primary-container">
-                  {dictionary.codename}
-                </span>
-              </div>
-              <h2 className="mt-1 truncate font-display text-headline-md uppercase italic tracking-wider text-secondary">
-                {user.username}
-              </h2>
-              <span className="font-hud text-label-hud font-bold uppercase tracking-widest text-on-surface-variant">
-                {formatMessage(dictionary.memberSince, { date: date.format(user.createdAt) })}
-              </span>
+      <div className="relative flex items-center gap-5">
+        <div className="shrink-0 -rotate-3 bg-secondary p-1.5 shadow-[5px_5px_0_var(--color-primary-container)]">
+          <PlayerAvatar avatarUrl={user?.avatarUrl ?? null} alt={dictionary.avatarAlt} size={80} />
+        </div>
+        {user ? (
+          <div className="flex min-w-0 flex-col gap-1">
+            <h2 className="truncate font-display text-[clamp(32px,3.4vw,44px)] uppercase italic leading-none tracking-wider text-secondary [text-shadow:3px_3px_0_var(--color-primary-container)]">{user.username}</h2>
+            <span className="text-sm text-on-surface-variant">
+              {formatMessage(dictionary.memberSince, { date: date.format(user.createdAt) })}
+            </span>
+            <Link
+              href={`/${locale}/profile`}
+              className="mt-1 flex w-fit items-center gap-1 font-hud text-label-hud font-black uppercase tracking-widest text-secondary-fixed hover:text-secondary"
+            >
+              {dictionary.viewProfile}
+              <Icon name="arrow_forward" size={16} />
+            </Link>
+          </div>
+        ) : (
+          <div className="flex min-w-0 flex-col gap-2">
+            <h2 className="font-display text-[clamp(28px,3vw,40px)] uppercase italic leading-none tracking-wider text-secondary [text-shadow:3px_3px_0_var(--color-primary-container)]">
+              {dictionary.guest.title}
+            </h2>
+            <p className="text-on-surface-variant">{dictionary.guest.text}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-4">
               <Link
-                href={`/${locale}/profile`}
-                className="mt-1 flex w-fit items-center gap-1 font-hud text-label-hud font-black uppercase italic text-secondary-fixed hover:text-secondary"
+                href={`/${locale}/sign-up`}
+                className="-skew-x-12 bg-primary-container px-3 py-1.5 shadow-hard-sm font-hud text-label-hud font-black uppercase tracking-wider text-on-primary-container transition-colors hover:bg-secondary-fixed hover:text-on-secondary-fixed"
               >
-                {dictionary.viewProfile}
-                <Icon name="arrow_forward" size={16} />
+                {dictionary.guest.signUp}
+              </Link>
+              <Link
+                href={`/${locale}/sign-in`}
+                className="font-hud text-label-hud font-black uppercase tracking-wider text-secondary-fixed underline decoration-2 underline-offset-4 hover:text-secondary"
+              >
+                {dictionary.guest.signIn}
               </Link>
             </div>
-          ) : (
-            <div className="flex min-w-0 flex-col justify-center gap-1">
-              <h2 className="font-display text-headline-sm uppercase italic tracking-wider text-secondary md:text-headline-md">
-                {dictionary.guest.title}
-              </h2>
-              <p className="text-on-surface-variant">{dictionary.guest.text}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-3">
-                <Link
-                  href={`/${locale}/sign-up`}
-                  className="-skew-x-6 bg-primary-container px-3 py-1 font-hud text-label-hud font-black uppercase italic text-on-primary-container shadow-hard-sm shadow-secondary hover:bg-secondary-container hover:text-on-secondary-fixed"
-                >
-                  {dictionary.guest.signUp}
-                </Link>
-                <Link
-                  href={`/${locale}/sign-in`}
-                  className="font-hud text-label-hud font-black uppercase text-secondary-fixed underline decoration-2 underline-offset-4 hover:text-secondary"
-                >
-                  {dictionary.guest.signIn}
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {user && stats ? (
-          <DossierStats dictionary={dictionary.stats} stats={stats} />
-        ) : (
-          <GuestDossierStats dictionary={dictionary.stats} sessionNote={dictionary.guest.sessionNote} />
+          </div>
         )}
-
-        {!user ? (
-          <GuestSkillRadar dictionary={dictionary.radar} />
-        ) : radar ? (
-          <SkillRadar dictionary={dictionary.radar} radar={radar} />
-        ) : (
-          <RadarEmpty dictionary={dictionary.radar} />
-        )}
-
       </div>
+
+      {user && stats ? (
+        <DossierStats dictionary={dictionary.stats} stats={stats} />
+      ) : (
+        <GuestDossierStats dictionary={dictionary.stats} sessionNote={dictionary.guest.sessionNote} />
+      )}
+
+      {!user ? (
+        <GuestSkillRadar dictionary={dictionary.radar} />
+      ) : radar ? (
+        <SkillRadar dictionary={dictionary.radar} radar={radar} />
+      ) : (
+        <RadarEmpty dictionary={dictionary.radar} />
+      )}
     </section>
   );
 }

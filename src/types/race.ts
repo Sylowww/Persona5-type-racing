@@ -14,6 +14,14 @@ export type RaceRacer = {
   isFinished: boolean;
   /** Out of the race after a mistake in sudden death. */
   isEliminated: boolean;
+  /** Gave up the race (COURSE-07). */
+  isForfeited: boolean;
+  /** Catch-up bonuses received so far. */
+  bonuses: number;
+  /** 1-based live place, as the server ranks it. */
+  place: number;
+  /** A malus this racer is under, shown on their lane (ice, fire, shock...); null otherwise. */
+  mark: SpellMark | null;
   isBot: boolean;
   isConnected: boolean;
 };
@@ -32,6 +40,55 @@ export type RaceYou = {
   place: number;
   finishedAt: number | null;
   eliminatedAt: number | null;
+  forfeitedAt: number | null;
+  /** A hex blurring the next words (fire, psy, light, curse); null otherwise. */
+  hex: SpellMark | null;
+  /** A stun (shock or ice): keys do nothing until it ends; null otherwise. */
+  stun: SpellMark | null;
+  /** A calling card hiding the next words, and who sent it; null otherwise. */
+  card: { from: string; until: number } | null;
+  /** The racer may send their calling card to the leader now (last place, not sent yet, powers on). */
+  canSendCard: boolean;
+  /** The racer already sent their calling card this race. */
+  cardSent: boolean;
+};
+
+/** Persona skills drawn as catch-up bonuses (`lib/spells.ts`). Names come from Persona 5 and are not translated. */
+export type SpellId = "garu" | "zio" | "agi" | "bufu" | "frei" | "navi" | "psi" | "kouga" | "swordDance" | "eiga" | "mediarama";
+
+/** Visual family of a spell: its color, icon and effect on the target. */
+export type SpellElement = "wind" | "elec" | "fire" | "ice" | "nuclear" | "support" | "psy" | "bless" | "phys" | "curse" | "heal";
+
+/** A spell effect still running on a racer, shown on their screen. */
+export type SpellMark = { element: SpellElement; until: number };
+
+/** A catch-up spell just cast, announced on the track and in a cut-in (BONUS-03). */
+export type RaceBonusEvent = {
+  id: number;
+  spell: SpellId;
+  element: SpellElement;
+  /** The caster's Persona, which casts the spell on screen. */
+  persona: string;
+  receiverId: string;
+  receiver: string;
+  receiverCharacter: CharacterId;
+  /** The receiver for a support spell, the leader otherwise. */
+  targetId: string;
+  target: string;
+};
+
+/** The first racer to type the first word without a mistake, who got a word off their text ("Ambush!"). */
+export type RaceAmbush = { racerId: string; name: string; character: CharacterId; at: number };
+
+/** A calling card the last racer sent to the leader, hiding the leader's next words for a moment. */
+export type RaceCallingCard = {
+  id: number;
+  fromId: string;
+  from: string;
+  fromCharacter: CharacterId;
+  toId: string;
+  to: string;
+  at: number;
 };
 
 /** Race part of a lobby snapshot. Times are server epoch milliseconds. */
@@ -45,6 +102,14 @@ export type RaceView = {
   isTimed: boolean;
   mode: RaceMode;
   caseSensitive: boolean;
+  /** Catch-up bonuses are on for this race (CONF-09). */
+  bonusesOn: boolean;
+  /** Bonuses handed out in the last few seconds. */
+  bonusEvents: readonly RaceBonusEvent[];
+  /** Null until someone typed the first word cleanly, or when powers are off. */
+  ambush: RaceAmbush | null;
+  /** Calling cards sent in the last few seconds. */
+  callingCards: readonly RaceCallingCard[];
   /** In the order players joined, so lanes do not jump around. */
   racers: readonly RaceRacer[];
   /** Null when the viewer is not racing (e.g. joined after the start). */
@@ -69,24 +134,51 @@ export type InputBatch = {
   events: readonly InputEvent[];
 };
 
+/**
+ * How a racer's race ended (RES-02). `timeout`: still typing when the race ended. `forfeited`: gave up, left, or stayed
+ * disconnected past the grace period (COURSE-07, COURSE-08). `eliminated`: knocked out in sudden death.
+ */
+export type RacerStatus = "finished" | "timeout" | "eliminated" | "forfeited";
+
 export type ResultRacer = {
   id: string;
   name: string;
   emblem: PlayerEmblem;
   /** Character the racer raced as; the podium shows its portrait. */
   character: CharacterId;
+  /** Net WPM: correct characters only (annex A). */
   wpm: number;
+  /** Raw WPM: every typed character (annex A). */
+  rawWpm: number;
   /** From 0 to 1. */
   accuracy: number;
+  mistakes: number;
+  /** Share of the text validated when the racer stopped, from 0 to 1. */
+  progress: number;
+  /** Catch-up bonuses received. */
+  bonuses: number;
   /** Race time in ms; null if the racer did not finish. */
   finishMs: number | null;
+  /** Time the racer spent in the race, in ms (until they finished, stopped or the race ended). */
+  timeMs: number;
+  status: RacerStatus;
+  /** Net WPM over the race, for the shared chart (RES-03). */
+  samples: readonly SpeedSample[];
 };
 
-/** Speed of the local player at one moment of the race. */
+/** Speed of a racer at one moment of the race, in ms since the start. */
 export type SpeedSample = {
   atMs: number;
   wpm: number;
+  /** Share of the racer's text done, from 0 to 1, for the replay; missing in races saved before replays existed. */
+  progress?: number;
 };
+
+/** Something that happened during the race, in ms since the start, for the replay. */
+export type ReplayEvent =
+  | { type: "spell"; atMs: number; spell: SpellId; casterId: string; targetId: string }
+  | { type: "card"; atMs: number; fromId: string; toId: string }
+  | { type: "ambush"; atMs: number; racerId: string };
 
 /** Typing stats for one key over the race. */
 export type KeyStat = {
@@ -106,6 +198,8 @@ export type RaceResult = {
   racers: readonly ResultRacer[];
   speedSamples: readonly SpeedSample[];
   keyStats: readonly KeyStat[];
+  /** Spells, calling cards and the Ambush, oldest first; missing in races saved before replays existed. */
+  events?: readonly ReplayEvent[];
 };
 
 /** One finished race in a player's history. */
@@ -122,8 +216,13 @@ export type RaceRecord = {
   finishMs: number | null;
 };
 
+/** A saved race in a registered player's history; `id` opens its full results (HIST-02), null for older races. */
+export type SavedRaceRecord = RaceRecord & { id: string | null };
+
 export type PlayerStats = {
   races: number;
+  /** Races finished in first place. */
+  wins: number;
   bestWpm: number;
   averageWpm: number;
   /** Average accuracy over the races, from 0 to 1. */

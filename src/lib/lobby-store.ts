@@ -11,18 +11,27 @@ import {
   admitPlayer,
   advance,
   applyInput,
+  closeLobby,
+  createInvite,
   createLobby,
+  forfeitRace,
   isMember,
   joinLobby,
+  joinWithInvite,
+  kickMember,
   leaveLobby,
   publicLobbyFor,
+  quickRaceSeats,
   removeBot,
   resultFor,
+  sendCallingCard,
   sendMessage,
+  setCapacity,
   setCharacter,
   setConnected,
   setName,
   setReady,
+  setRole,
   setVisibility,
   startRace,
   updateSettings,
@@ -33,7 +42,8 @@ import {
   type Outcome,
   type Player,
 } from "./race-engine";
-import { pickRaceText } from "./race-texts";
+import { builtInCorpus } from "./race-texts";
+import { buildRaceText, type CorpusText } from "./text-builder";
 
 /** Receives a fresh view on every change, or null once the user is no longer in the lobby. */
 export type LobbySubscriber = (view: LobbyView | null) => void;
@@ -59,6 +69,12 @@ export type LobbyStoreOptions = {
   random?: () => number;
   /** How often timers run and typing progress is broadcast; null disables the timer (tests call `tick`). */
   tickMs?: number | null;
+  /** Coherent passages for race texts, read at each start so the server can refresh them; defaults to the built-in ones. */
+  corpus?: () => readonly CorpusText[];
+  /** Makes invite link tokens; defaults to 128 random bits from Web Crypto. */
+  inviteToken?: () => string;
+  /** Called whenever a person enters a lobby (`code`) or leaves one (`code` null, `previous` set), e.g. to record it. */
+  onMembership?: (userId: string, code: string | null, previous: string | null) => void;
   /** Called once per finished race with each player's results (bots excluded), e.g. to save them. */
   onRaceFinished?: (code: string, results: RaceResult[]) => void;
 };
@@ -70,6 +86,9 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
   const randomInt = options.randomInt ?? ((max: number) => Math.floor(Math.random() * max));
   const random = options.random ?? Math.random;
   const tickMs = options.tickMs === undefined ? 100 : options.tickMs;
+  const inviteToken = options.inviteToken ?? randomToken;
+  const corpus = options.corpus ?? (() => builtInCorpus);
+  const textFor = (settings: LobbyState["settings"]) => buildRaceText(settings, corpus(), random);
 
   const lobbies = new Map<string, LobbyState>();
   const lobbyOfUser = new Map<string, string>();
@@ -97,13 +116,20 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     if (next === previous) return;
 
     for (const member of previous?.members ?? []) {
-      if (!isMember(next, member.id) && lobbyOfUser.get(member.id) === code) lobbyOfUser.delete(member.id);
+      if (!isMember(next, member.id) && lobbyOfUser.get(member.id) === code) {
+        lobbyOfUser.delete(member.id);
+        options.onMembership?.(member.id, null, code);
+      }
     }
     if (next.members.length === 0) {
       lobbies.delete(code);
     } else {
       lobbies.set(code, next);
-      for (const member of next.members) if (member.bot === null && isMember(next, member.id)) lobbyOfUser.set(member.id, code);
+      for (const member of next.members) {
+        if (member.bot !== null || !isMember(next, member.id) || lobbyOfUser.get(member.id) === code) continue;
+        lobbyOfUser.set(member.id, code);
+        options.onMembership?.(member.id, code, null);
+      }
     }
 
     if (immediate) broadcast(code);
@@ -181,7 +207,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     for (const player of players) state = must(setReady(state, player.id, true));
     // Quick races leave time for the versus screen before their countdown.
     const startAt = kind === "quick" ? time + QUICK_MATCH_INTRO_MS : time;
-    state = must(startRace(state, host.id, pickRaceText(state.settings.language, randomInt, state.settings.numbers), startAt, random));
+    state = must(startRace(state, host.id, textFor(state.settings), startAt, random));
     commit(code, state);
     return code;
   }
@@ -203,6 +229,17 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       .map(({ id, name, character, bot }) => ({ id, name, character, bot }))
       .sort((a, b) => Number(b.id === userId) - Number(a.id === userId));
     return { state: "matched", code, racers };
+  }
+
+  /** The lobby an invite link opens, or null once the link is unknown, revoked or its lobby closed. */
+  function inviteTarget(token: string): { code: string; hostName: string } | null {
+    for (const state of lobbies.values()) {
+      const invite = state.invites.find((candidate) => candidate.token === token);
+      if (!invite || invite.revoked) continue;
+      const host = state.members.find((member) => member.id === state.hostId);
+      return { code: state.code, hostName: host?.name ?? "" };
+    }
+    return null;
   }
 
   function startQuickMatch(userId: string, entries: readonly QueueEntry[], bot: BotDifficulty | null): QuickMatchStatus {
@@ -277,8 +314,47 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       return updateOutcome(code, (current, time) => joinLobby(current, player, time));
     },
 
+    /** Why `player` could not join `code` with its code right now, or null if they could (nothing changes). */
+    joinError(code: string, player: Player): StoreError | null {
+      const state = lobbies.get(code);
+      if (!state) return "lobbyNotFound";
+      const check = joinLobby(state, player, now());
+      return check.ok ? null : check.error;
+    },
+
     leave(code: string, userId: string) {
       update(code, (state) => leaveLobby(state, userId));
+    },
+
+    /** The host creates an invite link; its token is in the host's next view. */
+    createInvite(code: string, userId: string): StoreError | null {
+      return updateOutcome(code, (state) => createInvite(state, userId, inviteToken()));
+    },
+
+    inviteTarget,
+
+    /** Joins the lobby of an invite link from `ip` (SALLE-04); returns its code, or why it failed. */
+    joinWithInvite(token: string, player: Player, ip: string): { code: string } | { error: StoreError } {
+      const target = inviteTarget(token);
+      if (!target) return { error: "invalidInvite" };
+      const state = lobbies.get(target.code);
+      if (state && !isMember(state, player.id)) {
+        const check = joinWithInvite(state, player, token, ip, now());
+        if (!check.ok) return { error: check.error };
+      }
+      leaveOtherLobby(player.id, target.code);
+      const error = updateOutcome(target.code, (current, time) => joinWithInvite(current, player, token, ip, time));
+      return error ? { error } : { code: target.code };
+    },
+
+    /** The host closes the lobby: every member receives a null view and the code stops working. */
+    close(code: string, userId: string): StoreError | null {
+      return updateOutcome(code, (state) => closeLobby(state, userId));
+    },
+
+    /** The host removes a player, who then receives a null view and cannot join again. */
+    kick(code: string, userId: string, targetId: string): StoreError | null {
+      return updateOutcome(code, (state) => kickMember(state, userId, targetId));
     },
 
     setReady(code: string, userId: string, isReady: boolean): StoreError | null {
@@ -286,7 +362,7 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
     },
 
     start(code: string, userId: string): StoreError | null {
-      return updateOutcome(code, (state, time) => startRace(state, userId, pickRaceText(state.settings.language, randomInt, state.settings.numbers), time, random));
+      return updateOutcome(code, (state, time) => startRace(state, userId, textFor(state.settings), time, random));
     },
 
     updateSettings(code: string, userId: string, change: unknown): StoreError | null {
@@ -295,6 +371,29 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
 
     setVisibility(code: string, userId: string, visibility: unknown): StoreError | null {
       return updateOutcome(code, (state) => setVisibility(state, userId, visibility));
+    },
+
+    setRole(code: string, userId: string, role: unknown): StoreError | null {
+      return updateOutcome(code, (state) => setRole(state, userId, role));
+    },
+
+    setCapacity(code: string, userId: string, capacity: unknown): StoreError | null {
+      return updateOutcome(code, (state) => setCapacity(state, userId, capacity));
+    },
+
+    /**
+     * The lobby a quick race joins (JOIN-03): among public lobbies that can be joined and are not full, the one closest
+     * to its capacity (fewest free seats); on a tie, the oldest. Null when none is available.
+     */
+    quickRaceLobby(): string | null {
+      const time = now();
+      const candidates = [...lobbies.values()].flatMap((state) => {
+        const current = advance(state, time);
+        const free = quickRaceSeats(current);
+        return free === null ? [] : [{ code: current.code, free, createdAt: current.createdAt }];
+      });
+      candidates.sort((a, b) => a.free - b.free || a.createdAt - b.createdAt);
+      return candidates[0]?.code ?? null;
     },
 
     /** Public lobbies for the lobby browser: open ones first, then the most players. */
@@ -310,12 +409,22 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       return updateOutcome(code, (state, time) => sendMessage(state, userId, text, time));
     },
 
-    addBot(code: string, userId: string, difficulty: BotDifficulty): StoreError | null {
-      return updateOutcome(code, (state) => addBot(state, userId, difficulty, random));
+    addBot(code: string, userId: string, difficulty: BotDifficulty, character?: CharacterId): StoreError | null {
+      return updateOutcome(code, (state) => addBot(state, userId, difficulty, random, character));
     },
 
     removeBot(code: string, userId: string, botId: string): StoreError | null {
       return updateOutcome(code, (state) => removeBot(state, userId, botId));
+    },
+
+    /** The racer gives up; the race may end at once if they were the last one typing. */
+    forfeit(code: string, userId: string): StoreError | null {
+      return updateOutcome(code, (state, time) => forfeitRace(state, userId, time));
+    },
+
+    /** The last racer sends their calling card to the leader. */
+    sendCallingCard(code: string, userId: string): StoreError | null {
+      return updateOutcome(code, (state, time) => sendCallingCard(state, userId, time));
     },
 
     input(code: string, userId: string, batch: InputBatch): StoreError | null {
@@ -402,6 +511,12 @@ export function createLobbyStore(options: LobbyStoreOptions = {}) {
       timer = null;
     },
   };
+}
+
+/** 128 random bits, URL-safe. */
+function randomToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 /** Engine steps that cannot fail for a freshly made private lobby. */

@@ -3,9 +3,15 @@ import {
   addBot,
   advance,
   applyInput,
+  closeLobby,
+  createInvite,
   createLobby,
+  forfeitRace,
+  sendCallingCard,
   isRaceOver,
   joinLobby,
+  joinWithInvite,
+  kickMember,
   leaveLobby,
   liveOrder,
   parseInputBatch,
@@ -14,15 +20,21 @@ import {
   sendMessage,
   publicLobbyFor,
   setConnected,
+  setCapacity,
   setVisibility,
   setReady,
   startRace,
   updateSettings,
   viewFor,
+  MAX_SPECTATORS,
+  setRole,
   type LobbyState,
   type Outcome,
 } from "../../src/lib/race-engine";
-import type { InputEvent } from "../../src/types/race";
+import type { CharacterId } from "../../src/types/character";
+import type { InputEvent, SpellId } from "../../src/types/race";
+import { seededRandom } from "../../src/lib/bots";
+import { drawSpell } from "../../src/lib/spells";
 
 const TEXT = "go now";
 const T0 = 1_000_000;
@@ -76,10 +88,12 @@ describe("lobby membership", () => {
     let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: "p0", name: "p0" }, now: T0, config: { capacity: 30 } });
     for (let index = 1; index < 30; index++) state = unwrap(joinLobby(state, { id: `p${index}`, name: `p${index}` }, T0));
     expect(state.members).toHaveLength(30);
-    expect(joinLobby(state, { id: "late", name: "late" }, T0)).toEqual({ ok: false, error: "lobbyFull" });
+    // Once the seats are taken, newcomers watch as spectators.
+    const late = unwrap(joinLobby(state, { id: "late", name: "late" }, T0));
+    expect(viewFor(late, "late", T0)?.players.find((player) => player.id === "late")?.isSpectator).toBe(true);
 
     const huge = createLobby({ code: "P5-TEST", locale: "en", host: { id: "a", name: "a" }, now: T0, config: { capacity: 500 } });
-    expect(huge.config.capacity).toBe(60);
+    expect(huge.config.capacity).toBe(30);
   });
 
   it("refuses to join a race in progress", () => {
@@ -191,6 +205,8 @@ describe("finishing a race", () => {
     expect(result).toMatchObject({ youId: "ann", durationMs: 3_000, keystrokes: 7, mistakes: 1 });
     expect(result?.keyStats.find((stat) => stat.key === "o")).toMatchObject({ mistakes: 1 });
     expect(viewFor(state, "ann", START + 3_000)?.hasResult).toBe(true);
+    // Every racer's WPM series is in the results, for the shared chart (RES-03).
+    expect(result?.racers.map((racer) => racer.samples.at(-1)?.atMs)).toEqual([2_000, 3_000]);
   });
 
   it("ends at the time limit and ranks unfinished racers as not finished", () => {
@@ -245,6 +261,203 @@ describe("finishing a race", () => {
     state = advance(applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 2_000), START + 2_000);
     expect(state.phase).toBe("racing");
     expect(advance(state, START + 30_000).phase).toBe("finished");
+  });
+});
+
+describe("forfeits and statuses (COURSE-07, COURSE-10, RES-02)", () => {
+  it("lets a racer give up, ranks them after everyone still in, and ends once all are done", () => {
+    let state = racing("ann", "bob", "cid");
+    state = applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars("go n") }, START + 1_000);
+    state = unwrap(forfeitRace(state, "ann", START + 1_500));
+    expect(forfeitRace(state, "ann", START + 1_600)).toEqual({ ok: false, error: "wrongPhase" });
+    expect(viewFor(state, "ann", START + 1_500)?.race?.you?.forfeitedAt).toBe(START + 1_500);
+    // Typing after giving up is ignored.
+    expect(applyInput(state, "ann", { clientId: "tab", seq: 2, events: chars("ow") }, START + 1_600)).toBe(state);
+
+    state = applyInput(state, "bob", { clientId: "tab", seq: 1, events: chars("g") }, START + 2_000);
+    state = advance(applyInput(state, "cid", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 3_000), START + 3_000);
+    expect(state.phase).toBe("racing");
+    state = advance(state, state.race?.endsAt ?? 0);
+
+    const racers = resultFor(state, "ann")?.racers ?? [];
+    expect(racers.map((racer) => [racer.id, racer.status])).toEqual([
+      ["cid", "finished"],
+      ["bob", "timeout"],
+      ["ann", "forfeited"],
+    ]);
+    const ann = racers.find((racer) => racer.id === "ann");
+    expect(ann).toMatchObject({ timeMs: 1_500, mistakes: 0, finishMs: null });
+    expect(ann?.progress).toBeCloseTo(4 / TEXT.length);
+    expect(ann?.rawWpm).toBeCloseTo(4 / 5 / (1.5 / 60));
+  });
+
+  it("counts a racer gone past the grace period as a forfeit", () => {
+    let state = racing("ann", "bob");
+    state = setConnected(state, "bob", false, START);
+    state = advance(applyInput(state, "ann", { clientId: "tab", seq: 1, events: chars(TEXT) }, START + 1_000), START + 31_000);
+    expect(resultFor(state, "ann")?.racers.map((racer) => racer.status)).toEqual(["finished", "forfeited"]);
+  });
+});
+
+describe("catch-up spells (BONUS-01 to BONUS-04)", () => {
+  const LONG = "one two three four five six seven eight nine ten eleven twelve";
+  const FIRST_CHECKPOINT = LONG.slice(0, 16);
+
+  /** A race random whose seed makes bob draw `spell` at the first checkpoint (16 characters behind ann). */
+  function randomFor(spell: SpellId): () => number {
+    const gap = 16 / LONG.length;
+    for (let step = 0; step < 5_000; step++) {
+      const value = step / 5_000;
+      if (drawSpell(gap, seededRandom(Math.floor(value * 2 ** 31) + 1)).id === spell) return () => value;
+    }
+    throw new Error(`no seed draws ${spell}`);
+  }
+
+  /** Ann leads; bob lags and draws `spell` when ann passes the first checkpoint. */
+  function spellRace(spell: SpellId, character: CharacterId = "panther"): LobbyState {
+    let state = createLobby({ code: "P5-TEST", locale: "en", host: { id: "ann", name: "ann" }, now: T0 });
+    state = unwrap(joinLobby(state, { id: "bob", name: "bob", character }, T0));
+    state = unwrap(updateSettings(state, "ann", { powers: true }));
+    for (const id of ["ann", "bob"]) state = setConnected(state, id, true, T0);
+    state = unwrap(startRace(readyAll(state), "ann", LONG, T0, randomFor(spell)));
+    return advance(state, START);
+  }
+
+  const type = (state: LobbyState, userId: string, text: string, seq: number, at: number) =>
+    advance(applyInput(state, userId, { clientId: "tab", seq, events: chars(text) }, at), at);
+  const racerOf = (state: LobbyState, id: string) => state.race?.racers.find((racer) => racer.id === id);
+
+  it("does nothing when powers are off", () => {
+    let state = racing("ann", "bob");
+    state = type(state, "ann", TEXT.slice(0, 3), 1, START + 1_000);
+    expect(state.race?.bonusEvents).toEqual([]);
+  });
+
+  it("Garu blows words off the lagging racer's own text, cast by their character's Persona", () => {
+    const state = type(spellRace("garu", "panther"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
+    expect(racerOf(state, "bob")?.text).toBe("one two three four five six seven eight nine");
+    expect(viewFor(state, "bob", START + 3_000)?.race?.text).toBe(racerOf(state, "bob")?.text);
+    expect(viewFor(state, "ann", START + 3_000)?.race?.bonusEvents).toMatchObject([
+      { spell: "garu", element: "wind", persona: "Carmen", receiver: "bob", target: "bob", receiverCharacter: "panther" },
+    ]);
+  });
+
+  it("gives at most three spells per race", () => {
+    let state = type(spellRace("garu"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
+    state = type(state, "ann", LONG.slice(16, 50), 2, START + 8_000);
+    expect(racerOf(state, "bob")?.bonuses).toBe(3);
+    expect(state.race?.checkpoints).toBe(3);
+  });
+
+  it("Zio stuns the leader: their keys do nothing for a moment", () => {
+    const state = type(spellRace("zio"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
+    expect(racerOf(state, "ann")?.stun).toEqual({ element: "elec", until: START + 4_500 });
+    // Everyone sees the shocked lane while it lasts.
+    expect(viewFor(state, "bob", START + 3_000)?.race?.racers.find((racer) => racer.id === "ann")?.mark).toEqual({ element: "elec", until: START + 4_500 });
+    expect(viewFor(state, "bob", START + 4_600)?.race?.racers.find((racer) => racer.id === "ann")?.mark).toBeNull();
+    const stunned = type(state, "ann", "x", 2, START + 3_500);
+    expect(racerOf(stunned, "ann")).toMatchObject({ inputSeq: 2, typing: { typed: FIRST_CHECKPOINT } });
+    expect(racerOf(type(state, "ann", LONG[16], 2, START + 4_600), "ann")?.typing.typed).toBe(LONG.slice(0, 17));
+  });
+
+  it("Frei adds words to the leader's text, and progress follows it (BONUS-04)", () => {
+    const state = type(spellRace("frei"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
+    const ann = racerOf(state, "ann");
+    // Ann typed the first word cleanly first: her Ambush already took "twelve" off.
+    expect(ann?.text.startsWith(LONG.replace(" twelve", ""))).toBe(true);
+    expect(ann?.text.split(" ")).toHaveLength(14);
+    expect(viewFor(state, "bob", START + 3_000)?.race?.racers.find((racer) => racer.id === "ann")?.progress).toBeCloseTo(16 / (ann?.text.length ?? 1));
+  });
+
+  it("Agi hides the leader's next words for a few seconds", () => {
+    const state = type(spellRace("agi"), "ann", FIRST_CHECKPOINT, 1, START + 3_000);
+    expect(viewFor(state, "ann", START + 3_000)?.race?.you?.hex).toEqual({ element: "fire", until: START + 7_000 });
+  });
+
+  it("hands out three spells at most per checkpoint and a single malus on the leader", () => {
+    for (let seed = 0; seed < 20; seed++) {
+      let state = unwrap(updateSettings(lobbyWith("ann", "bob", "cid", "dan", "eve"), "ann", { powers: true }));
+      state = advance(unwrap(startRace(readyAll(state), "ann", LONG, T0, () => seed / 20)), START);
+      state = type(state, "ann", FIRST_CHECKPOINT, 1, START + 3_000);
+      const events = state.race?.bonusEvents ?? [];
+      expect(events).toHaveLength(3);
+      expect(events.filter((event) => event.targetId === "ann").length).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("lets a bot draw a spell and still finish its race", () => {
+    let state = unwrap(updateSettings(lobbyWith("ann"), "ann", { powers: true }));
+    state = unwrap(addBot(unwrap(setReady(state, "ann", true)), "ann", "novice"));
+    state = advance(unwrap(startRace(state, "ann", LONG, T0, () => 0.5)), START);
+    state = type(state, "ann", LONG.slice(0, 20), 1, START + 1_000);
+    const bot = state.race?.racers.find((racer) => racer.bot !== null);
+    expect(bot?.bonuses).toBe(1);
+
+    state = advance(unwrap(forfeitRace(state, "ann", START + 2_000)), START + 120_000);
+    const result = resultFor(state, "ann");
+    expect(result?.racers.find((racer) => racer.id === bot?.id)).toMatchObject({ status: "finished", bonuses: 1 });
+    // The replay gets the spell and Ambush on the race timeline, and each racer's progress over time.
+    expect(result?.events).toEqual([
+      expect.objectContaining({ type: "spell", casterId: bot?.id, atMs: 1_000 }),
+      { type: "ambush", racerId: "ann", atMs: 1_000 },
+    ]);
+    expect(result?.racers.find((racer) => racer.id === "ann")?.samples.at(-1)?.progress).toBeCloseTo(20 / LONG.length);
+  });
+});
+
+describe("Ambush and calling cards", () => {
+  const LONG = "one two three four five six seven eight nine ten eleven twelve";
+
+  function powersRace(...names: string[]): LobbyState {
+    const state = unwrap(updateSettings(lobbyWith(...names), names[0], { powers: true }));
+    return advance(unwrap(startRace(readyAll(state), names[0], LONG, T0)), START);
+  }
+
+  const type = (state: LobbyState, userId: string, text: string, seq: number, at: number) =>
+    advance(applyInput(state, userId, { clientId: "tab", seq, events: chars(text) }, at), at);
+  const racerOf = (state: LobbyState, id: string) => state.race?.racers.find((racer) => racer.id === id);
+
+  it("takes a word off the first racer to type the first word without a mistake", () => {
+    let state = type(powersRace("ann", "bob"), "bob", "onx", 1, START + 500);
+    state = type(state, "ann", "one ", 1, START + 800);
+    expect(racerOf(state, "ann")?.text).toBe(LONG.replace(" twelve", ""));
+    expect(racerOf(state, "bob")?.text).toBe(LONG);
+    expect(viewFor(state, "bob", START + 900)?.race?.ambush).toMatchObject({ racerId: "ann", name: "ann", at: START + 800 });
+
+    // Only one Ambush per race.
+    state = type(state, "ann", "two ", 2, START + 900);
+    expect(racerOf(state, "ann")?.text).toBe(LONG.replace(" twelve", ""));
+  });
+
+  it("has no Ambush when powers are off", () => {
+    const state = type(racing("ann", "bob"), "ann", "go ", 1, START + 500);
+    expect(viewFor(state, "ann", START + 500)?.race?.ambush).toBeNull();
+  });
+
+  it("lets the last racer send one calling card that hides the leader's words", () => {
+    let state = type(powersRace("ann", "bob", "cid"), "ann", "one two ", 1, START + 1_000);
+    state = type(state, "cid", "o", 1, START + 1_000);
+    expect(viewFor(state, "bob", START + 1_000)?.race?.you?.canSendCard).toBe(true);
+    expect(viewFor(state, "cid", START + 1_000)?.race?.you?.canSendCard).toBe(false);
+    expect(sendCallingCard(state, "cid", START + 1_000)).toEqual({ ok: false, error: "wrongPhase" });
+
+    state = unwrap(sendCallingCard(state, "bob", START + 1_200));
+    expect(viewFor(state, "ann", START + 1_200)?.race?.you?.card).toEqual({ from: "bob", until: START + 4_200 });
+    expect(viewFor(state, "cid", START + 1_200)?.race?.callingCards).toMatchObject([{ from: "bob", to: "ann" }]);
+    expect(viewFor(state, "bob", START + 1_200)?.race?.you).toMatchObject({ cardSent: true, canSendCard: false });
+    expect(viewFor(state, "ann", START + 4_300)?.race?.you?.card).toBeNull();
+    // One card per race.
+    expect(sendCallingCard(state, "bob", START + 5_000).ok).toBe(false);
+  });
+
+  it("refuses a calling card before the leader got away, or while the leader is under a malus", () => {
+    expect(sendCallingCard(powersRace("ann", "bob"), "bob", START).ok).toBe(false);
+    expect(sendCallingCard(racing("ann", "bob"), "bob", START).ok).toBe(false);
+    let state = type(powersRace("ann", "bob", "cid"), "ann", "one two ", 1, START + 1_000);
+    state = unwrap(sendCallingCard(state, "bob", START + 1_000));
+    state = type(state, "bob", "one ", 1, START + 1_500);
+    // Cid is last now, but ann is still behind bob's card.
+    expect(sendCallingCard(state, "cid", START + 2_000).ok).toBe(false);
   });
 });
 
@@ -374,6 +587,15 @@ describe("bots", () => {
   });
 });
 
+describe("bot characters", () => {
+  it("races as the character the host picked, or a random one", () => {
+    const picked = unwrap(addBot(lobbyWith("ann"), "ann", "master", () => 0, "panther"));
+    expect(picked.members.find((member) => member.bot !== null)?.character).toBe("panther");
+    const random = unwrap(addBot(lobbyWith("ann"), "ann", "master", () => 0));
+    expect(random.members.find((member) => member.bot !== null)?.character).toBeDefined();
+  });
+});
+
 describe("parseInputBatch", () => {
   it("accepts well-formed batches", () => {
     expect(parseInputBatch({ clientId: "tab", seq: 2, events: [{ type: "char", char: "é", delayMs: 80 }, { type: "delete" }] })).toEqual({
@@ -472,17 +694,158 @@ describe("lobby chat", () => {
   });
 });
 
-describe("lobby visibility", () => {
-  it("starts private and lets only the host make it public", () => {
+describe("spectators", () => {
+  it("lets a member switch to spectating and back while a seat is free", () => {
+    let state = lobbyWith("ann", "bob");
+    state = unwrap(setReady(state, "bob", true));
+    state = unwrap(setRole(state, "bob", "spectator"));
+    const bob = viewFor(state, "ann", T0)?.players.find((player) => player.id === "bob");
+    expect(bob).toMatchObject({ isSpectator: true, isReady: false });
+    expect(setReady(state, "bob", true)).toEqual({ ok: false, error: "wrongPhase" });
+    expect(setRole(state, "bob", "referee")).toEqual({ ok: false, error: "invalidSettings" });
+
+    const full = unwrap(setCapacity(unwrap(joinLobby(state, { id: "cid", name: "cid" }, T0)), "ann", 2));
+    expect(setRole(full, "bob", "player")).toEqual({ ok: false, error: "lobbyFull" });
+    expect(unwrap(setRole(state, "bob", "player")).members.find((member) => member.id === "bob")?.role).toBe("player");
+  });
+
+  it("does not count spectators as racers, seats or starters", () => {
+    let state = lobbyWith("ann", "bob", "cid");
+    state = unwrap(setRole(state, "ann", "spectator"));
+    state = unwrap(setReady(unwrap(setReady(state, "bob", true)), "cid", true));
+    const started = unwrap(startRace(state, "ann", TEXT, T0));
+    expect(started.race?.racers.map((racer) => racer.id)).toEqual(["bob", "cid"]);
+    expect(viewFor(advance(started, START), "ann", START)?.race?.you).toBeNull();
+    expect(publicLobbyFor(unwrap(setVisibility(state, "ann", "public")))?.playerCount).toBe(2);
+  });
+
+  it("ends the race once no human racer is left, even with spectators watching", () => {
+    let state = lobbyWith("ann", "bob");
+    state = unwrap(setRole(state, "bob", "spectator"));
+    state = unwrap(addBot(unwrap(setReady(state, "ann", true)), "ann", "rookie"));
+    state = advance(unwrap(startRace(state, "ann", TEXT, T0)), START);
+    expect(isRaceOver(leaveLobby(state, "ann"), START)).toBe(true);
+  });
+
+  it("lets a spectating host start a bots-only race, which runs while someone watches", () => {
+    let state = unwrap(setRole(lobbyWith("ann"), "ann", "spectator"));
+    state = unwrap(addBot(unwrap(addBot(state, "ann", "rookie")), "ann", "master"));
+    const started = advance(unwrap(startRace(state, "ann", TEXT, T0)), START);
+    expect(started.race?.racers.every((racer) => racer.bot !== null)).toBe(true);
+    expect(isRaceOver(started, START)).toBe(false);
+    expect(isRaceOver(leaveLobby(started, "ann"), START)).toBe(true);
+  });
+
+  it("hands the host role to a spectator when the host leaves", () => {
+    const state = unwrap(setRole(lobbyWith("ann", "bob"), "bob", "spectator"));
+    expect(viewFor(leaveLobby(state, "ann"), "bob", T0)?.players.find((player) => player.id === "bob")?.isHost).toBe(true);
+  });
+});
+
+describe("invite links", () => {
+  const privateLobby = () => unwrap(createInvite(unwrap(setVisibility(lobbyWith("ann"), "ann", "private")), "ann", "tok-1"));
+
+  it("lets only the host create links, shown to the host only", () => {
     const state = lobbyWith("ann", "bob");
-    expect(viewFor(state, "bob", T0)?.visibility).toBe("private");
+    expect(createInvite(state, "bob", "x")).toEqual({ ok: false, error: "notHost" });
+    const invited = unwrap(createInvite(state, "ann", "tok-1"));
+    expect(viewFor(invited, "ann", T0)?.invites).toEqual([{ token: "tok-1", usedBy: null, isRevoked: false }]);
+    expect(viewFor(invited, "bob", T0)?.invites).toBeNull();
+  });
+
+  it("lets the first person in, even in a private lobby, and binds the link to their address", () => {
+    const state = unwrap(joinWithInvite(privateLobby(), { id: "bob", name: "bob" }, "tok-1", "1.1.1.1", T0));
+    expect(viewFor(state, "bob", T0)).not.toBeNull();
+    expect(viewFor(state, "ann", T0)?.invites).toEqual([{ token: "tok-1", usedBy: "bob", isRevoked: false }]);
+
+    // Anyone else, from another address, is refused; the same address may come back.
+    expect(joinWithInvite(state, { id: "cid", name: "cid" }, "tok-1", "2.2.2.2", T0)).toEqual({ ok: false, error: "inviteUsed" });
+    const left = leaveLobby(state, "bob");
+    expect(joinWithInvite(left, { id: "bob", name: "bob" }, "tok-1", "1.1.1.1", T0).ok).toBe(true);
+    expect(joinWithInvite(left, { id: "bob", name: "bob" }, "nope", "1.1.1.1", T0)).toEqual({ ok: false, error: "invalidInvite" });
+  });
+
+  it("revokes the link of a kicked player", () => {
+    const joined = unwrap(joinWithInvite(privateLobby(), { id: "bob", name: "bob" }, "tok-1", "1.1.1.1", T0));
+    const kicked = unwrap(kickMember(joined, "ann", "bob"));
+    expect(viewFor(kicked, "ann", T0)?.invites?.[0].isRevoked).toBe(true);
+    expect(joinWithInvite(kicked, { id: "bob", name: "bob" }, "tok-1", "1.1.1.1", T0)).toEqual({ ok: false, error: "invalidInvite" });
+  });
+
+  it("does not bind the link when joining fails", () => {
+    const racingLobby = unwrap(createInvite(racing("ann", "bob"), "ann", "tok-1"));
+    expect(joinWithInvite(racingLobby, { id: "cid", name: "cid" }, "tok-1", "1.1.1.1", START)).toEqual({ ok: false, error: "raceInProgress" });
+    expect(racingLobby.invites[0].usedBy).toBeNull();
+  });
+});
+
+describe("closing a lobby", () => {
+  it("lets only the host close it, outside a race", () => {
+    const state = lobbyWith("ann", "bob");
+    expect(closeLobby(state, "bob")).toEqual({ ok: false, error: "notHost" });
+    expect(unwrap(closeLobby(state, "ann")).members).toEqual([]);
+    expect(closeLobby(racing("ann", "bob"), "ann")).toEqual({ ok: false, error: "wrongPhase" });
+  });
+});
+
+describe("kicking players", () => {
+  it("lets only the host remove another player, who cannot come back", () => {
+    const state = lobbyWith("ann", "bob", "cid");
+    expect(kickMember(state, "bob", "cid")).toEqual({ ok: false, error: "notHost" });
+    expect(kickMember(state, "ann", "ann")).toEqual({ ok: false, error: "notMember" });
+    expect(kickMember(state, "ann", "zed")).toEqual({ ok: false, error: "notMember" });
+
+    const kicked = unwrap(kickMember(state, "ann", "bob"));
+    expect(viewFor(kicked, "bob", T0)).toBeNull();
+    expect(viewFor(kicked, "ann", T0)?.players.map((player) => player.id)).toEqual(["ann", "cid"]);
+    expect(joinLobby(kicked, { id: "bob", name: "bob" }, T0)).toEqual({ ok: false, error: "kicked" });
+  });
+
+  it("keeps a kicked racer in the race results as not finished", () => {
+    const state = unwrap(kickMember(racing("ann", "bob", "cid"), "ann", "bob"));
+    expect(state.race?.racers.map((racer) => racer.id)).toContain("bob");
+    expect(isRaceOver(state, START)).toBe(false);
+  });
+});
+
+describe("lobby capacity", () => {
+  it("lets only the host set 2 to 30 seats, never below the players already in", () => {
+    const state = lobbyWith("ann", "bob", "cid");
+    expect(unwrap(setCapacity(state, "ann", 12)).config.capacity).toBe(12);
+    expect(viewFor(unwrap(setCapacity(state, "ann", 3)), "bob", T0)?.capacity).toBe(3);
+    expect(setCapacity(state, "bob", 12)).toEqual({ ok: false, error: "notHost" });
+    expect(setCapacity(state, "ann", 2)).toEqual({ ok: false, error: "invalidSettings" });
+    expect(setCapacity(state, "ann", 31)).toEqual({ ok: false, error: "invalidSettings" });
+    expect(setCapacity(state, "ann", 4.5)).toEqual({ ok: false, error: "invalidSettings" });
+    expect(setCapacity(state, "ann", "10")).toEqual({ ok: false, error: "invalidSettings" });
+  });
+
+  it("seats newcomers as spectators once the seats are taken, up to the spectator limit", () => {
+    let state = unwrap(setCapacity(lobbyWith("ann", "bob"), "ann", 2));
+    for (let index = 0; index < MAX_SPECTATORS; index++) state = unwrap(joinLobby(state, { id: `s${index}`, name: `s${index}` }, T0));
+    expect(state.members.filter((member) => member.role === "spectator")).toHaveLength(MAX_SPECTATORS);
+    expect(joinLobby(state, { id: "late", name: "late" }, T0)).toEqual({ ok: false, error: "lobbyFull" });
+  });
+});
+
+describe("lobby visibility", () => {
+  it("starts joinable with the code and lets only the host change who can join", () => {
+    const state = lobbyWith("ann", "bob");
+    expect(viewFor(state, "bob", T0)?.visibility).toBe("code");
     expect(publicLobbyFor(state)).toBeNull();
     expect(setVisibility(state, "bob", "public")).toEqual({ ok: false, error: "notHost" });
     expect(setVisibility(state, "ann", "secret")).toEqual({ ok: false, error: "invalidSettings" });
 
     const open = unwrap(setVisibility(state, "ann", "public"));
     expect(publicLobbyFor(open)).toMatchObject({ code: "P5-TEST", hostName: "ann", playerCount: 2, phase: "waiting" });
+    expect(publicLobbyFor(unwrap(setVisibility(open, "ann", "code")))).toBeNull();
     expect(publicLobbyFor(unwrap(setVisibility(open, "ann", "private")))).toBeNull();
+  });
+
+  it("refuses code joins to private lobbies, which need an invite link", () => {
+    const state = unwrap(setVisibility(lobbyWith("ann"), "ann", "private"));
+    expect(joinLobby(state, { id: "bob", name: "bob" }, T0)).toEqual({ ok: false, error: "privateLobby" });
+    expect(joinLobby(unwrap(setVisibility(state, "ann", "code")), { id: "bob", name: "bob" }, T0).ok).toBe(true);
   });
 
   it("keeps quick and training lobbies private", () => {

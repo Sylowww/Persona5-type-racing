@@ -39,8 +39,9 @@ export type CreateAccountResult =
   | { ok: true; user: User }
   | { ok: false; error: "usernameTaken" | "emailTaken" };
 
-export async function createGuest(): Promise<User> {
-  const [row] = await getDb().insert(users).values({ kind: "guest", username: guestUsername() }).returning(userColumns);
+/** A guest with the nickname they picked (validated by the caller), or a generated one. Guest names may repeat. */
+export async function createGuest(username: string = guestUsername()): Promise<User> {
+  const [row] = await getDb().insert(users).values({ kind: "guest", username }).returning(userColumns);
   return toUser(row);
 }
 
@@ -167,6 +168,15 @@ export async function getLinkedProviders(userId: string): Promise<OAuthProvider[
     .where(eq(oauthAccounts.userId, userId))
     .orderBy(asc(oauthAccounts.provider));
   return rows.map((row) => row.provider);
+}
+
+/** A registered player's public name and thief (their compendium), or null for guests and unknown ids. */
+export async function getRegisteredPlayer(userId: string): Promise<{ username: string; character: CharacterId } | null> {
+  const [row] = await getDb()
+    .select({ username: users.username, characterId: users.characterId })
+    .from(users)
+    .where(and(eq(users.id, userId), eq(users.kind, "registered")));
+  return row ? { username: row.username, character: isCharacterId(row.characterId) ? row.characterId : DEFAULT_CHARACTER } : null;
 }
 
 export async function setUserCharacter(userId: string, character: CharacterId): Promise<void> {

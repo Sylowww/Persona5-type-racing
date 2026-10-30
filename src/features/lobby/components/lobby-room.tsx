@@ -4,19 +4,25 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
-import { canStartRace, countReady } from "@/lib/lobby";
+import { canStartRace, countReady, MAX_LOBBY_CAPACITY, MIN_LOBBY_CAPACITY } from "@/lib/lobby";
+import type { CharacterId } from "@/types/character";
 import type { LobbyView } from "@/types/lobby";
 import {
   addLobbyBot,
+  createLobbyInvite,
+  kickLobbyMember,
   leaveLobby,
   removeLobbyBot,
   sendLobbyMessage,
+  setLobbyCapacity,
   setLobbyReady,
+  setLobbyRole,
   setLobbyVisibility,
   startLobbyRace,
   updateLobbySettings,
 } from "../actions";
 import { useLobbyStream } from "../use-lobby-stream";
+import { InvitePanel } from "./invite-panel";
 import { LobbyActions } from "./lobby-actions";
 import { LobbyHeader } from "./lobby-header";
 import { LobbyRoster } from "./lobby-roster";
@@ -27,12 +33,13 @@ import { TauntFeed } from "./taunt-feed";
 
 type LobbyRoomProps = {
   dictionary: Dictionary["lobby"];
+  characterNames: Record<CharacterId, string>;
   locale: Locale;
   initialView: LobbyView;
 };
 
 /** The live lobby: roster and readiness stay in sync through the lobby stream. */
-export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
+export function LobbyRoom({ dictionary, characterNames, locale, initialView }: LobbyRoomProps) {
   const router = useRouter();
   const { view, status } = useLobbyStream(initialView);
   const [isPending, startTransition] = useTransition();
@@ -42,18 +49,23 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
   // Everyone moves to the race together when the host starts it.
   useEffect(() => {
     if (status === "closed") router.replace(`/${locale}`);
-    else if ((view.phase === "countdown" || view.phase === "racing") && view.race?.you) router.push(`/${locale}/lobby/${code}/race`);
+    // Spectators follow the race on the track too.
+    else if ((view.phase === "countdown" || view.phase === "racing") && view.race) router.push(`/${locale}/lobby/${code}/race`);
   }, [status, view, code, locale, router]);
 
   const you = view.players.find((player) => player.id === view.youId);
   const isHost = you?.isHost ?? false;
   const isReady = you?.isReady ?? false;
-  const { players } = view;
+  const isSpectator = you?.isSpectator ?? false;
+  // Spectators take no seat and do not race.
+  const players = view.players.filter((player) => !player.isSpectator);
+  const spectators = view.players.filter((player) => player.isSpectator);
   const isWaiting = view.phase === "waiting" || view.phase === "finished";
   // Training is solo: no bots, and the player starts without readying up.
   const isTraining = view.kind === "training";
   const canEditRules = isHost && isWaiting;
   const visibility = view.kind === "custom" ? view.visibility : null;
+  const seats = view.kind === "custom" ? { capacity: view.capacity, min: Math.max(MIN_LOBBY_CAPACITY, players.length), max: MAX_LOBBY_CAPACITY } : null;
 
   return (
     <>
@@ -71,29 +83,48 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
         canStart={isHost && isWaiting && (isTraining || canStartRace(players))}
         isHost={isHost}
         isReady={isReady}
+        isSpectator={isSpectator}
+        onToggleRole={
+          view.kind === "custom" && isWaiting
+            ? () => startTransition(async () => void (await setLobbyRole(code, isSpectator ? "player" : "spectator")))
+            : null
+        }
         isPending={isPending}
         onToggleReady={() => startTransition(async () => void (await setLobbyReady(code, !isReady)))}
         onStart={() => startTransition(async () => void (await startLobbyRace(code)))}
         onLeave={() => startTransition(() => leaveLobby(code, locale))}
         onShowSettings={() => setSettingsOpen(true)}
         onShowChat={() => focusSection("lobby-chat-input")}
+        close={isHost && isWaiting && view.kind === "custom" ? { code, locale } : null}
       />
 
-      <div className="grid grid-cols-1 items-start gap-7 xl:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-12">
         <div className="xl:col-span-8">
           <LobbyRoster
             dictionary={dictionary}
             code={code}
             capacity={view.capacity}
             players={players}
+            spectators={spectators}
             youId={view.youId}
             canManageBots={isHost && !isTraining && view.phase !== "countdown" && view.phase !== "racing"}
             isPending={isPending}
-            onAddBot={(difficulty) => startTransition(async () => void (await addLobbyBot(code, difficulty)))}
+            onAddBot={(difficulty, character) => startTransition(async () => void (await addLobbyBot(code, difficulty, character)))}
+            characterNames={characterNames}
             onRemoveBot={(botId) => startTransition(async () => void (await removeLobbyBot(code, botId)))}
+            onKick={isHost && view.kind === "custom" ? (playerId) => startTransition(async () => void (await kickLobbyMember(code, playerId))) : null}
           />
         </div>
-        <div className="flex flex-col gap-4 xl:col-span-4">
+        <div className="flex flex-col gap-6 xl:col-span-4">
+          {view.invites && (
+            <InvitePanel
+              dictionary={dictionary.invites}
+              locale={locale}
+              invites={view.invites}
+              isPending={isPending}
+              onCreate={() => startTransition(async () => void (await createLobbyInvite(code)))}
+            />
+          )}
           <RulesSummary
             dictionary={dictionary.rules}
             settings={view.settings}
@@ -114,7 +145,9 @@ export function LobbyRoom({ dictionary, locale, initialView }: LobbyRoomProps) {
           onChange={(change) => startTransition(async () => void (await updateLobbySettings(code, change)))}
           visibility={visibility}
           onVisibilityChange={(visibility) => startTransition(async () => void (await setLobbyVisibility(code, visibility)))}
-          spectators={[]}
+          seats={seats}
+          onCapacityChange={(capacity) => startTransition(async () => void (await setLobbyCapacity(code, capacity)))}
+          spectators={spectators.map((spectator) => spectator.name)}
           onClose={() => setSettingsOpen(false)}
         />
       </SettingsPanel>

@@ -1,11 +1,16 @@
+"use client";
+
 import type { CSSProperties } from "react";
 import { Icon } from "@/components/ui/icon";
 import { formatMessage } from "@/i18n/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import { characterSprite } from "@/lib/characters";
+import { laneOrder } from "@/lib/race-lanes";
 import { RUNNER_OBSTACLES } from "@/lib/race-runner";
 import type { RaceRacer } from "@/types/race";
+import { spellStyle } from "../spell-style";
+import { useLaneMotion } from "../use-lane-motion";
 import { RaceRunner, RUNNER_SIZE } from "./race-runner";
 
 type RaceTrackProps = {
@@ -21,6 +26,8 @@ type RaceTrackProps = {
   exitGlow?: number;
   /** Total chaos: stones fall onto the lanes. */
   chaos?: boolean;
+  /** Third Eye: a ghost of the player's record in their lane, and how fast it runs; null when off. */
+  ghost?: { progress: number; wpm: number } | null;
 };
 
 /** Stones falling on a lane during the chaos: position and timing, fixed per lane so they do not jump around. */
@@ -39,6 +46,16 @@ function laneStones(lane: number) {
 
 const quarterMarks = [0, 0.25, 0.5, 0.75] as const;
 
+/** A spell mark fades out over its last moments (the lane "thaws"). */
+const MARK_FADE_MS = 500;
+/** Where the element's icons sit on a marked lane. */
+const markIcons = ["18%", "47%", "76%"] as const;
+
+/** Lanes shown without scrolling: the player's own, then the three best of the others. */
+const VISIBLE_LANES = 4;
+const LANE_HEIGHT_PX = 76;
+const LANE_GAP_PX = 6;
+
 
 export function RaceTrack({
   dictionary,
@@ -49,12 +66,18 @@ export function RaceTrack({
   overtakerIds,
   exitGlow = 0,
   chaos = false,
+  ghost = null,
 }: RaceTrackProps) {
+  const lanes = laneOrder(racers, youId);
+  const laneRef = useLaneMotion(
+    lanes.map((racer) => racer.id),
+    racers.filter((racer) => racer.place <= 3).map((racer) => racer.id),
+  );
   const percent = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
 
   return (
-    <section aria-label={dictionary.label} className="relative w-full overflow-hidden bg-surface-container-low p-2 shadow-hard-xl">
+    <section aria-label={dictionary.label} className={`relative w-full overflow-hidden border border-surface-container-high bg-surface-container-low p-2 shadow-hard-xl ${ghost ? "third-eye-track" : ""}`}>
       <div className="mb-1 flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <h2 className="font-hud text-label-hud font-black uppercase tracking-widest text-primary">{dictionary.label}</h2>
@@ -71,12 +94,20 @@ export function RaceTrack({
         </div>
       </div>
 
-      <ol className="flex flex-col gap-1.5">
-        {racers.map((racer, index) => {
+      {/* Past four lanes the track scrolls, so the typing area stays in view however big the class is. */}
+      <ol
+        className="flex flex-col gap-1.5 overflow-y-auto overscroll-contain"
+        style={{ maxHeight: VISIBLE_LANES * LANE_HEIGHT_PX + (VISIBLE_LANES - 1) * LANE_GAP_PX }}
+      >
+        {lanes.map((racer, index) => {
           const isYou = racer.id === youId;
           const character = characterSprite(racer.character);
           const anchor = (character.anchorX / character.frameSize) * RUNNER_SIZE;
-          const width = `${racer.progress * 100}%`;
+          // Progress moves only transforms (scale, translate): animating width or left would lay out every lane on every
+          // frame, which a full 30-racer track cannot afford on slower machines (PERF-03).
+          const slide = `calc(${racer.progress} * (100cqw - 100%)) 0`;
+          // A malus the racer is under: their lane takes the spell's element (ice, fire, shock...) until it wears off.
+          const mark = racer.mark && racer.mark.until > now ? racer.mark : null;
           const label = formatMessage(dictionary.progress, {
             name: racer.name,
             percent: percent.format(racer.progress),
@@ -86,21 +117,32 @@ export function RaceTrack({
           return (
             <li
               key={racer.id}
+              ref={laneRef(racer.id)}
               aria-label={label}
-              className={`flex h-[76px] items-stretch bg-surface-container-highest ${racer.isConnected && !racer.isEliminated ? "" : "opacity-50"} ${
+              // Lanes scrolled out of view are not painted (PERF-03); they keep their size and stay in the accessibility tree.
+              className={`flex h-[76px] shrink-0 items-stretch bg-surface-container-highest [contain-intrinsic-size:auto_76px] [content-visibility:auto] ${racer.isConnected && !racer.isEliminated && !racer.isForfeited ? "" : "opacity-50"} ${
                 overtakerIds?.has(racer.id) ? "lane-overtake" : ""
               }`}
             >
               {/* The course: everything here is decorative and placed from progress only. */}
               <div aria-hidden="true" className="@container relative flex-1 overflow-hidden">
                 <div
-                  className={`absolute inset-y-0 left-0 transition-[width] duration-300 ${
+                  className={`absolute inset-0 origin-left transition-transform duration-300 ${
                     isYou
                       ? "bg-gradient-to-r from-primary-container/5 via-primary-container/25 to-primary-container/50"
                       : "bg-gradient-to-r from-primary-container/0 via-primary-container/10 to-primary-container/25"
                   }`}
-                  style={{ width }}
+                  style={{ transform: `scaleX(${racer.progress})` }}
                 />
+                {mark && (
+                  <div className={`lane-mark lane-mark-${mark.element} ${mark.until - now < MARK_FADE_MS ? "lane-mark-ending" : ""}`}>
+                    {markIcons.map((left) => (
+                      <span key={left} className={`lane-mark-icon absolute top-1/2 -translate-y-1/2 ${spellStyle[mark.element].text}`} style={{ left }}>
+                        <Icon name={spellStyle[mark.element].icon} size={22} filled />
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className="absolute inset-x-0 bottom-1 h-px bg-on-surface/25" />
                 {/* The exit: a light at the end of the lane, brighter as the leader nears it. */}
                 <div
@@ -137,8 +179,8 @@ export function RaceTrack({
                   />
                 ))}
                 <div
-                  className="absolute top-1 left-0 flex -skew-x-12 items-center gap-1 px-2 py-0.5 transition-[left,translate] duration-300 motion-reduce:transition-none"
-                  style={{ left: width, translate: `-${width}` }}
+                  className="absolute top-1 left-0 flex -skew-x-12 items-center gap-1 px-2 py-0.5 transition-[translate] duration-300 motion-reduce:transition-none"
+                  style={{ translate: slide }}
                 >
                   <span
                     className={`skew-x-12 font-hud text-[13px] font-black uppercase tracking-widest ${
@@ -148,15 +190,32 @@ export function RaceTrack({
                     {racer.name}
                   </span>
                   {racer.isBot && <Icon name="smart_toy" size={14} className="skew-x-12 text-outline" />}
+                  {mark && <Icon name={spellStyle[mark.element].icon} size={16} filled className={`skew-x-12 ${spellStyle[mark.element].text}`} />}
                   {isYou && (
                     <span className="skew-x-12 bg-secondary-fixed px-1 font-hud text-[10px] font-black uppercase text-on-secondary-fixed">
                       {dictionary.you}
                     </span>
                   )}
                 </div>
+                {isYou && ghost && (
+                  <div
+                    className="third-eye-ghost absolute bottom-0 left-0 transition-[translate] duration-300 ease-linear motion-reduce:transition-none"
+                    style={{ translate: `calc(${ghost.progress} * (100cqw - 100%)) 0` }}
+                  >
+                    <RaceRunner
+                      character={character}
+                      progress={ghost.progress}
+                      wpm={ghost.wpm}
+                      isFinished={ghost.progress >= 1}
+                      mistakes={0}
+                      isYou={false}
+                      now={now}
+                    />
+                  </div>
+                )}
                 <div
-                  className="absolute bottom-0 left-0 transition-[translate] duration-300 ease-linear motion-reduce:transition-none"
-                  style={{ translate: `calc(${racer.progress} * (100cqw - 100%)) 0` }}
+                  className={`absolute bottom-0 left-0 transition-[translate] duration-300 ease-linear motion-reduce:transition-none ${mark ? `lane-runner-${mark.element}` : ""}`}
+                  style={{ translate: slide }}
                 >
                   <RaceRunner
                     character={character}
@@ -179,7 +238,7 @@ export function RaceTrack({
                   {percent.format(racer.progress)}
                 </span>
                 <span className="font-display text-[14px] tracking-wider text-secondary-fixed">
-                  {String(index + 1).padStart(2, "0")}
+                  {String(racer.place).padStart(2, "0")}
                 </span>
               </div>
             </li>

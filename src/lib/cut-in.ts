@@ -63,3 +63,11 @@ export function revealedLength(elapsedMs: number, length: number, timeline: CutI
   const share = (elapsedMs - typingStartsAt) / (typingEndsAt - typingStartsAt);
   return Math.round(Math.min(1, Math.max(0, share)) * length);
 }
+
+/** Spell cut-in: a quick flash for the caster and the target of a catch-up spell, short enough not to block typing. */
+export const SPELL_CUT_IN_TIMELINE = {
+  typingStartsAt: 120,
+  typingEndsAt: 420,
+  leavesAt: 1000,
+  endsAt: 1300,
+} as const satisfies CutInTimeline;

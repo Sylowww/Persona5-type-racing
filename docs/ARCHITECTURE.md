@@ -20,6 +20,9 @@ src/
     [locale]/lobbies/page.tsx       Lobby browser: public custom lobbies, refreshed every 5 s
     [locale]/quick/page.tsx         Quick 1v1 matchmaking (searching screen)
     [locale]/leaderboard/page.tsx   Top 100 registered players, 10 per page (`?page=`)
+    [locale]/characters/[id]/page.tsx  One thief's character file (`/characters` redirects to the player's own)
+    [locale]/compendium/page.tsx    Every thief's confidant card, with the player's stats per thief, and achievement cards
+    [locale]/compendium/[player]/page.tsx  Another registered player's compendium, read only (linked from the leaderboard)
   components/
     layout/                 Site-wide chrome (header, footer, wordmark)
     ui/                     Generic, reusable primitives (Icon, PlayerAvatar)
@@ -61,19 +64,24 @@ tests/
 - `lib/db-schema.ts` holds the typed table models. Schema changes are still plain SQL files in `db/migrations/` (`NNN_name.sql`), applied in order by `npm run db:migrate` (`scripts/migrate.mjs`, tracked in `schema_migrations`). A schema change is a new migration plus the matching edit in `lib/db-schema.ts`. Never edit an applied migration; add a new one.
 - Local database: `docker compose up -d` (or any Postgres), copy `.env.example` to `.env`, then `npm run db:migrate`. `npm run db:seed` (`scripts/seed.ts`) then adds demo data: the race text corpus and the demo account from the README, with no races so its stats stay empty until someone plays; `npm run db:seed -- --rivals` also creates five rival accounts with 15 past races each (local use: production has real players). It can be run again: texts are upserted and only the seed accounts (emails at `demo.typestrike.test`) are recreated, so running it again also resets the demo account's races, and running it without `--rivals` removes earlier rivals.
 - `scripts/*.ts` run directly with Node's built-in TypeScript support (Node 22.18+), so they import app modules with a `.ts` extension and no `@/` alias.
-- Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race), `user_avatars` (uploaded profile pictures), `race_texts` (corpus of coherent texts per language, filled by the seed; races still pick from the built-in list in `lib/race-texts.ts` until CONF-03 is wired).
+- Tables: `users` (guests and registered accounts, `kind` column, `character_id` chosen on the profile), `oauth_accounts` (GitHub/Discord identities), `sessions` (only the SHA-256 hash of the cookie token is stored), `race_results` (one row per registered player per finished race), `user_avatars` (uploaded profile pictures), `race_texts` (corpus of coherent passages per language, filled by the seed and read by the lobby server), `lobby_members` (who is in which lobby right now: its primary key keeps a person in one lobby, SALLE-06).
 - Leaderboard: `lib/leaderboard-db.ts` (server-only) ranks registered players with at least one saved race by record WPM, then average WPM, then name, and reads one page of 10 at a time (`LIMIT`/`OFFSET`, top 100 only). Page math and `?page=` parsing are pure, in `lib/leaderboard.ts`.
 - `lib/users.ts` is the server-only data access for accounts and sessions. Pure auth helpers (scrypt password hashing, session tokens, input validation) live in `lib/auth/` and are unit tested.
 - Profile edits (`features/profile/actions.ts`): `changeUsername` validates like sign-up and relies on the unique index for taken names (`renameUser`); the new name shows at once in the player's current lobby (`store.setName`). `uploadAvatar` checks the size, then the real type from the file's first bytes (`lib/avatar.ts`: JPEG, PNG or WebP, 2 MB max; the browser's type and file name are ignored), stores the bytes in `user_avatars` (the server disk is not persistent) and sets `users.avatar_url` to `/api/avatars/{userId}/{version}`. That route serves the bytes with `nosniff` and an immutable cache (the version changes on every upload). `PlayerAvatar` displays it with `next/image`, which resizes it. Server Action bodies are capped at 3 MB in `next.config.ts`.
-- Lobbies and races are in memory only (see Multiplayer). When a race ends, the store calls `onRaceFinished` and `lib/race-history-db.ts` saves one `race_results` row per registered player (in the background; a database error is only logged). Pure helpers (`recordFromResult`, `summarizeRaces`, guest list parsing) are in `lib/race-history.ts`.
+- Lobbies and races are in memory only (see Multiplayer). When a race ends, the store calls `onRaceFinished` and `lib/race-history-db.ts` saves one `race_results` row per registered player (in the background; a database error is only logged), with the full results the player saw (every racer and their WPM series, each sample with the racer's progress, plus the race's spells, calling cards and Ambush as `events`) in the `result` jsonb column, so the history can show them again and replay the race (`lib/race-replay.ts`). Pure helpers (`recordFromResult`, `summarizeRaces`, `isPersonalBest`, guest list parsing) are in `lib/race-history.ts`.
 - Guests' races are not stored on the server: the results page saves them in `sessionStorage` (`lib/guest-races.ts`, key `guest-races`, last 50 races), read on the home page with `features/home/use-guest-races.ts`. They are lost when the tab is closed.
+
+## Input validation
+
+Every input from a client is checked on the server with a Zod schema (`lib/schemas.ts`, TECH-07): forms (`lib/auth/forms.ts`), Server Function arguments (`features/*/actions.ts`), route handler parameters and bodies (`app/api/`, including the OAuth flow cookie), race settings changes (`parseRaceSettings`, which also refuses unknown fields) and the keystroke batches of the real-time channel (`parseInputBatch`). Schemas carry the error codes the UI translates, so the parsers keep returning codes rather than exceptions.
 
 ## Authentication
 
-- `features/auth/actions.ts`: `signUp`, `signIn`, `signOut` Server Functions used by the forms (`useActionState`). They return error codes, translated by the UI from `auth.errors`.
+- `features/auth/actions.ts`: `signUp`, `signIn`, `continueAsGuest`, `signOut` Server Functions used by the forms (`useActionState`). They return error codes, translated by the UI from `auth.errors`.
 - `lib/auth/forms.ts`: pure parsing/validation of the submitted forms (unit tested).
 - `lib/auth/session.ts` (server-only): `getCurrentUser()` (cached per request), `startSession()`, `endSession()`. Cookie `session`: HttpOnly, `SameSite=Lax`, `Secure` in production, 30 days. Only the token hash is stored.
-- Signing up while holding a guest session upgrades that guest row, keeping its history.
+- Guests (AUTH-02/03): a visitor who opens a lobby, the lobby browser or quick play, or joins with a code, is sent to `/[locale]/guest?next=…` to pick a nickname (username rules, may repeat). `continueAsGuest` creates a `guest` user and the same session cookie, then returns to `next` (checked by `safeNextPath`: same-language app paths only) and joins the lobby when `next` is one. Guests can join but not open lobbies or the dojo (`requireHost` sends them to sign up), have no profile page or picture (the header shows an avatar generated from their name, `generatedAvatar` in `lib/avatar.ts`), and their races are not saved (`saveRaceResults` keeps registered players only).
+- Signing up while holding a guest session upgrades that guest row instead of creating a new one.
 - The locale layout reads the current user for the header, so every page renders dynamically. Pages without a session cookie never query the database.
 - OAuth (Google, GitHub, Discord): `app/api/auth/[provider]/route.ts` starts the flow (random `state` + PKCE verifier kept in a 10-minute HttpOnly `oauth` cookie) and `.../callback/route.ts` checks the state, exchanges the code, loads the profile and calls `findOrCreateOAuthUser`. Pure helpers (authorize URL, PKCE, profile parsing, username cleanup) are in `lib/auth/oauth.ts`; network calls in `lib/auth/oauth-client.ts`. A provider's button only shows when its `*_CLIENT_ID` and `*_CLIENT_SECRET` are set (see `.env.example`). Callback URL to register with each provider: `{APP_URL}/api/auth/{provider}/callback`.
 - To protect a page or action, call `getCurrentUser()` on the server and check `kind`. Never trust client-sent user ids.
@@ -94,23 +102,43 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 
 **Lobby kinds** (`LobbyKind`): `custom` (the home "Start a race" button, joined with its code), `quick` (a 1v1 made by matchmaking, 30 s race, capacity 2) and `training` (the dojo: one player, no bots, starts without readying up, never saved). Quick and training lobbies refuse code joins (`privateLobby`); both start their race as soon as they are created (`startPrivateRace` in the store).
 
-**Visibility** (`LobbyVisibility`): custom lobbies start `private` (joined with the code or the invite link). The host switches them to `public` in the settings panel (`setVisibility`); public lobbies are also listed by `store.listPublic()` on `/lobbies` (open lobbies first, then the fullest) and joined from there with `joinListedLobby`. Quick and training lobbies are always private.
+**Visibility** (`LobbyVisibility`, SALLE-03): custom lobbies start `code` (not listed; joined with the code or an invite link). The host switches them to `public` (also listed by `store.listPublic()` on `/lobbies`, open lobbies first, then the fullest, and joined from there with `joinListedLobby`) or `private` (invite links only: `joinLobby` refuses the code with `privateLobby`). Quick and training lobbies are always private.
+
+**Invite links** (SALLE-04): the host creates links from the lobby's invite panel (`createInvite`; token: 128 random bits from Web Crypto, made by the store). `/[locale]/invite/[token]` shows who invites to which lobby (visitors pick a guest nickname first) and joins with `joinWithInviteLink`, which passes the request's address (`clientIp`: first `X-Forwarded-For` entry). The first use binds the link to that user and address (`joinWithInvite`); afterwards only that address gets in, whatever the visibility. Kicking a player revokes their link; links live in the lobby state, so they die with it. The host's snapshot lists the links (`invites`: token, used by whom, revoked); everyone else gets `null`, and addresses are never sent.
+
+**Spectators** (SALLE-01, SALLE-05): members have a `role`. `player` members (bots included) take the seats and race; `spectator` members take no seat, never ready up, and watch the track without the typing area on the race page (no `race.you`). Any member of a custom lobby switches with `setRole` while it waits (taking a seat needs a free one). Once the seats are taken, newcomers join as spectators, up to `MAX_SPECTATORS` (30). A race needs two racers with at least one human (`canStartRace`) and stops once no human racer is left, even with spectators watching.
+
+**Host controls**: kick (`kickMember`: the player leaves, joins `kicked` so the code and their link refuse them, SALLE-07), close (`closeLobby`, outside a race: everyone gets a null view and the lobby is deleted, COURSE-11), seats (`setCapacity`, 2 to 30) and the rules. Every one checks `hostId` on the server (SEC-01).
+
+**One lobby per person** (SALLE-06): every way into a lobby (code, browser, invite link, quick race) first takes the person's seat in `lobby_members` (`takeSeat` / `claimLobbySeat`: an insert that the primary key refuses when they already sit elsewhere). Then the player is asked to leave their current lobby (a "leave it and join" button or a confirmation), and only joins once they agree. The store reports every move (`onMembership`), so kicks, closes and expired seats free the row too; the table is cleared when the server starts, since lobbies live in memory.
+
+**Quick race** (JOIN-03): « Faire une course » on `/lobbies` joins the public, open, not full lobby with the fewest free seats, the oldest on a tie (`quickRaceLobby`). With none open, a registered player may open a public lobby with the default settings (`createPublicLobby`); a guest only sees that none is open.
+
+**Code guessing** (SALLE-10): `lobbyCodeLimiter()` allows 10 code attempts per minute per address, counted on the join form and when a non-member opens a lobby URL (whether the lobby exists or not). `LOBBY_CODE_ATTEMPTS_PER_MINUTE` raises it for the E2E server.
 
 **Quick 1v1 matchmaking** (`lobby-store.ts`, `lib/matchmaking.ts`): the `/quick` page joins a queue (`joinQuickMatch`) and checks in every second (`checkQuickMatch`). A player is paired with the first other player searching in the same language; after 15 s alone they race a bot whose level is closest to their average WPM (`botForSpeed`). Leaving the page or not checking in for 5 s removes them from the queue. The queue lives in memory like lobbies. Once matched, the status lists both racers (viewer first) for the versus screen (`features/quick/components/versus-screen.tsx`, 2.6 s); quick races start their countdown 3 s later than usual (`QUICK_MATCH_INTRO_MS`) so the screen does not eat it.
 
 **Lifecycle:** `waiting → countdown → racing → finished`, then the next ready or join reopens `waiting` (results are kept). A lobby is deleted (closed) once nobody is left.
 
-- The creator is host; if the host leaves or their seat expires, the longest-standing player takes over. Only the host starts, once at least two players are all ready (`canStartRace`).
-- Capacity defaults to 30 (a class), capped at 60, set with `LOBBY_CAPACITY`.
-- Settings: the host changes the next race's rules while the lobby is waiting (`updateSettings`; every field is validated server-side): text language (`fr` or `en`, defaults to the host's interface language when the lobby is created), mode (`normal` or `suddenDeath`: the first wrong character eliminates the racer), powers (saved only, no effect until bonuses exist), time limit (30 s, 1, 2 or 3 min, or none: untimed races still stop after a 30-minute safety cap), numbers (texts with digits) and case sensitivity (when off, a letter in the wrong case is stored as the expected one with `normalizeTypedChar`, on the server and in the race page). A race copies the settings when it starts.
+- The creator (a registered player) is host; if the host leaves or their seat expires, the longest-standing connected person (player or spectator) takes over. Only the host starts, once at least two racers, one of them human, are all ready (`canStartRace`).
+- Capacity (SALLE-05): 30 seats by default (a class; `LOBBY_CAPACITY` can lower the default). The host of a custom lobby changes it from 2 to 30 in the settings panel (`setCapacity`), never below the players already in.
+- Settings: the host changes the next race's rules while the lobby is waiting (`updateSettings`; every field is validated server-side): text language (`fr` or `en`, defaults to the host's interface language when the lobby is created), mode (`normal` or `suddenDeath`: the first wrong character eliminates the racer), powers (catch-up bonuses, see below), time limit (30 s, 1, 2, 3, 5 or 10 min, or none: untimed races still stop after a 30-minute safety cap), text type, length, complexity, punctuation, capitals, accents, letters to include or leave out (random texts), numbers (texts with digits) and case sensitivity (when off, a letter in the wrong case is stored as the expected one with `normalizeTypedChar`, on the server and in the race page). A race copies the settings when it starts.
+- Error modes (`RaceSettings.mode`, CONF-08): `normal` (a wrong character stays and must be erased to finish), `blocking` (a wrong key is counted but not typed, so the cursor waits for the right one), `free` (the wrong character stays and the racer keeps going; the race ends at the last character, net WPM counts characters at their right place, progress counts typed characters) and `suddenDeath`. `lib/typing.ts` applies them on the server and in the race page; bots plan their typos for the mode (`planBotRun`).
+- Forfeit (COURSE-07): `forfeitRace` marks the racer out; they stop typing and watch. At the end every racer gets a status (`finished`, `timeout`, `eliminated`, `forfeited`; leaving or staying disconnected past the grace period counts as `forfeited`), raw WPM, mistakes, progress and time, and `rankRacers` orders them (COURSE-10): finishers by time, then the rest by progress, then eliminations, then forfeits. The results page shows them all in a table (RES-02).
+- Paste and drop are blocked in the typing area (COURSE-04).
+- Catch-up spells (`lib/bonuses.ts` for who gets one, `lib/spells.ts` for what they get, `applyCatchUp` / `applySpell` in the engine; on when the host turns Powers on): when the leader passes 25, 50 and 75% (`checkpointsReached`), each racer still typing who is last or more than 25 points behind may draw one (`pickBonusReceivers`: only the 3 furthest behind per checkpoint, and 3 per racer per race), Mario Kart style: `drawSpell` picks a small or big tier from the gap to the leader (`bigSpellChance`: 20% to 85%), then a spell of that tier, from the same pool for every character (the character only picks the Persona shown casting it, `characterPersonas`). Only one malus hits the leader at a time: while one is running or was just cast, a racer who draws another gets `FALLBACK_SPELL` instead (-2 words for themself). So a checkpoint casts at most 3 spells and a player sees at most one cut-in from it. Every spell is one of four effects: `shorten` (words off the caster's own text), `lengthen` (words onto the leader's text), `stun` (the leader's batches are used up but their keys do nothing) or `hex` (the leader's next words are hidden or blurred). Every racer has their own `text`, so progress, WPM and finishing follow it (BONUS-04). Bots draw and take spells too: a changed text re-plans their run (`replanBotRun`), a stun or hex delays their next keys. Recent spells travel in the snapshot (`bonusEvents`, 4 s, with the caster's character and Persona) and the race page shows them (`SpellCutIn`, `BonusFeed`).
+- Ambush (`applyAmbush`, powers on): the first racer, bot or player, to type the first word without a single mistake gets `AMBUSH_WORDS` (1) word off their own text, once per race. The snapshot carries it (`RaceView.ambush`) for the race page's announcement.
+- Calling cards (`sendCallingCard`, server action `sendLobbyCallingCard`, powers on): once per race, the last racer still typing may send a card to the leader once the leader passed `CALLING_CARD_MIN_LEADER_PROGRESS` (10 %) (`callingCardTarget` in `lib/bonuses.ts`). The leader's next words are hidden for `CALLING_CARD_HEX_MS` (3 s; a bot leader types at half pace instead, like under a hex). It follows the one-malus rule: refused while the leader is under a spell or a card, and a card blocks spells on the leader meanwhile (`isUnderMalus`). `RaceYou.canSendCard` shows the button; recent cards travel in `RaceView.callingCards` (4 s). Bots never send cards.
+- Spells on bots: a bot has no screen to freeze or blur, so `slowBotSteps` (`lib/bots.ts`) bends its planned keys for the spell's duration. A stun or Kouga's blinding flash stops it (speed 0), any other hex or a calling card makes it type at `BOT_HEX_SPEED` (half pace); extra or removed words re-plan its run.
 - Sudden death: an eliminated racer stops typing (server and client), counts as done for the race end, and ranks after every racer still in, the last one knocked out first. Their WPM is measured up to the elimination.
 - Chat: any member sends messages (`sendMessage`): whitespace collapsed, 1-140 characters, one message per 500 ms per player, last 50 kept in the lobby (memory only) and sent in every snapshot. Quick taunts are preset messages in the sender's language.
-- Start: the server picks a text in the language chosen in the settings (`lib/race-texts.ts`, from the texts with digits when numbers are on) and sets `startsAt = now + 3 s`. Snapshots carry `serverNow` so every client shows the same countdown.
+- Start: the server builds the text from the settings (`buildRaceText` in `lib/text-builder.ts`: coherent passages from the `race_texts` corpus, merged with the built-in ones and reloaded every 10 min by `lib/lobby-server.ts`, or random words from `lib/word-lists.ts`; then length, complexity, punctuation, capitals, accents, numbers and letter filters) and sets `startsAt = now + 3 s`. Snapshots carry `serverNow` so every client shows the same countdown.
 - Input: the client diffs the hidden input into `char`/`delete` events and posts them in numbered batches (one request at a time, retried with the same number). The server replays them with `lib/typing.ts`, timed by its own clock, and ignores repeated batches, input outside the race and more than 30 keys/s. Progress, WPM, places, finish and results are computed server-side only. Client-measured key delays are used only for the heatmap.
 - Progress is broadcast at most every 100 ms per lobby; membership and phase changes are broadcast immediately.
+- Track (`race-track.tsx`, `laneOrder` in `lib/race-lanes.ts`): the player's lane is always first, then everyone else by live place (`RaceRacer.place`); four lanes show and the rest scroll inside the track, so the typing area stays in view in a full class.
 - End: when every racer finished, was eliminated, left, or stayed disconnected past the grace period, or at the time limit. Results are ranked with `rankRacers`.
 
-**Bots:** the host adds bots from the lobby (one button per difficulty, so every bot can have its own level) and removes them while no race is running. A bot is a lobby member with `bot` set to its difficulty: always connected and ready, never host, counted in the capacity. When the race starts, `planBotRun` plans each bot's keystrokes; `advance` replays the ones that are due with the same typing rules as players (progress, samples, key stats, results). Plans are human-like: target speed per difficulty (`botTargetWpm`, ±8% per race), uneven rhythm, slower capitals and punctuation, short pauses between words, and typos on neighboring QWERTY keys that are sometimes noticed a few keys late, then deleted and retyped. Easier levels make more typos and react more slowly. A single player can race bots. The race ends early once no player is left, and bots are removed when the last player leaves.
+**Bots:** the host adds bots from the lobby (one button per difficulty, so every bot can have its own level, and a menu to pick the character it races as; random by default) and removes them while no race is running. A bot is a lobby member with `bot` set to its difficulty: always connected and ready, never host, counted in the capacity. When the race starts, `planBotRun` plans each bot's keystrokes; `advance` replays the ones that are due with the same typing rules as players (progress, samples, key stats, results). Plans are human-like: target speed per difficulty (`botTargetWpm`, ±8% per race), uneven rhythm, slower capitals and punctuation, short pauses between words, and typos on neighboring QWERTY keys that are sometimes noticed a few keys late, then deleted and retyped. Easier levels make more typos and react more slowly. A single player can race bots. The race ends early once no player is left, and bots are removed when the last player leaves.
 
 **Reconnection:** a player whose stream drops keeps their seat and race progress for 30 s (`reconnectGraceMs`). `EventSource` reconnects on its own and a reload restores the typed text from the snapshot (the input stays read-only until the page is hydrated, so keys typed earlier are not silently dropped). Each page load sends input with its own client id: its first batch takes over and late batches from the previous page are ignored; when idle, the client adopts the server's copy of the typed text. Timers run on the server, so the race never depends on the host's browser.
 
@@ -118,7 +146,7 @@ Lobbies and races run on the server; clients only send keystrokes and render sna
 
 **Playing on the local network (dev):** add your LAN IP to `ALLOWED_DEV_ORIGINS` in `.env` (e.g. `ALLOWED_DEV_ORIGINS=10.3.3.55`), restart `next dev`, and share the `Network:` URL. Other devices must be on the same network. Use email/password accounts: OAuth callbacks point to `APP_URL`. `next start` over plain HTTP on an IP does not work for sign-in, because the production session cookie is `Secure`.
 
-In development, editing `race-engine.ts` or `lobby-store.ts` does not update the store already created on `globalThis`: restart `next dev` after such changes.
+In development, the store kept on `globalThis` would keep running old rules after a hot reload. `getLobbyStore` checks the modification times of the rule files (`lobby-store`, `race-engine`, `bonuses`, `bots`, `spells`, `typing`, `text-builder`, `race-settings`, `lobby`) and builds a fresh store when one changed; lobbies in progress are dropped. File times, not module identity, because each route bundle loads its own copy of the modules.
 
 ## Data model
 
@@ -130,6 +158,7 @@ erDiagram
   users ||--o{ sessions : "holds"
   users ||--o{ race_results : "finished"
   users ||--o| user_avatars : "uploaded"
+  users ||--o| lobby_members : "is in"
 
   users {
     uuid id PK
@@ -162,6 +191,11 @@ erDiagram
     bytea data "2 MB max"
     timestamptz updated_at
   }
+  lobby_members {
+    uuid user_id PK, FK "one lobby per person"
+    text lobby_code
+    timestamptz joined_at
+  }
   race_texts {
     uuid id PK
     text language "fr | en"
@@ -182,6 +216,7 @@ erDiagram
     int duration_ms
     int keystrokes
     int mistakes
+    jsonb result "full results, null before 008"
     timestamptz created_at
   }
 ```
@@ -293,5 +328,5 @@ sequenceDiagram
 
 **Consequences.**
 - Bots cost almost nothing at runtime (no AI, no extra process) and cannot cheat, since they use the player code path.
-- Future bonuses only need to act on the shared typing state to affect bots too.
-- Planning the whole race up front means a bonus that changes the text (e.g. +3 words) must re-plan the remaining steps.
+- Bonuses act on the shared racer state, so they affect bots too.
+- Planning the whole race up front means a bonus that changes the text (+3 or -3 words) re-plans the remaining steps (`replanBotRun`, seeded by the race so it stays reproducible); fog only delays the next steps.

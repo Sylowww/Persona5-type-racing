@@ -26,6 +26,7 @@ export async function getLeaderboardPage(page: number): Promise<LeaderboardRow[]
     .select({
       userId: users.id,
       username: users.username,
+      avatarUrl: users.avatarUrl,
       bestWpm,
       averageWpm: averageWpm.mapWith(Number),
       accuracy: avg(raceResults.accuracy).mapWith(Number),

@@ -14,6 +14,8 @@ CI (`.github/workflows/checks.yml`) runs all of them on every push and pull requ
 
 - **Multiplayer:** engine rules in `tests/unit/race-engine.test.ts` (pure, fixed timestamps), store behavior (broadcasts, timers, connections) in `tests/unit/lobby-store.test.ts` with an injected clock and `tickMs: null`. `tests/e2e/multiplayer.spec.ts` plays a full race in two browser contexts (sign up, create, join, ready, start, type, reload, results); type with a delay (under 30 keys/s) or the server drops keystrokes.
 
+- **Accessibility:** `tests/e2e/accessibility.spec.ts` runs axe (`@axe-core/playwright`, WCAG 2.1 A/AA) on the public pages, the signed-in home, profile and lobby, and a dojo race and its results, plus a keyboard-only flow from sign-in to race start. Add a page there when you create one.
+
 - **Unit:** every pure logic function (`lib/`, `i18n/format.ts`, future race/WPM/bot logic).
 - **E2E:** that pages render in both locales and that interactive components respond. Prefer role/label queries (`getByRole`, `getByLabel`).
 

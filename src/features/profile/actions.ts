@@ -1,10 +1,11 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth/session";
 import { validateUsername, type ValidationError } from "@/lib/auth/validation";
 import { MAX_AVATAR_BYTES, validateAvatar, type AvatarError } from "@/lib/avatar";
-import { isCharacterId } from "@/lib/characters";
+import { characterSchema } from "@/lib/schemas";
 import { getLobbyStore } from "@/lib/lobby-server";
 import { renameUser, saveUserAvatar, setUserCharacter } from "@/lib/users";
 
@@ -15,8 +16,9 @@ export type ProfileFormState = { error: ProfileError | null; saved: boolean };
 /** Saves the character a registered player races as, and shows it in their current lobby (the race itself keeps the old runner). */
 export async function chooseCharacter(form: FormData): Promise<void> {
   const user = await getCurrentUser();
-  const character = form.get("character");
-  if (user?.kind !== "registered" || !isCharacterId(character) || character === user.character) return;
+  const parsed = characterSchema.safeParse(form.get("character"));
+  if (user?.kind !== "registered" || !parsed.success || parsed.data === user.character) return;
+  const character = parsed.data;
   await setUserCharacter(user.id, character);
   getLobbyStore().setCharacter(user.id, character);
   refresh();
@@ -45,8 +47,9 @@ export async function uploadAvatar(_previous: ProfileFormState, form: FormData):
   const user = await getCurrentUser();
   if (user?.kind !== "registered") return { error: "unexpected", saved: false };
 
-  const file = form.get("avatar");
-  if (!(file instanceof File) || file.size === 0) return { error: "missing", saved: false };
+  const upload = z.instanceof(File).refine((file) => file.size > 0).safeParse(form.get("avatar"));
+  if (!upload.success) return { error: "missing", saved: false };
+  const file = upload.data;
   // Checked before reading, so an oversized file is never loaded into memory.
   if (file.size > MAX_AVATAR_BYTES) return { error: "tooLarge", saved: false };
 

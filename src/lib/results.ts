@@ -1,12 +1,17 @@
-import type { KeyStat, ResultRacer, SpeedSample } from "@/types/race";
+import type { KeyStat, RacerStatus, ResultRacer, SpeedSample } from "@/types/race";
 
-/** Finishers first by time, then non-finishers by speed. */
+const statusOrder: Record<RacerStatus, number> = { finished: 0, timeout: 1, eliminated: 2, forfeited: 3 };
+
+/**
+ * Final ranking (COURSE-10): finishers by time, then racers still typing at the end by progress, then sudden-death
+ * eliminations (the last one knocked out first), then forfeits by progress when they gave up. Ties keep input order.
+ */
 export function rankRacers(racers: readonly ResultRacer[]): ResultRacer[] {
   return [...racers].sort((a, b) => {
-    if (a.finishMs !== null && b.finishMs !== null) return a.finishMs - b.finishMs;
-    if (a.finishMs !== null) return -1;
-    if (b.finishMs !== null) return 1;
-    return b.wpm - a.wpm;
+    if (a.status !== b.status) return statusOrder[a.status] - statusOrder[b.status];
+    if (a.status === "finished") return (a.finishMs ?? 0) - (b.finishMs ?? 0);
+    if (a.status === "eliminated") return b.timeMs - a.timeMs;
+    return b.progress - a.progress;
   });
 }
 
@@ -30,6 +35,33 @@ export function chartPoints(
       return `${round(x)},${round(y)}`;
     })
     .join(" ");
+}
+
+/** Chart ceiling: the next multiple of 20 WPM above the fastest value, so the peak never touches the top. */
+export function chartCeiling(wpm: number): number {
+  return Math.ceil((Math.max(0, wpm) + 1) / 20) * 20;
+}
+
+/** Line color of a racer on the shared WPM chart: the player stands out, then the podium, then everyone else. */
+export type ChartTone = "you" | "first" | "second" | "third" | "other";
+
+/**
+ * Scale and line order of the shared WPM chart (RES-03). `racers` are ranked, first place first; lines are returned
+ * back to front so the podium and then the player are drawn on top.
+ */
+export function raceChart(racers: readonly ResultRacer[], youId: string) {
+  const podium: ChartTone[] = ["first", "second", "third"];
+  const lines = racers.map((racer, index) => ({
+    racer,
+    tone: racer.id === youId ? ("you" as const) : (podium[index] ?? "other"),
+  }));
+  const order: Record<ChartTone, number> = { other: 0, third: 1, second: 2, first: 3, you: 4 };
+  const samples = racers.flatMap((racer) => racer.samples);
+  return {
+    durationMs: Math.max(0, ...racers.map((racer) => racer.timeMs), ...samples.map((sample) => sample.atMs)),
+    maxWpm: chartCeiling(Math.max(0, ...samples.map((sample) => sample.wpm))),
+    lines: [...lines].sort((a, b) => order[a.tone] - order[b.tone]),
+  };
 }
 
 function round(value: number): number {

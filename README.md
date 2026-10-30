@@ -27,20 +27,22 @@ Created by `npm run db:seed`. It starts with no races: its stats, history and le
 
 ## Features
 
-- **Real-time multiplayer races**: lobbies with a 3 s synchronized countdown, live track with animated runners, live places, results page (podium, speed chart, accuracy, keyboard heatmap).
-- **Lobbies**: private (join with a 6-character code or link) or public (listed in the lobby browser); ready-up, host-only start, chat and quick taunts.
-- **Race settings** (host only): normal or sudden death (first mistake eliminates you), time limit (30 s to 3 min, or none), texts with numbers, case sensitivity.
-- **Game modes**: quick 1v1 matchmaking (a bot steps in after 15 s), solo training dojo (not saved).
-- **Bots** with four levels (about 30, 60, 120 and 150 WPM), human-like rhythm and typos.
+- **Real-time multiplayer races**: lobbies with a 3 s synchronized countdown, live track with animated runners, live places, results page (podium, full results table, speed chart, keyboard heatmap).
+- **Lobbies**: public (listed in the lobby browser), code-only or private (invite links only); host-set seats (2 to 30), spectators, kicking, closing, single-use invite links, one lobby per person, ready-up, chat and quick taunts.
+- **Guests**: play without an account after picking a nickname; only accounts can host.
+- **Race settings** (host only): error mode (normal, forced fix, free, sudden death), catch-up bonuses, time limit (30 s to 10 min, or none), real passages or random words, length, complexity, punctuation, capitals, accents, numbers, letters to include or leave out.
+- **Persona spells (catch-up bonuses)**: at 25, 50 and 75% of the leader's progress, each lagging racer draws a Persona skill Mario Kart style (Garu, Zio, Agi, Bufu, Frei…; bigger the further behind, same pool for every character) to catch up or slow the leader, cast by their own Persona in a battle-style cut-in, with elemental effects (fire, ice, shock, psy, light, curse).
+- **Game modes**: quick race into the fullest public lobby, quick 1v1 matchmaking (a bot steps in after 15 s), solo training dojo (not saved).
+- **Bots** with five levels (15 to 150 WPM), human-like rhythm and typos, following the error mode and the bonuses.
 - **Accounts**: email/password, plus Google, GitHub and Discord sign-in; 12 playable characters.
 - **Stats**: race history, skill radar on the home page, top 100 leaderboard.
 - French and English UI.
 
-The server is authoritative: clients only send keystrokes; progress, places, results and saved stats are computed on the server.
+The server is authoritative: clients only send keystrokes; progress, places, bonuses, results and saved stats are computed on the server, and every input is validated with Zod.
 
 ## Stack
 
-Next.js (App Router) · React · TypeScript (strict) · Tailwind CSS · PostgreSQL (Drizzle ORM) · Vitest · Playwright · GitHub Actions.
+Next.js (App Router) · React · TypeScript (strict) · Tailwind CSS · PostgreSQL (Drizzle ORM) · Zod · Vitest · Playwright · GitHub Actions.
 
 Real-time updates use Server-Sent Events from Next.js route handlers (no separate socket server). Lobbies and races live in the memory of the Node process, so the app must run as a **single long-running instance** (`next start`), not on serverless hosting.
 
@@ -68,7 +70,8 @@ All are documented in [`.env.example`](.env.example). Never commit `.env`.
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | no | Google sign-in (button hidden when unset) |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | no | GitHub sign-in |
 | `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | no | Discord sign-in |
-| `LOBBY_CAPACITY` | no | Maximum players per lobby (default 30, capped at 60) |
+| `LOBBY_CAPACITY` | no | Seats of a new lobby (default and maximum 30; the host can change it from 2 to 30) |
+| `LOBBY_CODE_ATTEMPTS_PER_MINUTE` | no | Lobby code attempts per IP address and minute (default 10) |
 | `ALLOWED_DEV_ORIGINS` | no | Extra hosts allowed to reach the dev server (LAN play) |
 
 ## Checks
@@ -118,6 +121,6 @@ Detailed docs are in [`docs/`](docs/README.md): architecture and multiplayer des
 
 This is a non-commercial school project made for a class at Cégep. It is not affiliated with, endorsed by or sponsored by ATLUS or SEGA.
 
-Persona and Persona 5, their characters, artwork, music, sound effects and voice clips are trademarks and copyrighted works of ATLUS / SEGA. The character portraits (`public/portraits/`), sprite sheets (`public/sprites/`, fan art based on those characters), music (`public/music/`), sound effects (`public/sfx/`) and voice clips (`public/voices/`) are used for educational purposes only and remain the property of their respective owners. They must be replaced with original or licensed assets before any commercial or public release of the game.
+Persona and Persona 5, their characters, Persona and skill names (Agi, Zio, Bufu…), artwork, music, sound effects and voice clips are trademarks and copyrighted works of ATLUS / SEGA. The character portraits (`public/portraits/`), sprite sheets (`public/sprites/`, fan art based on those characters), music (`public/music/`), sound effects (`public/sfx/`) and voice clips (`public/voices/`) are used for educational purposes only and remain the property of their respective owners. They must be replaced with original or licensed assets before any commercial or public release of the game.
 
 All other code in this repository was written for this project.

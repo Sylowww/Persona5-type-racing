@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
-import { normalizeLobbyCode } from "@/lib/lobby-code";
+import { lobbyCodeSchema } from "@/lib/schemas";
 import { getLobbyStore } from "@/lib/lobby-server";
 import type { LobbyView } from "@/types/lobby";
 
@@ -13,7 +13,7 @@ const RETRY_MS = 1_000;
  * Opening it marks the player connected; closing it starts their reconnect grace period.
  */
 export async function GET(request: NextRequest, { params }: RouteContext<"/api/lobbies/[code]/events">) {
-  const code = normalizeLobbyCode((await params).code);
+  const code = lobbyCodeSchema.safeParse((await params).code).data ?? null;
   const user = await getCurrentUser();
   if (!user) return new Response(null, { status: 401 });
   const store = getLobbyStore();
