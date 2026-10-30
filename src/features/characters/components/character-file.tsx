@@ -183,11 +183,12 @@ function PortraitCard({ id, label, persona, arcana, flipped, onFlip }: PortraitC
     <button
       type="button"
       onClick={onFlip}
-      aria-label={label}
       aria-pressed={flipped}
       className="group relative size-[260px] rotate-6 cursor-pointer [perspective:1200px] md:size-[340px]"
     >
+      <span className="sr-only">{label}</span>
       <span
+        aria-hidden="true"
         className={`character-swap flip-card relative block size-full transition-transform duration-700 ease-[cubic-bezier(0.2,0.9,0.3,1.15)] motion-reduce:transition-none ${
           flipped ? "[transform:rotateY(180deg)]" : ""
         }`}
