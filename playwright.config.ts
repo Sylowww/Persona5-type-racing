@@ -7,6 +7,8 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:3000",
     ...devices["Desktop Chrome"],
+    // Keeps 3D tilt cards flat, so buttons on them do not move between Playwright's aim and its click.
+    contextOptions: { reducedMotion: "reduce" },
   },
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1",
